@@ -216,8 +216,8 @@ export interface PuzzleConfig {
   /**
    * True width and height of the uploaded image
    */
-  imageWidth: number;
-  imageHeight: number;
+  // imageWidth: number;
+  // imageHeight: number;
   aspectRatio?: number;
 }
 

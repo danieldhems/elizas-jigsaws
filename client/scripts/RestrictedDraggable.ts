@@ -5,8 +5,6 @@ export interface RestrictedDraggableArguments {
   layout: {
     top: number;
     left: number;
-    width: number;
-    height: number;
     allowedMovementAxis?: MovementAxis;
   };
   id: string;
@@ -48,7 +46,7 @@ export default class RestrictedDraggable {
 
   createElement(
     id: string,
-    layout: { top: number; left: number; width: number; height: number }
+    layout: { top: number; left: number; }
   ) {
     const element = document.createElement("div");
     element.id = id;
@@ -56,8 +54,8 @@ export default class RestrictedDraggable {
     element.style.position = "absolute";
     element.style.top = layout.top + "px";
     element.style.left = layout.left + "px";
-    element.style.width = layout.width + "px";
-    element.style.height = layout.height + "px";
+    element.style.width = "100%";
+    element.style.height = "100%";
     return element;
   }
 
@@ -83,8 +81,6 @@ export default class RestrictedDraggable {
     const { top, left, width, height } = layout;
     this.element.style.top = top + "px";
     this.element.style.left = left + "px";
-    this.element.style.width = width + "px";
-    this.element.style.height = height + "px";
   }
 
   attachListeners() {

@@ -34,12 +34,24 @@ export default class PuzzleImpressionOverlay {
     this.puzzleConfigs = args.puzzleConfigs;
     this.container = this.targetElement.parentElement as HTMLElement;
 
+    const { puzzleWidth, puzzleHeight } = this.selectedPuzzleConfig;
+
+    if (puzzleWidth < puzzleHeight) {
+      this.container.style.width = "100%";
+    } else if (puzzleHeight < puzzleWidth) {
+      this.container.style.height = "100%";
+    } else {
+      this.container.style.height = "100%";
+    }
+
+    console.log("select config", this.selectedPuzzleConfig)
+
     const layout = this.getLayout(this.selectedPuzzleConfig);
     this.setLayoutInternal(layout);
 
     this.draggable = new RestrictedDraggable({
       containerElement: this.container,
-      layout,
+      layout
       id: "puzzle-impression-overlay",
       restrictionBoundingBox: layout,
     });
@@ -72,16 +84,26 @@ export default class PuzzleImpressionOverlay {
     const rightBoundary = this.targetElement.offsetWidth - leftBoundary;
     const bottomBoundary = this.targetElement.offsetHeight - topBoundary;
 
-    const height = this.targetElement.offsetHeight;
-    const width = puzzleConfig.aspectRatio ? height * puzzleConfig.aspectRatio : height;
+    // const height = this.targetElement.offsetHeight;
+    // const width = height * (puzzleConfig.aspectRatio as number);
+
+    let width, height;
+
+    const { puzzleWidth, puzzleHeight, aspectRatio } = puzzleConfig;
+
+    if (puzzleWidth < puzzleHeight) {
+      width = this.targetElement.offsetWidth;
+      height = this.targetElement.offsetHeight * (aspectRatio as number);
+    } else if (puzzleHeight < puzzleWidth) {
+      height = this.targetElement.offsetHeight;
+      width = this.targetElement.offsetWidth * (aspectRatio as number);
+    }
 
     return {
       left: leftBoundary,
       top: 0,
       right: rightBoundary,
       bottom: bottomBoundary,
-      width,
-      height,
     };
   }
 

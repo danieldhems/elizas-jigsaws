@@ -1,5 +1,5 @@
 import { LargeNumberLike } from "crypto";
-import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHADOW_COLOR, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
+import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SCREEN_MARGIN, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__SQUARE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__SQUARE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__SQUARE_IMAGE, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
 import jigsawPath from "./jigsawPath";
 import { getJigsawShapeSvgString } from "./svg";
 import { ConnectorNames, ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SideNames, SkeletonPiece, PuzzleImpression } from "./types";
@@ -709,6 +709,200 @@ const assignInitialPieceData = (
   );
 };
 
+export function getPuzzleConfigs(
+  availableWidth: number,
+  availableHeight: number,
+  minimumPieceSize: number,
+  minimumNumberOfPieces: number
+): {
+  rectangularPuzzleConfigs: PuzzleConfig[];
+  squarePuzzleConfigs: PuzzleConfig[];
+} {
+  console.log("getPuzzleConfigs: availableWidth", availableWidth)
+  console.log("getPuzzleConfigs: availableHeight", availableHeight)
+
+  const shortSide: PuzzleAxis | null =
+    availableWidth < availableHeight
+      ? PuzzleAxis.Horizontal
+      : availableHeight < availableWidth
+        ? PuzzleAxis.Vertical
+        : null;
+
+  console.log("getPuzzleConfigs: short side", shortSide)
+
+  let n: number = Math.sqrt(minimumNumberOfPieces);
+
+  const length = shortSide === PuzzleAxis.Horizontal
+    ? availableWidth
+    : availableHeight;
+
+  let divisionResult: number;
+
+  const rectangularPuzzleConfigs: PuzzleConfig[] = [];
+  const squarePuzzleConfigs: PuzzleConfig[] = [];
+
+  do {
+    divisionResult = length / n;
+
+    if (divisionResult < minimumPieceSize) break;
+
+    const connectorTolerance = (divisionResult / 100 * CONNECTOR_TOLERANCE_AMOUNT);
+    const shadowOffset = (divisionResult / 100 * SHADOW_OFFSET_RATIO);
+
+    const connectorSize = getConnectorSize(divisionResult);
+    const connectorDistanceFromCorner = getConnectorDistanceFromCorner(divisionResult);
+
+    const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
+
+    const puzzleConfig = {} as PuzzleConfig;
+
+    if (shortSide) {
+      puzzleConfig.pieceSize = pieceSize;
+      puzzleConfig.connectorSize = connectorSize;
+      puzzleConfig.connectorTolerance = connectorTolerance;
+      puzzleConfig.shadowOffset = shadowOffset;
+      puzzleConfig.connectorDistanceFromCorner = connectorDistanceFromCorner;
+
+      let numberOfPiecesOnLongSide: number;
+
+      switch (shortSide) {
+        case PuzzleAxis.Horizontal:
+          // Portrait puzzle
+          numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+            availableHeight,
+            pieceSize
+          );
+
+          puzzleConfig.numberOfPiecesHorizontal = n;
+          puzzleConfig.numberOfPiecesVertical = numberOfPiecesOnLongSide;
+          puzzleConfig.puzzleWidth = pieceSize * n;
+          puzzleConfig.puzzleHeight = pieceSize * numberOfPiecesOnLongSide;
+
+          break;
+
+        case PuzzleAxis.Vertical:
+          // Landscape puzzle
+          numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+            availableWidth,
+            pieceSize
+          );
+
+          puzzleConfig.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
+          puzzleConfig.numberOfPiecesVertical = n;
+          puzzleConfig.puzzleWidth = pieceSize * numberOfPiecesOnLongSide;
+          puzzleConfig.puzzleHeight = pieceSize * n;
+
+          break;
+      }
+
+      puzzleConfig.aspectRatio = puzzleConfig.puzzleWidth / puzzleConfig.puzzleHeight;
+      puzzleConfig.totalNumberOfPieces = puzzleConfig.numberOfPiecesHorizontal * puzzleConfig.numberOfPiecesVertical;
+
+      rectangularPuzzleConfigs.push(puzzleConfig);
+    }
+
+    // Square puzzles
+    const config = {
+      numberOfPiecesHorizontal: n,
+      numberOfPiecesVertical: n,
+      totalNumberOfPieces: n * n,
+      pieceSize,
+      connectorSize,
+      connectorTolerance,
+      shadowOffset,
+      connectorDistanceFromCorner,
+      availableWidth,
+      availableHeight,
+      puzzleWidth: pieceSize * n,
+      puzzleHeight: pieceSize * n,
+    };
+
+    squarePuzzleConfigs.push(config);
+
+    n = n + 1;
+
+  } while (divisionResult >= minimumPieceSize);
+
+  return {
+    rectangularPuzzleConfigs,
+    squarePuzzleConfigs,
+  };
+}
+
+export type ImageInfo = {
+  width: number;
+  height: number;
+  aspectRatio: number;
+}
+
+export const getOptimalPuzzleSize = (imageInfo: ImageInfo): { optimalWidth: number; optimalHeight: number } => {
+  let optimalWidth: number;
+  let optimalHeight: number;
+
+  const { width, height, aspectRatio } = imageInfo;
+
+  const availableWidth = window.innerWidth - SCREEN_MARGIN * 2;
+  const availableHeight = window.innerHeight - SCREEN_MARGIN * 2;
+
+  if (window.innerHeight < window.innerWidth) {
+    // Landscape viewport
+    if (width < height) {
+      // Portrait image
+      optimalHeight =
+        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__PORTRAIT_IMAGE;
+      optimalWidth = optimalHeight * aspectRatio;
+    } else if (height < width) {
+      // Landscape image
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__LANDSCAPE_IMAGE;
+      optimalHeight = optimalWidth * aspectRatio;
+    } else {
+      // Square image
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__SQUARE_IMAGE;
+      optimalHeight = optimalWidth;
+    }
+  } else if (window.innerWidth < window.innerHeight) {
+    // Portrait viewport
+    if (width < height) {
+      // Portrait image
+      optimalHeight =
+        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__PORTRAIT_IMAGE;
+      optimalWidth = optimalHeight * aspectRatio;
+    } else if (height < width) {
+      // Landscape image
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__LANDSCAPE_IMAGE;
+      optimalHeight = optimalWidth * aspectRatio;
+    } else {
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__SQUARE_IMAGE;
+      optimalHeight = optimalWidth;
+    }
+  } else {
+    if (width < height) {
+      // Portrait image
+      optimalHeight =
+        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__PORTRAIT_IMAGE;
+      optimalWidth = optimalHeight * aspectRatio;
+    } else if (height < width) {
+      // Landscape image
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__LANDSCAPE_IMAGE;
+      optimalHeight = optimalWidth * aspectRatio;
+    } else {
+      optimalWidth =
+        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__SQUARE_IMAGE;
+      optimalHeight = optimalWidth;
+    }
+  }
+
+  return {
+    optimalWidth,
+    optimalHeight
+  }
+}
+
 export const getPiecePositionBasedOnAdjacentPieces = (
   piece: SkeletonPiece,
   currentPosition: { x: number, y: number },
@@ -802,6 +996,40 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
     container,
     impressions,
   }
+}
+
+/**
+   * Calculate the maximum number of pieces we can have along a given edge
+   * by simple addition based on a known size.
+   *
+   * i.e. keep adding the known piece size while it still fits within the length
+   *
+   * Use this to get the number of pieces for the longer edge once we know
+   * the number of pieces and their sizes for the shorter egde.
+   *
+   * @param edgeLength number
+   * @param interval number
+   * @returns { numberOfPieces: number, totalLength: number }
+   */
+export function getNumberOfPiecesForAdjacentSideByPieceSize(
+  edgeLength: number,
+  pieceSize: number
+): number {
+  let n: number = 0;
+  let sum: number = 0;
+  let done = false;
+
+  while (!done) {
+    const newValue = sum + pieceSize;
+    if (newValue < edgeLength) {
+      sum = newValue;
+      n++;
+    } else {
+      done = true;
+    }
+  }
+
+  return n;
 }
 
 // exports.drawJigsawShape = drawJigsawShape;
