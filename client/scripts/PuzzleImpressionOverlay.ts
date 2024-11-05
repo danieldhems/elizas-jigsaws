@@ -51,7 +51,7 @@ export default class PuzzleImpressionOverlay {
 
     this.draggable = new RestrictedDraggable({
       containerElement: this.container,
-      layout
+      layout,
       id: "puzzle-impression-overlay",
       restrictionBoundingBox: layout,
     });
@@ -76,6 +76,8 @@ export default class PuzzleImpressionOverlay {
   }
 
   getLayout(puzzleConfig: PuzzleConfig) {
+    console.log('puzzle config', puzzleConfig)
+
     // Calculate top and left position of target element, assuming it is centered
     const topBoundary =
       (this.container.offsetHeight - this.targetElement.offsetHeight) / 2;
@@ -84,24 +86,16 @@ export default class PuzzleImpressionOverlay {
     const rightBoundary = this.targetElement.offsetWidth - leftBoundary;
     const bottomBoundary = this.targetElement.offsetHeight - topBoundary;
 
-    // const height = this.targetElement.offsetHeight;
-    // const width = height * (puzzleConfig.aspectRatio as number);
+    const { percentageOfImageUsedHorizontal, percentageOfImageUsedVertical } = puzzleConfig;
 
-    let width, height;
-
-    const { puzzleWidth, puzzleHeight, aspectRatio } = puzzleConfig;
-
-    if (puzzleWidth < puzzleHeight) {
-      width = this.targetElement.offsetWidth;
-      height = this.targetElement.offsetHeight * (aspectRatio as number);
-    } else if (puzzleHeight < puzzleWidth) {
-      height = this.targetElement.offsetHeight;
-      width = this.targetElement.offsetWidth * (aspectRatio as number);
-    }
+    const width = this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
+    const height = this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
 
     return {
       left: leftBoundary,
       top: 0,
+      width,
+      height,
       right: rightBoundary,
       bottom: bottomBoundary,
     };

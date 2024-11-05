@@ -201,6 +201,8 @@ export interface PuzzleConfig {
   numberOfPiecesVertical: number;
   totalNumberOfPieces: number;
   pieceSize: number;
+  percentageOfImageUsedHorizontal: number;
+  percentageOfImageUsedVertical: number;
   connectorDistanceFromCorner: number;
   connectorSize: number;
   connectorTolerance: number;

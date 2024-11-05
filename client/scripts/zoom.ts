@@ -1,4 +1,4 @@
-import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN, ZOOM_INTERVALS } from "./constants";
+import { EVENT_TYPES, SCREEN_MARGIN, ZOOM_INTERVALS } from "./constants";
 import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
 import Puzzly from "./Puzzly";

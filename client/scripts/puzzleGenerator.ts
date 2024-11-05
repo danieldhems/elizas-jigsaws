@@ -1,5 +1,5 @@
 import { LargeNumberLike } from "crypto";
-import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SCREEN_MARGIN, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__SQUARE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__SQUARE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__LANDSCAPE_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__PORTRAIT_IMAGE, SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__SQUARE_IMAGE, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
+import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE, SCREEN_MARGIN, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
 import jigsawPath from "./jigsawPath";
 import { getJigsawShapeSvgString } from "./svg";
 import { ConnectorNames, ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SideNames, SkeletonPiece, PuzzleImpression } from "./types";
@@ -736,10 +736,10 @@ export function getPuzzleConfigs(
     ? availableWidth
     : availableHeight;
 
-  let divisionResult: number;
-
   const rectangularPuzzleConfigs: PuzzleConfig[] = [];
   const squarePuzzleConfigs: PuzzleConfig[] = [];
+
+  let divisionResult: number;
 
   do {
     divisionResult = length / n;
@@ -755,6 +755,8 @@ export function getPuzzleConfigs(
     const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
 
     const puzzleConfig = {} as PuzzleConfig;
+
+
 
     if (shortSide) {
       puzzleConfig.pieceSize = pieceSize;
@@ -777,6 +779,8 @@ export function getPuzzleConfigs(
           puzzleConfig.numberOfPiecesVertical = numberOfPiecesOnLongSide;
           puzzleConfig.puzzleWidth = pieceSize * n;
           puzzleConfig.puzzleHeight = pieceSize * numberOfPiecesOnLongSide;
+          puzzleConfig.percentageOfImageUsedHorizontal = puzzleConfig.puzzleWidth / availableWidth * 100;
+          puzzleConfig.percentageOfImageUsedVertical = puzzleConfig.puzzleHeight / availableHeight * 100;
 
           break;
 
@@ -791,6 +795,8 @@ export function getPuzzleConfigs(
           puzzleConfig.numberOfPiecesVertical = n;
           puzzleConfig.puzzleWidth = pieceSize * numberOfPiecesOnLongSide;
           puzzleConfig.puzzleHeight = pieceSize * n;
+          puzzleConfig.percentageOfImageUsedHorizontal = puzzleConfig.puzzleWidth / availableWidth * 100;
+          puzzleConfig.percentageOfImageUsedVertical = puzzleConfig.puzzleHeight / availableHeight * 100;
 
           break;
       }
@@ -815,6 +821,8 @@ export function getPuzzleConfigs(
       availableHeight,
       puzzleWidth: pieceSize * n,
       puzzleHeight: pieceSize * n,
+      percentageOfImageUsedHorizontal: (pieceSize * n) / availableWidth * 100,
+      percentageOfImageUsedVertical: (pieceSize * n) / availableHeight * 100,
     };
 
     squarePuzzleConfigs.push(config);
@@ -841,61 +849,31 @@ export const getOptimalPuzzleSize = (imageInfo: ImageInfo): { optimalWidth: numb
 
   const { width, height, aspectRatio } = imageInfo;
 
-  const availableWidth = window.innerWidth - SCREEN_MARGIN * 2;
-  const availableHeight = window.innerHeight - SCREEN_MARGIN * 2;
+  const availableWidth = Math.min(window.innerWidth, window.innerHeight) - (SCREEN_MARGIN * 2);
+  const availableHeight = availableWidth;
 
-  if (window.innerHeight < window.innerWidth) {
-    // Landscape viewport
-    if (width < height) {
-      // Portrait image
-      optimalHeight =
-        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__PORTRAIT_IMAGE;
-      optimalWidth = optimalHeight * aspectRatio;
-    } else if (height < width) {
-      // Landscape image
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__LANDSCAPE_IMAGE;
-      optimalHeight = optimalWidth * aspectRatio;
-    } else {
-      // Square image
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__LANDSCAPE_VIEWPORT__SQUARE_IMAGE;
-      optimalHeight = optimalWidth;
-    }
-  } else if (window.innerWidth < window.innerHeight) {
-    // Portrait viewport
-    if (width < height) {
-      // Portrait image
-      optimalHeight =
-        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__PORTRAIT_IMAGE;
-      optimalWidth = optimalHeight * aspectRatio;
-    } else if (height < width) {
-      // Landscape image
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__LANDSCAPE_IMAGE;
-      optimalHeight = optimalWidth * aspectRatio;
-    } else {
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__PORTRAIT_VIEWPORT__SQUARE_IMAGE;
-      optimalHeight = optimalWidth;
-    }
+  console.log("availableWidth", availableWidth)
+  console.log("availableHeight", availableHeight)
+
+  if (width < height) {
+    // Portrait image
+    optimalWidth =
+      (availableWidth / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
+    optimalHeight = optimalWidth * aspectRatio;
+  } else if (height < width) {
+    // Landscape image
+    optimalHeight =
+      (availableHeight / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
+    optimalWidth = optimalHeight * aspectRatio;
   } else {
-    if (width < height) {
-      // Portrait image
-      optimalHeight =
-        (availableHeight / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__PORTRAIT_IMAGE;
-      optimalWidth = optimalHeight * aspectRatio;
-    } else if (height < width) {
-      // Landscape image
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__LANDSCAPE_IMAGE;
-      optimalHeight = optimalWidth * aspectRatio;
-    } else {
-      optimalWidth =
-        (availableWidth / 100) * SOLVING_AREA_SIZE_AS_PERCENTAGE_OF_VIEWPORT__SQUARE_VIEWPORT__SQUARE_IMAGE;
-      optimalHeight = optimalWidth;
-    }
+    // Square image
+    optimalWidth =
+      (availableWidth / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
+    optimalHeight = optimalWidth;
   }
+
+  console.log("optimal width", optimalWidth)
+  console.log("optimal height", optimalHeight)
 
   return {
     optimalWidth,
