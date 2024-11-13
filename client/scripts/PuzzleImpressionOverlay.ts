@@ -36,13 +36,13 @@ export default class PuzzleImpressionOverlay {
 
     const { puzzleWidth, puzzleHeight } = this.selectedPuzzleConfig;
 
-    if (puzzleWidth < puzzleHeight) {
-      this.container.style.width = "100%";
-    } else if (puzzleHeight < puzzleWidth) {
-      this.container.style.height = "100%";
-    } else {
-      this.container.style.height = "100%";
-    }
+    // if (puzzleWidth < puzzleHeight) {
+    //   this.container.style.width = "100%";
+    // } else if (puzzleHeight < puzzleWidth) {
+    //   this.container.style.height = "100%";
+    // } else {
+    //   this.container.style.height = "100%";
+    // }
 
     console.log("select config", this.selectedPuzzleConfig)
 

@@ -301,33 +301,7 @@ export default class Puzzly {
     );
   }
 
-  bootstrap(puzzleConfig: Pick<PuzzleConfig, "imageWidth" | "imageHeight" | "numberOfPiecesHorizontal" | "numberOfPiecesVertical">) {
-    const { imageWidth, imageHeight, numberOfPiecesHorizontal, numberOfPiecesVertical } = puzzleConfig;
-    const smallerLength = Math.min(imageWidth, imageHeight);
-    const largerLength = Math.max(imageWidth, imageHeight);
 
-    const isSquare = numberOfPiecesHorizontal === numberOfPiecesVertical;
-    const aspectRatio = smallerLength / largerLength;
-
-    if (window.innerWidth < window.innerHeight) {
-      const height = Utils.getSolvingAreaHeight();
-      return {
-        height,
-        width: isSquare ? height : height * aspectRatio,
-        // pieceSize: height / numberOfPiecesVertical,
-        connectorSize: height / 100 * CONNECTOR_SIZE_PERC,
-      }
-
-    } else if (window.innerHeight < window.innerWidth) {
-      const width = Utils.getSolvingAreaWidth();
-      return {
-        width,
-        height: isSquare ? width : width * aspectRatio,
-        // pieceSize: width / numberOfPiecesHorizontal,
-        connectorSize: width / 100 * CONNECTOR_SIZE_PERC,
-      }
-    }
-  }
 
   updateElapsedTime(isComplete = false) {
     const now = new Date().getTime();

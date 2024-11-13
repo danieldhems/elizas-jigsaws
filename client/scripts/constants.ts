@@ -30,6 +30,8 @@ export const SquareShapedPuzzleDefinitions = [
 export const MINIMUM_PIECE_SIZE = 50;
 export const MINIMUM_NUMBER_OF_PIECES = 9;
 export const MINIMUM_NUMBER_OF_PIECES_PER_SIDE = 3;
+
+
 export const MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED = 1024;
 
 /**

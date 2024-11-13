@@ -529,12 +529,5 @@ use {
         flex-direction: column;
     }
 
-    #puzzle-creator {
-        width: 75%;
-        height: 75%;
-    }
-    
-    .inner-content {
-        padding: 2em;
-    }
+
 }
