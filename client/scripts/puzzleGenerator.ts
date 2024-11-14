@@ -843,44 +843,6 @@ export type ImageInfo = {
   aspectRatio: number;
 }
 
-export const getOptimalPuzzleSize = (imageInfo: ImageInfo): { optimalWidth: number; optimalHeight: number } => {
-  let optimalWidth: number;
-  let optimalHeight: number;
-
-  const { width, height, aspectRatio } = imageInfo;
-
-  const availableWidth = Math.min(window.innerWidth, window.innerHeight) - (SCREEN_MARGIN * 2);
-  const availableHeight = availableWidth;
-
-  console.log("availableWidth", availableWidth)
-  console.log("availableHeight", availableHeight)
-
-  if (width < height) {
-    // Portrait image
-    optimalWidth =
-      (availableWidth / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
-    optimalHeight = optimalWidth * aspectRatio;
-  } else if (height < width) {
-    // Landscape image
-    optimalHeight =
-      (availableHeight / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
-    optimalWidth = optimalHeight * aspectRatio;
-  } else {
-    // Square image
-    optimalWidth =
-      (availableWidth / 100) * PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE;
-    optimalHeight = optimalWidth;
-  }
-
-  console.log("optimal width", optimalWidth)
-  console.log("optimal height", optimalHeight)
-
-  return {
-    optimalWidth,
-    optimalHeight
-  }
-}
-
 export const getPiecePositionBasedOnAdjacentPieces = (
   piece: SkeletonPiece,
   currentPosition: { x: number, y: number },

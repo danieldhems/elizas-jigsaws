@@ -6,9 +6,9 @@ import {
   SHADOW_OFFSET_RATIO,
   SHOULDER_SIZE_PERC,
 } from "./constants";
+import GeneratorSteps from "./generatorSteps";
 import puzzleGenerator, {
   addPuzzleDataToPieces,
-  getOptimalPuzzleSize,
   getPuzzleConfigs,
 } from "./puzzleGenerator";
 import PuzzleImpressionOverlay from "./PuzzleImpressionOverlay";
@@ -322,13 +322,14 @@ export default class PuzzlyCreator {
       const { width, height } = this.sourceImage.dimensions;
 
       this.imageAspectRatio = width / height;
+      const { innerWidth, innerHeight } = window;
 
-      const { optimalWidth, optimalHeight } = getOptimalPuzzleSize({
-        width, height, aspectRatio: width / height
-      });
+      const { maxWidth, maxHeight } = GeneratorSteps.getMaximumPuzzleDimensionsForViewport(
+        innerWidth, innerHeight, width, height,
+      );
 
-      this.maximumPuzzleWidth = optimalWidth;
-      this.maximumPuzzleHeight = optimalHeight;
+      this.maximumPuzzleWidth = maxWidth;
+      this.maximumPuzzleHeight = maxHeight;
 
       // Utils.drawBox({ top: 200, left: 200, width: optimalWidth, height: optimalHeight })
     }
