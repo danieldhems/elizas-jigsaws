@@ -69,13 +69,13 @@ const GeneratorSteps = {
 
         const aspectRatio = imageWidth / imageHeight;
 
-        if (imageHeight < imageWidth) {
+        if (imageWidth < imageHeight) {
             // Portrait image
-            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE;
+            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_PORTRAIT_IMAGE;
             maxHeight = maxWidth * aspectRatio;
         } else {
             // Landscape image
-            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_PORTRAIT_IMAGE;
+            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE;
             maxHeight = maxWidth * aspectRatio;
         }
 
