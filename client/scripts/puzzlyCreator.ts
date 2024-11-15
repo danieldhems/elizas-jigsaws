@@ -318,26 +318,20 @@ export default class PuzzlyCreator {
 
       this.sourceImage.dimensions.width = response.data.width;
       this.sourceImage.dimensions.height = response.data.height;
-
-      const { width, height } = this.sourceImage.dimensions;
-
-      this.imageAspectRatio = width / height;
-      const { innerWidth, innerHeight } = window;
-
-      const { maxWidth, maxHeight } = GeneratorSteps.getMaximumPuzzleDimensionsForViewport(
-        innerWidth, innerHeight, width, height,
-      );
-
-      this.maximumPuzzleWidth = maxWidth;
-      this.maximumPuzzleHeight = maxHeight;
-
-      // Utils.drawBox({ top: 200, left: 200, width: optimalWidth, height: optimalHeight })
     }
   }
 
   onImagePreviewLoad() {
-    console.log("this.maximumPuzzleWidth", this.maximumPuzzleWidth)
-    console.log("this.maximumPuzzleHeight", this.maximumPuzzleHeight)
+    const { width, height } = this.sourceImage.dimensions;
+
+    this.imageAspectRatio = width / height;
+
+    const { maxWidth, maxHeight } = GeneratorSteps.getMaximumPuzzleDimensionsForViewport(
+      innerWidth, innerHeight, width, height,
+    );
+
+    this.maximumPuzzleWidth = maxWidth;
+    this.maximumPuzzleHeight = maxHeight;
 
     const { rectangularPuzzleConfigs, squarePuzzleConfigs } =
       getPuzzleConfigs(

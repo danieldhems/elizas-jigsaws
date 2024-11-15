@@ -34,8 +34,6 @@ export default class PuzzleImpressionOverlay {
     this.puzzleConfigs = args.puzzleConfigs;
     this.container = this.targetElement.parentElement as HTMLElement;
 
-    console.log("select config", this.selectedPuzzleConfig)
-
     const layout = this.getLayout(this.selectedPuzzleConfig);
     this.setLayoutInternal(layout);
 

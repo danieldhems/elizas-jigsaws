@@ -718,9 +718,6 @@ export function getPuzzleConfigs(
   rectangularPuzzleConfigs: PuzzleConfig[];
   squarePuzzleConfigs: PuzzleConfig[];
 } {
-  console.log("getPuzzleConfigs: availableWidth", availableWidth)
-  console.log("getPuzzleConfigs: availableHeight", availableHeight)
-
   const shortSide: PuzzleAxis | null =
     availableWidth < availableHeight
       ? PuzzleAxis.Horizontal
@@ -755,8 +752,6 @@ export function getPuzzleConfigs(
     const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
 
     const puzzleConfig = {} as PuzzleConfig;
-
-
 
     if (shortSide) {
       puzzleConfig.pieceSize = pieceSize;
