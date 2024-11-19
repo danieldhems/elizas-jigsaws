@@ -38,30 +38,25 @@ async function upload(req, res) {
     const fullSizePath = uploadDir + "fullsize_" + image.name;
     image.mv(fullSizePath);
 
-    const imgW = parseInt(req.body.previewWidth);
-    const imgH = parseInt(req.body.previewHeight);
-    let resizeW, resizeH, aspectRatio;
+    
 
     const previewImg = Sharp(image.data);
 
     const { width: actualW, height: actualH } = await previewImg.metadata();
 
-    if (actualW > actualH) {
-      aspectRatio = actualW / actualH;
-    } else {
-      aspectRatio = actualH / actualW;
-    }
+    const imgW = parseInt(req.body.previewWidth);
+    const imgH = parseInt(req.body.previewHeight);
 
-    if (actualW > actualH) {
-      resizeW = Math.floor(imgW);
-      resizeH = Math.floor(imgH / aspectRatio);
-    } else if (actualH > actualW) {
-      resizeH = Math.floor(imgH);
-      resizeW = Math.floor(imgW / aspectRatio);
-    }
+    const resizeWidth = actualW > actualH ? imgW : null;
+    const resizeHeight = actualH > actualW ? imgH : null;
+
+    console.log("provided width", imgW)
+    console.log("provided height", imgH)
+    console.log("resize width", resizeWidth)
+    console.log("resize height", resizeHeight)
 
     await previewImg
-      .resize({ width: resizeW, height: resizeH })
+      .resize(resizeWidth, resizeHeight, { fit: 'inside' })
       .toFile(previewPath);
 
     res.status(200).send({

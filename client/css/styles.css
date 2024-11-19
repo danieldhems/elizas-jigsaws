@@ -289,6 +289,10 @@ label {
     margin-bottom: 1em;
 }
 
+#puzzle-setup--image_preview_inner {
+    position: relative;
+}
+
 #puzzle-setup--image_preview {
     display: flex;
     justify-content: center;
@@ -298,10 +302,6 @@ label {
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
-}
-
-#puzzle-setup--image_preview img {
-    max-height: 100%;
 }
 
 #puzzle-setup--image_input {

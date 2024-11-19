@@ -23,6 +23,10 @@ const GeneratorSteps = {
         maxWidth: number;
         maxHeight: number;
     } {
+        console.log("viewportWidth", viewportWidth)
+        console.log("viewportHeight", viewportHeight)
+        console.log("imageWidth", imageWidth)
+        console.log("imageHeight", imageHeight)
         if (viewportHeight < viewportWidth) {
             // Landscape viewport
             return GeneratorSteps._getDimensionsForLandscapeViewport(viewportHeight, imageWidth, imageHeight);

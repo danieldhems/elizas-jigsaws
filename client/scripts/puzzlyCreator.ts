@@ -88,6 +88,8 @@ export default class PuzzlyCreator {
   puzzleSizeInputLabel: HTMLLabelElement;
   chkHighlights: HTMLInputElement;
   chkNoDispersal: HTMLInputElement;
+  imagePreviewElContainer: HTMLDivElement;
+  imagePreviewElInner: HTMLDivElement;
   imagePreviewEl: HTMLImageElement;
   imageUploadField: HTMLInputElement;
   newPuzzleForm: HTMLDivElement;
@@ -126,8 +128,14 @@ export default class PuzzlyCreator {
     this.chkNoDispersal = document.querySelector(
       "#chk-no-disperse"
     ) as this["chkNoDispersal"];
+    this.imagePreviewElContainer = document.querySelector(
+      "#puzzle-setup--image"
+    ) as this["imagePreviewEl"];
     this.imagePreviewEl = document.querySelector(
       "#puzzle-setup--image_preview"
+    ) as this["imagePreviewEl"];
+    this.imagePreviewElInner = document.querySelector(
+      "#puzzle-setup--image_preview_inner"
     ) as this["imagePreviewEl"];
     this.imageUploadField = document.querySelector(
       "#upload-fld"
@@ -306,13 +314,16 @@ export default class PuzzlyCreator {
     console.log("onUploadSuccess", response);
 
     if (response.data) {
+      const { width, height } = response.data;
+      const isLandscape = width > height;
       this.imagePreviewEl.style.display = "flex";
+      this.imagePreviewEl.style.flexDirection = isLandscape ? 'column' : '';
       // this.imagePreviewEl.style.opacity = "0.5";
       // (
       //   this.imagePreviewEl as HTMLImageElement
       // ).style.backgroundImage = "url("+response.data.fullSizePath+")";
       (this.imageUploadPreviewEl as HTMLImageElement).src =
-        response.data.fullSizePath;
+        response.data.previewPath;
       this.sourceImage.imageName = response.data.filename;
       this.fullSizePath = response.data.fullSizePath;
 
