@@ -314,14 +314,7 @@ export default class PuzzlyCreator {
     console.log("onUploadSuccess", response);
 
     if (response.data) {
-      const { width, height } = response.data;
-      const isLandscape = width > height;
       this.imagePreviewEl.style.display = "flex";
-      this.imagePreviewEl.style.flexDirection = isLandscape ? 'column' : '';
-      // this.imagePreviewEl.style.opacity = "0.5";
-      // (
-      //   this.imagePreviewEl as HTMLImageElement
-      // ).style.backgroundImage = "url("+response.data.fullSizePath+")";
       (this.imageUploadPreviewEl as HTMLImageElement).src =
         response.data.previewPath;
       this.sourceImage.imageName = response.data.filename;

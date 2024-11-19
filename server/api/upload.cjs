@@ -56,7 +56,7 @@ async function upload(req, res) {
     console.log("resize height", resizeHeight)
 
     await previewImg
-      .resize(resizeWidth, resizeHeight, { fit: 'inside' })
+      .resize(imgW, imgH, { fit: 'inside' })
       .toFile(previewPath);
 
     res.status(200).send({

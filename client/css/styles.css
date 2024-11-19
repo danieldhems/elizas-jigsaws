@@ -296,6 +296,7 @@ label {
 #puzzle-setup--image_preview {
     display: flex;
     justify-content: center;
+    align-items: center;
     height: 90%;
     margin-bottom: 10px;
     position: relative;
