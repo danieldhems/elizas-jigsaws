@@ -186,6 +186,9 @@ export default class PuzzlyCreator {
   }
 
   setupPuzzleShapefield() {
+    const { width, height } = this.sourceImage.dimensions;
+    if (width === height) return;
+
     const inputs = document.querySelectorAll("[name='input-puzzle_shape']");
 
     Array.from(inputs).forEach((field) => {
@@ -349,6 +352,10 @@ export default class PuzzlyCreator {
       rectangularPuzzleConfigs,
       squarePuzzleConfigs,
     };
+
+    if (width === height) {
+      this.selectedPuzzleShape = PuzzleShapes.Square;
+    }
 
     this.activePuzzleConfigs = this.getPuzzleConfigsForSelectedShape(
       this.selectedPuzzleShape

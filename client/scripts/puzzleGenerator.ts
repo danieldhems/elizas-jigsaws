@@ -802,6 +802,8 @@ export function getPuzzleConfigs(
       rectangularPuzzleConfigs.push(puzzleConfig);
     }
 
+    console.log("piece size", pieceSize)
+
     // Square puzzles
     const config = {
       numberOfPiecesHorizontal: n,
@@ -816,8 +818,8 @@ export function getPuzzleConfigs(
       availableHeight,
       puzzleWidth: pieceSize * n,
       puzzleHeight: pieceSize * n,
-      percentageOfImageUsedHorizontal: (pieceSize * n) / availableWidth * 100,
-      percentageOfImageUsedVertical: (pieceSize * n) / availableHeight * 100,
+      percentageOfImageUsedHorizontal: 100,
+      percentageOfImageUsedVertical: 100,
     };
 
     squarePuzzleConfigs.push(config);
@@ -825,6 +827,8 @@ export function getPuzzleConfigs(
     n = n + 1;
 
   } while (divisionResult >= minimumPieceSize);
+
+  console.log("square configs", squarePuzzleConfigs)
 
   return {
     rectangularPuzzleConfigs,
