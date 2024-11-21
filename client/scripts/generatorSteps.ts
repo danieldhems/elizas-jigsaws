@@ -1,4 +1,4 @@
-import { PUZZLE_SIZE_LANDSCAPE_VIEWPORT_LANDSCAPE_IMAGE, PUZZLE_SIZE_LANDSCAPE_VIEWPORT_PORTRAIT_IMAGE, PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE, PUZZLE_SIZE_PORTRAIT_VIEWPORT_PORTRAIT_IMAGE } from "./constants";
+import { PUZZLE_SIZE_LANDSCAPE_VIEWPORT_LANDSCAPE_IMAGE, PUZZLE_SIZE_LANDSCAPE_VIEWPORT_PORTRAIT_IMAGE, PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE, PUZZLE_SIZE_PORTRAIT_VIEWPORT_PORTRAIT_IMAGE, PUZZLE_SIZE_SQUARE_IMAGE } from "./constants";
 
 const GeneratorSteps = {
     /**
@@ -48,10 +48,13 @@ const GeneratorSteps = {
             // Landscape image
             maxHeight = viewportHeight / 100 * PUZZLE_SIZE_LANDSCAPE_VIEWPORT_LANDSCAPE_IMAGE;
             maxWidth = maxHeight * aspectRatio;
-        } else {
+        } else if (imageWidth < imageHeight) {
             // Portrait image
             maxHeight = viewportHeight / 100 * PUZZLE_SIZE_LANDSCAPE_VIEWPORT_PORTRAIT_IMAGE;
             maxWidth = maxHeight * aspectRatio;
+        } else {
+            maxHeight = viewportHeight / 100 * PUZZLE_SIZE_SQUARE_IMAGE;
+            maxWidth = maxHeight;
         }
 
         return {
@@ -73,10 +76,13 @@ const GeneratorSteps = {
             // Portrait image
             maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_PORTRAIT_IMAGE;
             maxHeight = maxWidth / aspectRatio;
-        } else {
+        } else if (imageHeight < imageWidth) {
             // Landscape image
             maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE;
             maxHeight = maxWidth / aspectRatio;
+        } else {
+            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_SQUARE_IMAGE;;
+            maxHeight = maxWidth;
         }
 
         return {

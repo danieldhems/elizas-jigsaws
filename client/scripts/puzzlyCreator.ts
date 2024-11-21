@@ -200,6 +200,18 @@ export default class PuzzlyCreator {
     });
   }
 
+  setPuzzleShapeInputsValue(puzzleShape: PuzzleShapes) {
+    console.log("setPuzzleShapeInputsValue", puzzleShape)
+    Array.from(this.puzzleShapeInputFields).forEach((field) => {
+      console.log("field value", field.value)
+      if (field.value === puzzleShape) {
+        field.setAttribute("checked", "true")
+      } else {
+        field.removeAttribute("checked")
+      }
+    });
+  }
+
   setupPuzzleShapefield() {
     Array.from(this.puzzleShapeInputFields).forEach((field) => {
       field.addEventListener(
@@ -364,18 +376,14 @@ export default class PuzzlyCreator {
     if (width === height) {
       this.selectedPuzzleShape = PuzzleShapes.Square;
       this.disablePuzzleShapeInputs()
-    } else {
-      this.enablePuzzleShapeInputs()
-    }
-
-    if (this.selectedPuzzleShape === PuzzleShapes.Rectangle) {
-      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
-    } else if (this.selectedPuzzleShape === PuzzleShapes.Square) {
+      this.setPuzzleShapeInputsValue(PuzzleShapes.Square);
       this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
+    } else {
+      this.selectedPuzzleShape = PuzzleShapes.Rectangle;
+      this.enablePuzzleShapeInputs()
+      this.setPuzzleShapeInputsValue(PuzzleShapes.Rectangle);
+      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
     }
-
-    console.log("puzzle configs", this.puzzleConfigs)
-    console.log("active puzzle configs", this.activePuzzleConfigs);
 
     this.selectedPuzzleConfig = this.activePuzzleConfigs[0];
 

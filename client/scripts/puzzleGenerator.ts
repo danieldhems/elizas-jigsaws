@@ -718,12 +718,15 @@ export function getPuzzleConfigs(
   rectangularPuzzleConfigs: PuzzleConfig[];
   squarePuzzleConfigs: PuzzleConfig[];
 } {
-  const shortSide: PuzzleAxis | null =
-    availableWidth < availableHeight
-      ? PuzzleAxis.Horizontal
-      : availableHeight < availableWidth
-        ? PuzzleAxis.Vertical
-        : null;
+  let shortSide: PuzzleAxis | null;
+
+  if (availableWidth < availableHeight) {
+    shortSide = PuzzleAxis.Horizontal;
+  } else if (availableHeight < availableWidth) {
+    shortSide = PuzzleAxis.Vertical;
+  } else {
+    shortSide = null;
+  }
 
   console.log("getPuzzleConfigs: short side", shortSide)
 

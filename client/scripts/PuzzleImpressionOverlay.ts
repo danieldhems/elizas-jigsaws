@@ -74,8 +74,10 @@ export default class PuzzleImpressionOverlay {
 
     const { percentageOfImageUsedHorizontal, percentageOfImageUsedVertical } = puzzleConfig;
 
-    const width = percentageOfImageUsedHorizontal === 100 ? puzzleConfig.puzzleWidth : this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
-    const height = percentageOfImageUsedVertical === 100 ? puzzleConfig.puzzleWidth : this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
+    const shortLength = Math.min(this.targetElement.offsetWidth, this.targetElement.offsetHeight);
+
+    const width = percentageOfImageUsedHorizontal === 100 ? shortLength : this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
+    const height = percentageOfImageUsedVertical === 100 ? shortLength : this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
 
     return {
       left: leftBoundary,
