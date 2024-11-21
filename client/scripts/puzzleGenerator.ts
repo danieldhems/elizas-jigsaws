@@ -802,8 +802,6 @@ export function getPuzzleConfigs(
       rectangularPuzzleConfigs.push(puzzleConfig);
     }
 
-    console.log("piece size", pieceSize)
-
     // Square puzzles
     const config = {
       numberOfPiecesHorizontal: n,
@@ -827,8 +825,6 @@ export function getPuzzleConfigs(
     n = n + 1;
 
   } while (divisionResult >= minimumPieceSize);
-
-  console.log("square configs", squarePuzzleConfigs)
 
   return {
     rectangularPuzzleConfigs,

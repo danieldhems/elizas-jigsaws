@@ -143,8 +143,8 @@ export type DomBox = {
 export type DomBoxWithoutDimensions = Omit<DomBox, "width" | "height">;
 
 export enum PuzzleShapes {
-  Square = "Square",
-  Rectangle = "Rectangle",
+  Square = "square",
+  Rectangle = "rectangle",
 }
 
 export enum MovementAxis {

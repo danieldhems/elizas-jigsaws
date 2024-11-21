@@ -96,7 +96,7 @@ export default class PuzzlyCreator {
   startBtn: HTMLInputElement;
   puzzleOptionsContainer: HTMLDivElement;
   puzzleSizeField: HTMLInputElement;
-  puzzleShapeInputField: HTMLInputElement;
+  puzzleShapeInputFields: NodeListOf<HTMLInputElement>;
   puzzleShapeFieldContainer: HTMLDivElement;
   fullSizePath: string;
   imageUploadPreviewEl: HTMLImageElement & {
@@ -147,6 +147,7 @@ export default class PuzzlyCreator {
     this.puzzleSizeField = document.getElementById(
       "puzzle-size-input-field"
     ) as this["puzzleSizeField"];
+    this.puzzleShapeInputFields = document.querySelectorAll("[name='input-puzzle_shape']") as this["puzzleShapeInputFields"];
     this.imageUploadPreviewEl = document.getElementById(
       "puzzle-setup--image_preview-imgEl"
     ) as this["imageUploadPreviewEl"];
@@ -174,6 +175,7 @@ export default class PuzzlyCreator {
 
     this.showForm();
     this.addGeneralEventListeners();
+    this.setupPuzzleShapefield();
 
     this.selectedPuzzleShape = PuzzleShapes.Rectangle;
 
@@ -185,47 +187,49 @@ export default class PuzzlyCreator {
       window.location.href.indexOf("isIntegration=true") > -1;
   }
 
+  enablePuzzleShapeInputs() {
+    console.log("enablePuzzleShapeInputs", Array.from(this.puzzleShapeInputFields))
+    Array.from(this.puzzleShapeInputFields).forEach((field) => {
+      field.removeAttribute("disabled")
+    });
+  }
+
+  disablePuzzleShapeInputs() {
+    Array.from(this.puzzleShapeInputFields).forEach((field) => {
+      field.setAttribute("disabled", "true")
+    });
+  }
+
   setupPuzzleShapefield() {
-    const { width, height } = this.sourceImage.dimensions;
-    if (width === height) return;
-
-    const inputs = document.querySelectorAll("[name='input-puzzle_shape']");
-
-    Array.from(inputs).forEach((field) => {
-      field.removeAttribute("disabled");
+    Array.from(this.puzzleShapeInputFields).forEach((field) => {
       field.addEventListener(
         "input",
         function (e: InputEvent) {
           e.preventDefault();
+          e.stopImmediatePropagation()
+
           const target = e.target as HTMLInputElement;
           this.selectedPuzzleShape = target.value;
 
-          let selectedConfigs;
-          switch (this.selectedPuzzleShape) {
-            case PuzzleShapes.Square:
-              selectedConfigs = this.puzzleConfigs.squarePuzzleConfigs;
-              break;
-            case PuzzleShapes.Rectangle:
-              selectedConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
-              break;
+          if (this.selectedPuzzleShape === PuzzleShapes.Rectangle) {
+            this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
+            console.log("set rectangle puzzle configs active", this.activePuzzleConfigs);
+          } else if (this.selectedPuzzleShape === PuzzleShapes.Square) {
+            this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
+            console.log("set square puzzle configs active", this.activePuzzleConfigs);
           }
 
-          this.activePuzzleConfigs = this.getPuzzleConfigsForSelectedShape(
-            target.value
+          this.PuzzleImpressionOverlay.setImpressions(
+            this.activePuzzleConfigs
           );
-
-          if (this.activePuzzleConfigs) {
-            this.PuzzleImpressionOverlay.setImpressions(
-              this.activePuzzleConfigs
-            );
-            this.PuzzleImpressionOverlay.setActiveImpression(
-              this.activePuzzleConfigs[0]
-            );
-            this.updatePuzzleSizeField(this.activePuzzleConfigs);
-          }
+          this.PuzzleImpressionOverlay.setActiveImpression(
+            this.activePuzzleConfigs[0]
+          );
+          this.updatePuzzleSizeField(this.activePuzzleConfigs);
         }.bind(this)
       );
     })
+
   }
 
   showForm() {
@@ -261,6 +265,8 @@ export default class PuzzlyCreator {
         this.selectedPuzzleConfig = highlightedPuzzleSize;
       }
     });
+
+
 
     // this.chkHighlights.addEventListener(
     //   "input",
@@ -331,6 +337,8 @@ export default class PuzzlyCreator {
   onImagePreviewLoad() {
     const { width, height } = this.sourceImage.dimensions;
 
+    console.log("onImagePreviewLoad", width, height)
+
     this.imageAspectRatio = width / height;
 
     const { maxWidth, maxHeight } = GeneratorSteps.getMaximumPuzzleDimensionsForViewport(
@@ -355,13 +363,20 @@ export default class PuzzlyCreator {
 
     if (width === height) {
       this.selectedPuzzleShape = PuzzleShapes.Square;
+      this.disablePuzzleShapeInputs()
+    } else {
+      this.enablePuzzleShapeInputs()
     }
 
-    this.activePuzzleConfigs = this.getPuzzleConfigsForSelectedShape(
-      this.selectedPuzzleShape
-    );
+    if (this.selectedPuzzleShape === PuzzleShapes.Rectangle) {
+      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
+    } else if (this.selectedPuzzleShape === PuzzleShapes.Square) {
+      this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
+    }
 
-    console.log("active puzzle configs", this.activePuzzleConfigs)
+    console.log("puzzle configs", this.puzzleConfigs)
+    console.log("active puzzle configs", this.activePuzzleConfigs);
+
     this.selectedPuzzleConfig = this.activePuzzleConfigs[0];
 
     const puzzleImpressionOverlayConfig = {
@@ -380,24 +395,13 @@ export default class PuzzlyCreator {
 
     this.imagePreviewEl.classList.remove("js-hidden");
 
-    this.updatePuzzleSizeField(
-      this.getPuzzleConfigsForSelectedShape(this.selectedPuzzleShape)
-    );
+    this.updatePuzzleSizeField(this.activePuzzleConfigs);
+
     this.puzzleSizeInputField.value = 1 + "";
     this.puzzleSizeInputField.disabled = false;
 
-    this.setupPuzzleShapefield();
     this.addPuzzleOptionEventListeners();
     this.getCropData();
-  }
-
-  getPuzzleConfigsForSelectedShape(shape: PuzzleShapes) {
-    switch (shape) {
-      case PuzzleShapes.Rectangle:
-        return this.puzzleConfigs.rectangularPuzzleConfigs;
-      case PuzzleShapes.Square:
-        return this.puzzleConfigs.squarePuzzleConfigs;
-    }
   }
 
   updatePuzzleSizeField(puzzleConfigs: PuzzleConfig[]) {

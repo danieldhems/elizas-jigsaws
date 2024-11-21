@@ -64,8 +64,6 @@ export default class PuzzleImpressionOverlay {
   }
 
   getLayout(puzzleConfig: PuzzleConfig) {
-    console.log('puzzle config', puzzleConfig)
-
     // Calculate top and left position of target element, assuming it is centered
     const topBoundary =
       (this.container.offsetHeight - this.targetElement.offsetHeight) / 2;
@@ -76,8 +74,8 @@ export default class PuzzleImpressionOverlay {
 
     const { percentageOfImageUsedHorizontal, percentageOfImageUsedVertical } = puzzleConfig;
 
-    const width = percentageOfImageUsedHorizontal === 100 ? this.targetElement.offsetWidth : this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
-    const height = percentageOfImageUsedVertical === 100 ? this.targetElement.offsetHeight : this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
+    const width = percentageOfImageUsedHorizontal === 100 ? puzzleConfig.puzzleWidth : this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
+    const height = percentageOfImageUsedVertical === 100 ? puzzleConfig.puzzleWidth : this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
 
     return {
       left: leftBoundary,
