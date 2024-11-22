@@ -728,8 +728,6 @@ export function getPuzzleConfigs(
     shortSide = null;
   }
 
-  console.log("getPuzzleConfigs: short side", shortSide)
-
   let n: number = Math.sqrt(minimumNumberOfPieces);
 
   const length = shortSide === PuzzleAxis.Horizontal

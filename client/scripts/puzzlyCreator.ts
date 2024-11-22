@@ -188,7 +188,6 @@ export default class PuzzlyCreator {
   }
 
   enablePuzzleShapeInputs() {
-    console.log("enablePuzzleShapeInputs", Array.from(this.puzzleShapeInputFields))
     Array.from(this.puzzleShapeInputFields).forEach((field) => {
       field.removeAttribute("disabled")
     });
@@ -201,9 +200,7 @@ export default class PuzzlyCreator {
   }
 
   setPuzzleShapeInputsValue(puzzleShape: PuzzleShapes) {
-    console.log("setPuzzleShapeInputsValue", puzzleShape)
     Array.from(this.puzzleShapeInputFields).forEach((field) => {
-      console.log("field value", field.value)
       if (field.value === puzzleShape) {
         field.setAttribute("checked", "true")
       } else {
@@ -225,10 +222,8 @@ export default class PuzzlyCreator {
 
           if (this.selectedPuzzleShape === PuzzleShapes.Rectangle) {
             this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
-            console.log("set rectangle puzzle configs active", this.activePuzzleConfigs);
           } else if (this.selectedPuzzleShape === PuzzleShapes.Square) {
             this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
-            console.log("set square puzzle configs active", this.activePuzzleConfigs);
           }
 
           this.PuzzleImpressionOverlay.setImpressions(
@@ -375,14 +370,14 @@ export default class PuzzlyCreator {
 
     if (width === height) {
       this.selectedPuzzleShape = PuzzleShapes.Square;
+      this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
       this.disablePuzzleShapeInputs()
       this.setPuzzleShapeInputsValue(PuzzleShapes.Square);
-      this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
     } else {
       this.selectedPuzzleShape = PuzzleShapes.Rectangle;
+      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
       this.enablePuzzleShapeInputs()
       this.setPuzzleShapeInputsValue(PuzzleShapes.Rectangle);
-      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
     }
 
     this.selectedPuzzleConfig = this.activePuzzleConfigs[0];
