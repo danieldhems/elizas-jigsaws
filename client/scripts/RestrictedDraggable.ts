@@ -7,7 +7,7 @@ export interface RestrictedDraggableArguments {
     left: number;
     width: number;
     height: number;
-    allowedMovementAxis?: MovementAxis;
+    allowedMovementAxis?: MovementAxis | null;
   };
   id: string;
   restrictionBoundingBox:
@@ -30,7 +30,7 @@ export default class RestrictedDraggable {
   isMoving: boolean = false;
   diffX: number;
   diffY: number;
-  allowedMovementAxis: MovementAxis | undefined;
+  allowedMovementAxis: MovementAxis | null | undefined;
 
   constructor({
     containerElement,
@@ -42,8 +42,11 @@ export default class RestrictedDraggable {
     this.element = this.createElement(id, layout);
     this.containerElement.append(this.element);
     this.allowedMovementAxis = layout.allowedMovementAxis;
-    this.setDragBounds(restrictionBoundingBox);
-    this.attachListeners();
+
+    if (this.allowedMovementAxis) {
+      this.setDragBounds(restrictionBoundingBox);
+      this.attachListeners();
+    }
   }
 
   createElement(
@@ -89,13 +92,13 @@ export default class RestrictedDraggable {
 
   attachListeners() {
     this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
+    this.element.addEventListener("mousemove", this.onMouseMove.bind(this));
+    this.element.addEventListener("mouseup", this.onMouseUp.bind(this));
   }
 
   onMouseDown(e: MouseEvent) {
     this.diffX = e.clientX - parseInt(this.element.style.left);
     this.diffY = e.clientY - parseInt(this.element.style.top);
-    this.element.addEventListener("mousemove", this.onMouseMove.bind(this));
-    this.element.addEventListener("mouseup", this.onMouseUp.bind(this));
 
     this.isMoving = true;
   }
@@ -132,9 +135,6 @@ export default class RestrictedDraggable {
 
   onMouseUp(e: MouseEvent) {
     if (this.isMoving) {
-      this.isMoving = false;
-      this.element.removeEventListener("mousemove", this.onMouseMove);
-
       window.dispatchEvent(
         new CustomEvent("PuzzlyPuzzleImpressionMoved", {
           detail: {
@@ -143,6 +143,8 @@ export default class RestrictedDraggable {
           },
         })
       );
+
+      this.isMoving = false;
     }
   }
 

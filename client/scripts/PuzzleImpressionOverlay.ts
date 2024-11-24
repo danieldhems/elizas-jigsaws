@@ -1,6 +1,6 @@
 import RestrictedDraggable from "./RestrictedDraggable";
 import { getPuzzleImpressions } from "./puzzleGenerator";
-import { PuzzleConfig, PuzzleImpression } from "./types";
+import { MovementAxis, PuzzleConfig, PuzzleImpression } from "./types";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;
@@ -79,6 +79,14 @@ export default class PuzzleImpressionOverlay {
     const width = percentageOfImageUsedHorizontal === 100 ? shortLength : this.targetElement.offsetWidth / 100 * percentageOfImageUsedHorizontal;
     const height = percentageOfImageUsedVertical === 100 ? shortLength : this.targetElement.offsetHeight / 100 * percentageOfImageUsedVertical;
 
+    let allowedMovementAxis: MovementAxis | null;
+
+    if (width === height) {
+      allowedMovementAxis = null;
+    } else {
+      allowedMovementAxis = width < height ? MovementAxis.Y : MovementAxis.X;
+    }
+
     return {
       left: leftBoundary,
       top: 0,
@@ -86,6 +94,7 @@ export default class PuzzleImpressionOverlay {
       height,
       right: rightBoundary,
       bottom: bottomBoundary,
+      allowedMovementAxis,
     };
   }
 
@@ -108,6 +117,8 @@ export default class PuzzleImpressionOverlay {
   }
 
   setActiveImpression(puzzleConfig: PuzzleConfig) {
+    const { puzzleWidth, puzzleHeight } = puzzleConfig;
+
     const impressionElements =
       this.impressionsContainer.getElementsByTagName("div");
     const id = "puzzle-" + puzzleConfig.totalNumberOfPieces;
@@ -116,12 +127,14 @@ export default class PuzzleImpressionOverlay {
       if (impressionElement.id === id) {
         impressionElement.classList.remove("js-hidden");
 
-        const layout = this.getLayout(puzzleConfig);
-        this.draggable.update(layout);
+        if (puzzleWidth !== puzzleHeight) {
+          this.draggable.update(this.getLayout(puzzleConfig));
+        }
 
         const impressiongIndex = parseInt(
           impressionElement.dataset.impressionIndex as string
         );
+
         this.activeImpression = this.impressions.find(
           (impression: PuzzleImpression) =>
             impression.index === impressiongIndex
