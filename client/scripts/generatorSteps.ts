@@ -53,6 +53,7 @@ const GeneratorSteps = {
             maxHeight = viewportHeight / 100 * PUZZLE_SIZE_LANDSCAPE_VIEWPORT_PORTRAIT_IMAGE;
             maxWidth = maxHeight * aspectRatio;
         } else {
+            // Square image
             maxHeight = viewportHeight / 100 * PUZZLE_SIZE_SQUARE_IMAGE;
             maxWidth = maxHeight;
         }
@@ -81,8 +82,9 @@ const GeneratorSteps = {
             maxWidth = viewportWidth / 100 * PUZZLE_SIZE_PORTRAIT_VIEWPORT_LANDSCAPE_IMAGE;
             maxHeight = maxWidth / aspectRatio;
         } else {
-            maxWidth = viewportWidth / 100 * PUZZLE_SIZE_SQUARE_IMAGE;;
-            maxHeight = maxWidth;
+            // Square image
+            maxHeight = viewportWidth / 100 * PUZZLE_SIZE_SQUARE_IMAGE;
+            maxWidth = maxHeight;
         }
 
         return {

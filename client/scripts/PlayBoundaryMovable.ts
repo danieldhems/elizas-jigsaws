@@ -31,11 +31,21 @@ export default class PlayBoundaryMovable extends BaseMovable {
 
   setSize() {
     if (window.innerHeight < window.innerWidth) {
-      this.element.style.height = window.innerHeight - (SCREEN_MARGIN * 2) + "px";
-      this.element.style.width = (this.puzzleWidth / 2 * 5) + "px";
+      // Landscape viewport
+      const height = window.innerHeight - (SCREEN_MARGIN * 2);
+      const width = window.innerWidth < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED
+        ? window.innerWidth - (SCREEN_MARGIN * 2)
+        : window.innerWidth - MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
+      this.element.style.height = height + "px";
+      this.element.style.width = width + "px";
     } else if (window.innerWidth < window.innerHeight) {
-      this.element.style.width = window.innerWidth - (SCREEN_MARGIN * 2) + "px";
-      this.element.style.height = (this.puzzleHeight / 2 * 3) + "px";
+      // Portrait viewport
+      const width = window.innerWidth - (SCREEN_MARGIN * 2);
+      const height = window.innerHeight < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED
+        ? window.innerHeight - (SCREEN_MARGIN * 2)
+        : window.innerHeight - MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
+      this.element.style.width = width + "px";
+      this.element.style.height = height + "px";
     }
   }
 
