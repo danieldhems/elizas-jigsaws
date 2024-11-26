@@ -38,7 +38,7 @@ async function upload(req, res) {
     const fullSizePath = uploadDir + "fullsize_" + image.name;
     image.mv(fullSizePath);
 
-    
+
 
     const previewImg = Sharp(image.data);
 
@@ -49,11 +49,6 @@ async function upload(req, res) {
 
     const resizeWidth = actualW > actualH ? imgW : null;
     const resizeHeight = actualH > actualW ? imgH : null;
-
-    console.log("provided width", imgW)
-    console.log("provided height", imgH)
-    console.log("resize width", resizeWidth)
-    console.log("resize height", resizeHeight)
 
     await previewImg
       .resize(imgW, imgH, { fit: 'inside' })

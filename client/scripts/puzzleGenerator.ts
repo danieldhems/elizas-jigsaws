@@ -713,7 +713,7 @@ export function getPuzzleConfigs(
   availableWidth: number,
   availableHeight: number,
   minimumPieceSize: number,
-  minimumNumberOfPieces: number
+  minimumNumberOfPiecesPerSide: number
 ): {
   rectangularPuzzleConfigs: PuzzleConfig[];
   squarePuzzleConfigs: PuzzleConfig[];
@@ -728,7 +728,7 @@ export function getPuzzleConfigs(
     shortSide = null;
   }
 
-  let n: number = Math.sqrt(minimumNumberOfPieces);
+  let n: number = minimumNumberOfPiecesPerSide;
 
   const length = shortSide === PuzzleAxis.Horizontal
     ? availableWidth

@@ -603,7 +603,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   setId(id: string) {
-    console.log("Setting ID for piece", this.pieceData.index, id)
+    // console.log("Setting ID for piece", this.pieceData.index, id)
     this.pieceData._id = id;
     this.element.setAttribute("data-piece-id-in-persistence", id);
     this._id = id;

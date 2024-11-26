@@ -1,8 +1,9 @@
 import {
   CONNECTOR_SIZE_PERC,
   CONNECTOR_TOLERANCE_AMOUNT,
-  MINIMUM_NUMBER_OF_PIECES,
+  MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
   MINIMUM_PIECE_SIZE,
+  MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT,
   SHADOW_OFFSET_RATIO,
   SHOULDER_SIZE_PERC,
 } from "./constants";
@@ -355,12 +356,15 @@ export default class PuzzlyCreator {
     this.maximumPuzzleWidth = maxWidth;
     this.maximumPuzzleHeight = maxHeight;
 
+    const minimumPieceSize = Math.min(window.innerWidth, window.innerHeight) / 100 * MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT;
+    console.log("Minimum piece size:", minimumPieceSize)
+
     const { rectangularPuzzleConfigs, squarePuzzleConfigs } =
       getPuzzleConfigs(
         this.maximumPuzzleWidth,
         this.maximumPuzzleHeight,
-        MINIMUM_PIECE_SIZE,
-        MINIMUM_NUMBER_OF_PIECES
+        minimumPieceSize,
+        MINIMUM_NUMBER_OF_PIECES_PER_SIDE
       );
 
     this.puzzleConfigs = {
@@ -400,18 +404,22 @@ export default class PuzzlyCreator {
 
     this.updatePuzzleSizeField(this.activePuzzleConfigs);
 
-    this.puzzleSizeInputField.value = 1 + "";
-    this.puzzleSizeInputField.disabled = false;
-
     this.addPuzzleOptionEventListeners();
     this.getCropData();
   }
 
   updatePuzzleSizeField(puzzleConfigs: PuzzleConfig[]) {
     this.selectedPuzzleConfig = puzzleConfigs[0];
-    this.puzzleSizeInputField.min = 1 + "";
-    this.puzzleSizeInputField.max = puzzleConfigs.length + "";
-    this.puzzleSizeInputField.value = 1 + "";
+
+    if (puzzleConfigs.length > 1) {
+      this.puzzleSizeInputField.removeAttribute("disabled");
+      this.puzzleSizeInputField.min = 1 + "";
+      this.puzzleSizeInputField.max = puzzleConfigs.length + "";
+      this.puzzleSizeInputField.value = 1 + "";
+    } else {
+      this.puzzleSizeInputField.setAttribute("disabled", "true");
+    }
+
     this.puzzleSizeInputLabel.textContent =
       this.selectedPuzzleConfig.totalNumberOfPieces + "";
   }
@@ -595,6 +603,8 @@ export default class PuzzlyCreator {
       );
     }
     // console.log("mapped pieces", mappedPieces);
+
+    console.log("selected config", this.selectedPuzzleConfig)
 
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({

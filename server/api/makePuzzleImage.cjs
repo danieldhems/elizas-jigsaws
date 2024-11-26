@@ -12,24 +12,27 @@ async function makeImage(data) {
 
   img = Sharp(fullsizeImagePath);
 
-  // const imgMetadata = await img.metadata();
   const { width: origW, height: origH } = data.dimensions;
 
-  const opts = {
-    left: Math.ceil((origW / 100) * data.leftOffsetPercentage),
-    top: Math.ceil((origH / 100) * data.topOffsetPercentage),
-    width: Math.ceil((origW / 100) * data.widthPercentage),
-    height: Math.ceil((origH / 100) * data.heightPercentage),
-  };
+  const extractionLeftOffset = Math.ceil((origW / 100) * data.leftOffsetPercentage);
+  const extractionTopOffset = Math.ceil((origH / 100) * data.topOffsetPercentage);
+  const extractionWidth = data.widthPercentage === 100 ? origW : Math.ceil((origW / 100) * data.widthPercentage);
+  const extractionHeight = data.heightPercentage === 100 ? origH : Math.ceil((origH / 100) * data.heightPercentage);
 
-  console.log("image extraction options", opts)
+  const opts = {
+    left: extractionLeftOffset,
+    top: extractionTopOffset,
+    width: extractionWidth,
+    height: extractionHeight,
+  };
 
   img.extract(opts);
 
   // Resize the image according to the dimensions requested by the Frontend
-  img.resize(data.resizeWidth, data.resizeHeight);
+  const { resizeWidth, resizeHeight } = data;
+  img.resize(resizeWidth, resizeHeight);
 
-  await img.toFile(resizedImagePath);
+  await img.toFile(resizedImagePath + '');
   return resizedImagePath;
 }
 
