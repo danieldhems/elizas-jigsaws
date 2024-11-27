@@ -179,7 +179,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   async joinTo(movableInstance: SingleMovable | GroupMovable) {
-    console.log("GroupMovable joining to", movableInstance);
+    // console.log("GroupMovable joining to", movableInstance);
 
     let instance: SingleMovable | GroupMovable;
     if (movableInstance.instanceType === InstanceTypes.SingleMovable) {
@@ -199,7 +199,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   alignWith(movableInstance: SingleMovable | GroupMovable) {
-    console.log("group alignwith", movableInstance)
+    // console.log("group alignwith", movableInstance)
     const position = { top: 0, left: 0 };
 
     if (movableInstance instanceof SingleMovable) {
@@ -234,13 +234,13 @@ export default class GroupMovable extends BaseMovable {
   }
 
   attachElements() {
-    console.log("attachElements", this.piecesInGroup);
+    // console.log("attachElements", this.piecesInGroup);
     Array.from(this.piecesInGroup).forEach((piece) => {
       // console.log("attaching piece", piece);
       if (piece.element.parentNode !== this.element) {
         this.element.appendChild(piece.element);
       } else {
-        console.info(`Piece ${piece.pieceData.index} already attached to group`);
+        // console.info(`Piece ${piece.pieceData.index} already attached to group`);
       }
     });
   }
@@ -341,7 +341,7 @@ export default class GroupMovable extends BaseMovable {
       this.GroupOperations.getCollisionCandidatesInGroup(
         this.element.dataset.groupId + ""
       );
-    // console.log("collision candidates found", collisionCandidates);
+    console.log("collision candidates found", collisionCandidates);
 
     let i = 0;
 
@@ -368,7 +368,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMoveFinished() {
-    console.log("GroupMovable onMoveFinished", this);
+    // console.log("GroupMovable onMoveFinished", this);
     if (this.active && !this.connection) {
       this.setLastPosition();
       this.save();
@@ -435,7 +435,7 @@ export default class GroupMovable extends BaseMovable {
 
   onSaveResponse(event: CustomEvent) {
     const response = event.detail;
-    console.log("GroupMovable save response", response);
+    // console.log("GroupMovable save response", response);
     if (this.isServerResponseForThisGroup(response.data)) {
       if (!this._id) {
         this.setGroupIdAcrossInstance(response.data._id);
@@ -492,7 +492,7 @@ export default class GroupMovable extends BaseMovable {
 
   onSaveSuccess(event: CustomEvent) {
     const data = event.detail;
-    console.log("group saved", data)
+    // console.log("group saved", data)
   }
 
   delete() {

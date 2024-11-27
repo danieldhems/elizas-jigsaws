@@ -44,18 +44,19 @@
                               <label>Number of pieces <span id="puzzle-size-input-label"></span></label>
                               <input type="range" class="form-range" min="0" max="10" id="puzzle-size-input-field">
                           </div>
+                          <div>
+                            <label>Piece type</label>
+                          </div>
                           <div id="puzzle-setup--puzzle-shape" class="form-label-row">
-                            <div>
-                              <span>Puzzle shape</span>
-                              <div class="field-container">
-                                <div>
-                                  <label for="input-puzzle_shape--rectangle">Rectangle</label>
-                                  <input type="radio" id="input-puzzle_shape--rectangle" name="input-puzzle_shape" value="rectangle" checked="checked" disabled="disabled" />
-                                </div>
-                                <div>
-                                  <label for="input-puzzle_shape--square">Square</label>
-                                  <input type="radio" id="input-puzzle_shape--square" name="input-puzzle_shape" value="square" disabled="disabled" />
-                                </div>
+                            <span>Puzzle shape</span>
+                            <div class="field-container columns">
+                              <div>
+                                <label for="input-puzzle_shape--rectangle">Rectangle</label>
+                                <input type="radio" id="input-puzzle_shape--rectangle" name="input-puzzle_shape" value="rectangle" checked="checked" disabled="disabled" />
+                              </div>
+                              <div>
+                                <label for="input-puzzle_shape--square">Square</label>
+                                <input type="radio" id="input-puzzle_shape--square" name="input-puzzle_shape" value="square" disabled="disabled" />
                               </div>
                             </div>
                           </div>
@@ -66,7 +67,7 @@
                             <input type="checkbox" id="chk-no-disperse" />
                           </div>
                         </div>
-                        <div class="puzzle-setup--option-row">
+                        <div class="puzzle-setup--option-row centered">
                           <input type="submit" id="start-btn" value="Start">
                         </div>
                       </div>

@@ -77,10 +77,11 @@ export function checkConnections(
           // console.log("source bounding boxes", thisPieceConnectorBoundingBoxes.length)
           // console.log("target bounding boxes", targetPieceConnectorBoundingBoxes.length)
 
+          // TODO: Nested 'some' loops bad for performance?
           collisionDetected = thisPieceConnectorBoundingBoxes.some(sourceBox => {
-            // Utils.drawBox(sourceBox)
+            Utils.drawBox(sourceBox, null, 'red')
             return targetPieceConnectorBoundingBoxes.some(targetBox => {
-              // Utils.drawBox(targetBox, null, "blue")
+              Utils.drawBox(targetBox, null, "blue")
               // console.log("compare", sourceBox, targetBox)
               if (Utils.hasCollision(sourceBox, targetBox)) {
                 // console.log("collision detected")

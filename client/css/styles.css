@@ -277,16 +277,14 @@ label {
 }
 
 #puzzle-setup--image {
-    height: 75%;
+    height: 65%;
     position: relative;
+    margin-bottom: 1em;
+
 }
 
 #puzzle-setup--options {
     /* width: 100%; */
-}
-
-#puzzle-setup--image {
-    margin-bottom: 1em;
 }
 
 #puzzle-setup--image_preview_inner {
@@ -344,7 +342,7 @@ label, input[type=checkbox] {
 
 .puzzle-setup--option-row {
     width: 70%;
-    margin: 0 auto;
+    margin: 0 auto 1rem;
 }
 
 #full-image-viewer {

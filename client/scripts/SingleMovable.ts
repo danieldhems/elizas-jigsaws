@@ -257,6 +257,16 @@ export default class SingleMovable extends BaseMovable {
     }
   }
 
+  /**
+   * Calculate the bounding boxes for this piece's connectors relative to the piece's 
+   * perimeter.
+   * 
+   * These boxes can be added to the piece's position to determine the true bounding box 
+   * for the connectors on the stage. Calculating these values and setting them as a 
+   * data-attribute is an attempt to improve performance during collision detection as
+   * there should be less math to do.
+   * 
+   */
   setConnectorBoundingBoxes() {
     const pathString = this.element.getAttribute(HTML_ATTRIBUTE_NAME_SVG_PATH_STRING) as string;
     const result = PathOperations.extractPathParts(pathString);
