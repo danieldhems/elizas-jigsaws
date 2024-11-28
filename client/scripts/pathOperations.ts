@@ -17,46 +17,24 @@ export default class PathOperations {
   // z
 
   static extractPathParts(path: string): PathParts[] {
-    let currIndex = 0;
-
-    const stringParts = []
+    const stringParts: PathParts[] = []
     let currentPart = "";
+
+    const progressRegex = /[Mchvqz0-9]/;
+    const symbolRegex = /[Mchvqz]/;
 
     for (let n = 0, l = path.length; n < l; n++) {
       const currentChar = path[n];
 
-      if (/[Mchvq0-9]/.test(currentPart) && /[Mchvq]/.test(currentChar)) {
-        stringParts.push(currentPart);
+      if (progressRegex.test(currentPart) && symbolRegex.test(currentChar)) {
+        stringParts.push(currentPart.trim() as PathParts);
         currentPart = currentChar;
       } else {
         currentPart += currentChar;
       }
     }
 
-    const result: PathParts[] = [];
-
-    let currPart: PathParts = "";
-    while (currIndex < stringParts.length) {
-      if (/[Mhvcz]/.test(stringParts[currIndex])) {
-
-        if (currPart.length > 0) {
-          result.push(currPart as PathParts);
-        }
-
-        currPart = stringParts[currIndex].trim() as PathParts;
-
-        // FIX: This loop omits the last element in the array, so ensure it gets added
-        if (stringParts[currIndex] === "z") {
-          result.push(currPart);
-        }
-      } else {
-        currPart += " " + stringParts[currIndex];
-      }
-
-      currIndex++;
-    }
-
-    return result;
+    return stringParts;
   }
 
   static getCurveControlPointsFromPathParts(pathParts: PathParts[]) {

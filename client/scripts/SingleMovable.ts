@@ -301,10 +301,13 @@ export default class SingleMovable extends BaseMovable {
       };
     });
 
-    this.connectors = connectorBoundingBoxes.map((boundingBox: BoundingBox) => ({
-      boundingBox,
-      isConnected: false,
-    }))
+    this.connectors = connectorBoundingBoxes.map((boundingBox: BoundingBox) => {
+      // Utils.drawBox(boundingBox, this.element)
+      return {
+        boundingBox,
+        isConnected: false,
+      }
+    })
   }
 
   getConnectorBoundingBoxes(): BoundingBox[] {
