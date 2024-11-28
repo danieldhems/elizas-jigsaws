@@ -17,11 +17,11 @@ export default function randomisePiecePositions(pieceSectors: PieceSectors) {
     const pos = {
       x: Utils.getRandomInt(
         sector.left,
-        sector.left + sector.width - box.width
+        box.right - sector.left
       ),
       y: Utils.getRandomInt(
         sector.top,
-        sector.top + sector.height - box.height
+        box.bottom - sector.top
       ),
     };
     window.move(el).x(pos.x).y(pos.y).duration(this.animationDuration).end();

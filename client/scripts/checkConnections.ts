@@ -1,5 +1,6 @@
 import BaseMovable from "./BaseMovable";
 import {
+  BoundingBox,
   Connection,
   DomBox,
   JigsawPieceData,
@@ -37,7 +38,7 @@ export function checkConnections(
   // Check for solving connection
   const solvedBoundingBoxes = thisPieceInstance.getSolvedBoundingBoxes();
 
-  solvedBoundingBoxes.forEach((solvedBox: DomBox, sN: number) => {
+  solvedBoundingBoxes.forEach((solvedBox: BoundingBox, sN: number) => {
     if (Utils.hasCollision(solvedBox, thisPieceConnectorBoundingBoxes[sN])) {
       connection = {
         sourceElement: element,

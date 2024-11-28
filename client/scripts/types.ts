@@ -132,13 +132,16 @@ export interface GroupData {
 }
 
 export type DomBox = {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
   width: number;
   height: number;
 };
+
+export type BoundingBox = {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+}
 
 export type DomBoxWithoutDimensions = Omit<DomBox, "width" | "height">;
 
@@ -341,6 +344,7 @@ export type PathParts =
   | "";
 
 export type XYCoordinate = Record<"x" | "y", number>;
+export type TopLeftCoordinate = { top: number; left: number; };
 
 export enum Orientation {
   Landscape = "Landscape",

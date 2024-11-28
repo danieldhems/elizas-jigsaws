@@ -219,8 +219,8 @@ class DragAndSelect extends BaseMovable {
 
       const left = box.left;
       const top = box.top;
-      const right = box.left + box.width;
-      const bottom = box.top + box.height;
+      const right = box.right;
+      const bottom = box.bottom;
 
       if (i === 0) {
         minX = left;

@@ -11,6 +11,8 @@ import {
   JigsawPieceData,
   MovableElement,
   GroupMovableSaveState,
+  BoundingBox,
+  TopLeftCoordinate,
 } from "./types";
 import Puzzly from "./Puzzly";
 import { getSvg } from "./svg";
@@ -316,26 +318,6 @@ export default class GroupMovable extends BaseMovable {
     }
   }
 
-  getConnectorBoundingBoxes() {
-    // console.log("getConnectorBoundingBoxes", this.element)
-    const position = Utils.getStyleBoundingBox(this.element);
-    const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
-
-    const elements = this.piecesInGroup.map(instance => instance.element);
-    const relativeBoundingBoxes = JSON.parse(
-      elements.map(element => element.getAttribute("data-connector-bounding-boxes") as string).join("")
-    );
-
-    // console.log("Group bounding boxes", relativeBoundingBoxes)
-
-    return relativeBoundingBoxes.map((box: DomBox) => ({
-      top: box.top + position.top + stagePosition.top,
-      left: box.left + position.left + stagePosition.left,
-      width: box.width,
-      height: box.height,
-    }))
-  }
-
   getConnection() {
     const collisionCandidates =
       this.GroupOperations.getCollisionCandidatesInGroup(
@@ -475,7 +457,7 @@ export default class GroupMovable extends BaseMovable {
     };
   }
 
-  setLastPosition(position?: Pick<DomBox, "top" | "left">) {
+  setLastPosition(position?: TopLeftCoordinate) {
     this.lastPosition = {
       top: position?.top || parseInt(this.element.style.top),
       left: position?.left || parseInt(this.element.style.left),

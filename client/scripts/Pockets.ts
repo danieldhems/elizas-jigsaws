@@ -3,7 +3,7 @@ import { ELEMENT_IDS, EVENT_TYPES } from "./constants";
 import { PocketMovable } from "./PocketMovable";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
-import { DomBox, MovableElement, Orientation } from "./types";
+import { BoundingBox, DomBox, MovableElement, Orientation } from "./types";
 import Utils from "./utils";
 
 const POCKET_DEPTH = 110;
@@ -172,7 +172,7 @@ export default class Pockets {
     element.style.transform = "scale(1)";
   }
 
-  getPocketByCollision(box: DomBox) {
+  getPocketByCollision(box: BoundingBox) {
     if (Utils.isOverPockets(box)) {
       let i = 0;
       while (i <= this.pockets.length) {

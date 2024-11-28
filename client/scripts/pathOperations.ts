@@ -18,11 +18,24 @@ export default class PathOperations {
 
   static extractPathParts(path: string): PathParts[] {
     let currIndex = 0;
-    let currPart: PathParts = "";
+
+    const stringParts = []
+    let currentPart = "";
+
+    for (let n = 0, l = path.length; n < l; n++) {
+      const currentChar = path[n];
+
+      if (/[Mchvq0-9]/.test(currentPart) && /[Mchvq]/.test(currentChar)) {
+        stringParts.push(currentPart);
+        currentPart = currentChar;
+      } else {
+        currentPart += currentChar;
+      }
+    }
 
     const result: PathParts[] = [];
-    const stringParts = path.split(" ") as unknown as PathParts;
 
+    let currPart: PathParts = "";
     while (currIndex < stringParts.length) {
       if (/[Mhvcz]/.test(stringParts[currIndex])) {
 
@@ -47,6 +60,7 @@ export default class PathOperations {
   }
 
   static getCurveControlPointsFromPathParts(pathParts: PathParts[]) {
+    // console.log("getCurveControlPointsFromPathParts", pathParts)
     // Bounding boxes need to be absolute values to be useful
     // so extract the "M" part for a point of reference
     // and derive all curve coords from this
@@ -56,8 +70,6 @@ export default class PathOperations {
 
     let currentX: number = startX;
     let currentY: number = startY;
-
-    // console.log("starting point", startingPoint)
 
     const curves = [];
     let currentPart: string;
@@ -69,20 +81,16 @@ export default class PathOperations {
         return;
       }
 
-      // console.log("currentPart", currentPart)
       const firstChar = currentPart[0];
 
       if (firstChar === "h") {
         const nextX = parseInt(currentPart.split(" ")[1]);
-        // console.log("x is currently", currentX)
-        // console.log("next horizontal coord", nextX)
         // if (nextX < currentX) {
         //   currentX -= nextX;
         // } else if (nextX >= currentX) {
         //   currentX += nextX;
         // }
         currentX += nextX;
-        // console.log("x is now", currentX)
       }
 
       if (firstChar === "v") {

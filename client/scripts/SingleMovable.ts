@@ -9,11 +9,13 @@ import Puzzly from "./Puzzly";
 import PathOperations from "./pathOperations";
 
 import {
+  BoundingBox,
   DomBox,
   InstanceTypes,
   JigsawPieceData,
   MovableElement,
   SingleMovableSaveState,
+  TopLeftCoordinate,
   XYCoordinate,
 } from "./types";
 import Utils from "./utils";
@@ -23,6 +25,15 @@ export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
   shapeType = SHAPE_TYPES.PLAIN;
   pieceData: JigsawPieceData;
+  connectors: {
+    boundingBox: {
+      top: number;
+      left: number;
+      right: number;
+      bottom: number;
+    },
+    isConnected: boolean;
+  }[];
   puzzleId: string;
   _id: string;
   groupId: string;
@@ -272,9 +283,7 @@ export default class SingleMovable extends BaseMovable {
     const result = PathOperations.extractPathParts(pathString);
     const connectors = PathOperations.getCurveControlPointsFromPathParts(result) as XYCoordinate[][];
 
-    const connectorBoundingBoxes: {
-      top: number; left: number; width: number; height: number
-    }[] = connectors.map((connector) => {
+    const connectorBoundingBoxes: BoundingBox[] = connectors.map((connector) => {
       const [...points] = connector;
 
       const allXValues = points.map(p => p.x);
@@ -284,61 +293,59 @@ export default class SingleMovable extends BaseMovable {
       const lowestX = Math.min(...allXValues);
       const highestX = Math.max(...allXValues);
 
-      const box = {
+      return {
         top: lowestY,
         left: lowestX,
-        width: highestX - lowestX,
-        height: highestY - lowestY,
+        right: highestX,
+        bottom: highestY,
       };
-
-      // Utils.drawBox(box, this.element)
-
-      return box;
     });
 
-    this.element.setAttribute(
-      "data-connector-bounding-boxes",
-      JSON.stringify(connectorBoundingBoxes)
-    )
+    this.connectors = connectorBoundingBoxes.map((boundingBox: BoundingBox) => ({
+      boundingBox,
+      isConnected: false,
+    }))
   }
 
-  getConnectorBoundingBoxes(): DomBox[] {
+  getConnectorBoundingBoxes(): BoundingBox[] {
     const position = Utils.getStyleBoundingBox(this.element);
     const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
-    const relativeBoundingBoxes = JSON.parse(
-      this.element.getAttribute("data-connector-bounding-boxes") as string
-    );
-
     const groupInstance = this.groupId && this.getGroupInstanceFromElement(this.element);
+
     if (groupInstance) {
       const groupBoundingBox = Utils.getStyleBoundingBox(groupInstance.element);
       position.top += groupBoundingBox.top;
       position.left += groupBoundingBox.left;
     }
 
-    return relativeBoundingBoxes.map((box: DomBox) => ({
-      top: box.top + position.top + stagePosition.top,
-      left: box.left + position.left + stagePosition.left,
-      width: box.width,
-      height: box.height,
-    }))
+    const relativeBoundingBoxes = this.connectors.map((connector) => connector.boundingBox);
+
+    return relativeBoundingBoxes.map((box: BoundingBox) => {
+      console.log("box", box)
+      console.log('position', position)
+      console.log('stagePosition', stagePosition)
+      return {
+        top: box.top + position.top + stagePosition.top,
+        left: box.left + position.left + stagePosition.left,
+        right: position.left + stagePosition.left + box.right,
+        bottom: position.top + stagePosition.top + box.bottom,
+      }
+    })
   }
 
-  getSolvedBoundingBoxes(): DomBox[] {
+  getSolvedBoundingBoxes(): BoundingBox[] {
     const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
     const solvingAreaPosition = Utils.getStyleBoundingBox(this.SolvingArea.element as HTMLDivElement);
-    const relativeBoundingBoxes = JSON.parse(
-      this.element.getAttribute("data-connector-bounding-boxes") as string
-    );
+    const relativeBoundingBoxes = this.connectors.map((connector) => connector.boundingBox);
 
     const anchorTop = stagePosition.top + solvingAreaPosition.top + this.pieceData.puzzleY;
     const anchorLeft = stagePosition.left + solvingAreaPosition.left + this.pieceData.puzzleX;
 
-    return relativeBoundingBoxes.map((box: DomBox) => ({
+    return relativeBoundingBoxes.map((box: BoundingBox) => ({
       top: anchorTop + box.top,
       left: anchorLeft + box.left,
-      width: box.width,
-      height: box.height,
+      right: box.right,
+      bottom: box.bottom,
     }))
   }
 
@@ -479,7 +486,7 @@ export default class SingleMovable extends BaseMovable {
     super.onMouseUp(event);
   }
 
-  setLastPosition(position?: Pick<DomBox, "top" | "left">) {
+  setLastPosition(position?: TopLeftCoordinate) {
     this.lastPosition = {
       top: position?.top || parseInt(this.element.style.top),
       left: position?.left || parseInt(this.element.style.left),
@@ -492,7 +499,6 @@ export default class SingleMovable extends BaseMovable {
 
   onMoveFinished() {
     if (this.active) {
-      console.log("onMoveFinished", this)
       if (!BaseMovable.isGroupedPiece(this.element)) {
         this.setLastPosition({
           left: this.element.offsetLeft,
@@ -547,7 +553,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   joinTo(targetInstance: GroupMovable | SingleMovable) {
-    console.log("SingleInstance", this, "joinTo()", targetInstance);
+    // console.log("SingleInstance", this, "joinTo()", targetInstance);
     if (targetInstance.instanceType === InstanceTypes.SingleMovable) {
       const newGroup = new GroupMovable({
         Puzzly: this.Puzzly,

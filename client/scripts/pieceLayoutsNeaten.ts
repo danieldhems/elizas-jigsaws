@@ -21,6 +21,9 @@ function shouldProceedToNextSide(
 
   switch (currentSide) {
     case SideNames.Top:
+      if (targetBox.right) {
+
+      }
       return (
         box.left > targetBox.right ||
         box.right - connectorSize > targetBox.right
@@ -37,7 +40,7 @@ function shouldProceedToNextSide(
       );
     case SideNames.Left:
       return (
-        box.bottom < targetBox.top - targetBox.height ||
+        box.bottom < targetBox.top - targetBox.bottom ||
         box.top + connectorSize < targetBox.top
       );
   }
@@ -64,8 +67,8 @@ function getPositionForFirstPieceOnNextSide(
   let nextElementWidth = 0;
   let nextElementHeight = 0;
   if (nextElementBox) {
-    nextElementWidth = nextElementBox?.width;
-    nextElementHeight = nextElementBox?.height;
+    nextElementWidth = nextElementBox?.right - nextElementBox?.left;
+    nextElementHeight = nextElementBox?.bottom - nextElementBox?.top;
   }
 
   switch (currentSide) {
@@ -81,13 +84,13 @@ function getPositionForFirstPieceOnNextSide(
       };
     case SideNames.Bottom:
       return {
-        x: targetBox.left - targetBox.width - LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
+        x: targetBox.left - targetBox.right - LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
         y: box.top - nextElementHeight - LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
       };
     case SideNames.Left:
       return {
         x: box.right + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
-        y: targetBox.top - targetBox.height - LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
+        y: targetBox.bottom - LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE,
       };
   }
 }
@@ -200,9 +203,9 @@ export default function arrangePiecesAroundEdge() {
 
     // Need to update the currentX / currentY to push the next piece along once the current piece's position has been set
     if (currentSide === SideNames.Top) {
-      currentX += currentPieceBoundingBox.width + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE;
+      currentX += currentPieceBoundingBox.right + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE;
     } else if (currentSide === SideNames.Right) {
-      currentY += currentPieceBoundingBox.height + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE;
+      currentY += currentPieceBoundingBox.bottom + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE;
     } else if (currentSide === SideNames.Bottom) {
       currentX -= (currentPiece.offsetWidth + LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE);
     } else if (currentSide === SideNames.Left) {

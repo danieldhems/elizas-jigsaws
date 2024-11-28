@@ -2,6 +2,7 @@ import { ELEMENT_IDS, EVENT_TYPES, PUZZLE_PIECE_CLASSES } from "./constants";
 import Utils from "./utils";
 import GroupOperations from "./GroupOperations";
 import {
+  BoundingBox,
   Connection,
   DomBox,
   DomBoxWithoutDimensions,
@@ -189,7 +190,7 @@ export default class BaseMovable {
     return false;
   }
 
-  getPocketByCollision(box: DomBox) {
+  getPocketByCollision(box: BoundingBox) {
     let i = 0;
     while (i <= this.pockets.length) {
       const pocket = this.pockets[i];
@@ -202,9 +203,9 @@ export default class BaseMovable {
 
   hasCollision(
     targetElement: HTMLDivElement,
-    source?: DomBox
+    source?: BoundingBox
   ) {
-    const targetBoundingBox = targetElement.getBoundingClientRect();
+    const targetBoundingBox = Utils.getStyleBoundingBox(targetElement);
     const thisBoundingBox = source || Utils.getStyleBoundingBox(this.element);
     return Utils.hasCollision(thisBoundingBox, targetBoundingBox);
   }

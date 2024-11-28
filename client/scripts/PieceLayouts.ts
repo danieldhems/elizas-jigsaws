@@ -184,7 +184,7 @@ export default class PieceLayouts {
   // Generate map of sectors that can be used for even dispersal of pieces around outside of puzzle board
   generatePieceSectorMap() {
     const box = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
-    const totalArea = box.width * box.height;
+    const totalArea = box.bottom * box.right;
     const pieceSectorSize = totalArea / this.selectedNumberOfPieces;
 
     const sqr = Math.abs(Math.sqrt(pieceSectorSize));
@@ -200,7 +200,7 @@ export default class PieceLayouts {
         ...area,
       };
 
-      if (currX + sqr + sqr < box.width) {
+      if (currX + sqr + sqr < box.right) {
         currX += sqr;
       } else {
         currX = 0;

@@ -4,6 +4,7 @@ import {
   PUZZLE_PIECE_CLASSES,
 } from "./constants";
 import {
+  BoundingBox,
   ConnectorType,
   DomBox,
   DomBoxWithoutDimensions,
@@ -32,16 +33,12 @@ const Utils = {
     return document.querySelectorAll(".puzzle-piece");
   },
 
-  hasCollision(source: DomBox, target: DomBox): boolean {
-    const sourceRight = source.right || source.left + source.width;
-    const sourceBottom = source.bottom || source.top + source.height;
-    const targetRight = target.right || target.left + target.width;
-    const targetBottom = target.bottom || target.top + target.height;
+  hasCollision(source: BoundingBox, target: BoundingBox): boolean {
     return !(
-      source.left >= targetRight ||
-      source.top >= targetBottom ||
-      sourceRight <= target.left ||
-      sourceBottom <= target.top
+      source.left >= target.right ||
+      source.top >= target.bottom ||
+      source.right <= target.left ||
+      source.bottom <= target.top
     );
   },
 
@@ -274,7 +271,7 @@ const Utils = {
       parent = document.querySelector("#solved-puzzle-area");
     }
 
-    let boundingBox = {} as DomBox;
+    let boundingBox = {} as BoundingBox;
 
     if (parent) {
       const parentElement = parent as HTMLDivElement;
@@ -292,9 +289,7 @@ const Utils = {
         parseInt(parentElement.style.left) + parseInt(element.style.left);
     } else {
       boundingBox.top = parseInt(element.style.top);
-      boundingBox.width = parseInt(element.style.left) + element.offsetWidth;
       boundingBox.right = parseInt(element.style.left) + element.offsetWidth;
-      boundingBox.height = parseInt(element.style.top) + element.offsetHeight;
       boundingBox.bottom = parseInt(element.style.top) + element.offsetHeight;
       boundingBox.left = parseInt(element.style.left);
     }
@@ -305,8 +300,8 @@ const Utils = {
   getCornerBoundingBox(
     key: SideNames,
     pieceDimensions: { width: number; height: number },
-    solvingAreaBox: DomBoxWithoutDimensions
-  ): DomBoxWithoutDimensions | undefined {
+    solvingAreaBox: BoundingBox
+  ): BoundingBox | undefined {
     switch (key) {
       case SideNames.TopRight:
         return {
@@ -340,7 +335,7 @@ const Utils = {
   },
 
   narrowBoundingBoxToTolerance(
-    box: DomBoxWithoutDimensions,
+    box: BoundingBox,
     tolerance: number
   ) {
     return {
@@ -352,7 +347,7 @@ const Utils = {
   },
 
   getElementBoundingBoxRelativeToCorner(
-    elementBoundingBox: DomBox,
+    elementBoundingBox: BoundingBox,
     corner: SideNames
   ) {
     switch (corner) {
@@ -512,7 +507,7 @@ const Utils = {
   getConnectorBoundingBoxInGroup(
     element: HTMLDivElement,
     connector: SideNames,
-    containerBoundingBox: DomBox
+    containerBoundingBox: BoundingBox
   ) {
     console.log(
       "getting connector bounding box in group",
@@ -748,7 +743,7 @@ const Utils = {
       : null;
   },
 
-  getStyleBoundingBox(element: HTMLDivElement): DomBox {
+  getStyleBoundingBox(element: HTMLDivElement): BoundingBox {
     const top = parseInt(element.style.top);
     const left = parseInt(element.style.left);
     return {
@@ -756,12 +751,10 @@ const Utils = {
       right: left + element.offsetWidth,
       bottom: top + element.offsetHeight,
       left,
-      width: element.offsetWidth,
-      height: element.offsetHeight,
     };
   },
 
-  getPocketByCollision(box: DomBox): HTMLDivElement | undefined {
+  getPocketByCollision(box: BoundingBox): HTMLDivElement | undefined {
     let i = 0;
     const pockets = document.querySelectorAll(".pocket");
     while (i < pockets.length) {
@@ -773,11 +766,9 @@ const Utils = {
     }
   },
 
-  getEventBox(e: MouseEvent): DomBox {
+  getEventBox(e: MouseEvent): BoundingBox {
     return {
       top: e.clientY,
-      width: 1,
-      height: 1,
       left: e.clientX,
       right: e.clientX + 1,
       bottom: e.clientY + 1,
@@ -795,7 +786,7 @@ const Utils = {
     }) as MovableElement[];
   },
 
-  isOverPockets(box: DomBox) {
+  isOverPockets(box: BoundingBox) {
     const pocketsBox = (
       document.querySelector("#pockets") as HTMLDivElement
     ).getBoundingClientRect();
