@@ -967,6 +967,8 @@ const Utils = {
     if (connector === -1) return 1 as ConnectorType;
     if (connector === 1) return -1 as ConnectorType;
   }
+
+  get
 };
 
 export default Utils;

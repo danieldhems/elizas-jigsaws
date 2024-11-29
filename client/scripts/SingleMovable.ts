@@ -32,8 +32,10 @@ export default class SingleMovable extends BaseMovable {
       right: number;
       bottom: number;
     },
+    atDegrees: number;
     isConnected: boolean;
   }[];
+  connectsTo: number[];
   puzzleId: string;
   _id: string;
   groupId: string;
@@ -190,9 +192,7 @@ export default class SingleMovable extends BaseMovable {
       "data-pieces-per-side-vertical",
       numberOfPiecesVertical + ""
     );
-    el.dataset.connectsTo = JSON.stringify(
-      this.getConnectingPieceIds(this.pieceData)
-    );
+    this.connectsTo = this.getConnectingPieceIds(this.pieceData)
     el.setAttribute(
       "data-connections",
       JSON.stringify(this.GroupOperations.getConnections(el))
@@ -310,7 +310,7 @@ export default class SingleMovable extends BaseMovable {
     })
   }
 
-  getConnectorBoundingBoxes(): BoundingBox[] {
+  getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox {
     const position = Utils.getStyleBoundingBox(this.element);
     const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
     const groupInstance = this.groupId && this.getGroupInstanceFromElement(this.element);
@@ -321,19 +321,16 @@ export default class SingleMovable extends BaseMovable {
       position.left += groupBoundingBox.left;
     }
 
-    const relativeBoundingBoxes = this.connectors.map((connector) => connector.boundingBox);
+    const relativeBoundingBox = this.connectors.find((connector) =>
+      connector.atDegrees === atDegrees
+    )?.boundingBox as BoundingBox;
 
-    return relativeBoundingBoxes.map((box: BoundingBox) => {
-      console.log("box", box)
-      console.log('position', position)
-      console.log('stagePosition', stagePosition)
-      return {
-        top: box.top + position.top + stagePosition.top,
-        left: box.left + position.left + stagePosition.left,
-        right: position.left + stagePosition.left + box.right,
-        bottom: position.top + stagePosition.top + box.bottom,
-      }
-    })
+    return {
+      top: relativeBoundingBox.top + position.top + stagePosition.top,
+      left: relativeBoundingBox.left + position.left + stagePosition.left,
+      right: position.left + stagePosition.left + relativeBoundingBox.right,
+      bottom: position.top + stagePosition.top + relativeBoundingBox.bottom,
+    }
   }
 
   getSolvedBoundingBoxes(): BoundingBox[] {
@@ -381,64 +378,64 @@ export default class SingleMovable extends BaseMovable {
     const pieceBelowId = id + data.numberOfPiecesHorizontal;
 
     if (Utils.isTopLeftCorner(data.type)) {
-      return {
-        right: id + 1,
-        bottom: pieceBelowId,
-      };
+      return [
+        id + 1,
+        pieceBelowId,
+      ];
     }
     if (Utils.isTopSide(data.type)) {
-      return {
-        left: id - 1,
-        right: id + 1,
-        bottom: pieceBelowId,
-      };
+      return [
+        id - 1,
+        id + 1,
+        pieceBelowId,
+      ];
     }
     if (Utils.isTopRightCorner(data.type)) {
-      return {
-        left: id - 1,
-        bottom: pieceBelowId,
-      };
+      return [
+        id - 1,
+        pieceBelowId,
+      ];
     }
     if (Utils.isLeftSide(data.type)) {
-      return {
-        top: pieceAboveId,
-        right: id + 1,
-        bottom: pieceBelowId,
-      };
+      return [
+        pieceAboveId,
+        id + 1,
+        pieceBelowId,
+      ];
     }
     if (Utils.isInnerPiece(data.type)) {
-      return {
-        top: pieceAboveId,
-        right: id + 1,
-        bottom: pieceBelowId,
-        left: id - 1,
-      };
+      return [
+        pieceAboveId,
+        id + 1,
+        pieceBelowId,
+        id - 1,
+      ];
     }
     if (Utils.isRightSide(data.type)) {
-      return {
-        top: pieceAboveId,
-        left: id - 1,
-        bottom: pieceBelowId,
-      };
+      return [
+        pieceAboveId,
+        id - 1,
+        pieceBelowId,
+      ];
     }
     if (Utils.isBottomLeftCorner(data.type)) {
-      return {
-        top: pieceAboveId,
-        right: id + 1,
-      };
+      return [
+        pieceAboveId,
+        id + 1,
+      ];
     }
     if (Utils.isBottomSide(data.type)) {
-      return {
-        top: pieceAboveId,
-        left: id - 1,
-        right: id + 1,
-      };
+      return [
+        pieceAboveId,
+        id - 1,
+        id + 1,
+      ];
     }
     if (Utils.isBottomRightCorner(data.type)) {
-      return {
-        top: pieceAboveId,
-        left: id - 1,
-      };
+      return [
+        pieceAboveId,
+        id - 1,
+      ];
     }
   }
 

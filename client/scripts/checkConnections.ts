@@ -15,13 +15,7 @@ export function checkConnections(
   // console.log("element", element)
   const baseMovable = new BaseMovable(window.Puzzly);
 
-  const piece = {
-    id: parseInt(element.dataset.pieceId as string),
-    group: element.dataset.groupId,
-    isSolved: element.dataset.isSolved,
-    type: Utils.getPieceType(element),
-    connectsTo: element.dataset.connectsTo,
-  };
+
 
   // console.log("checkConnections", piece);
 
@@ -32,6 +26,15 @@ export function checkConnections(
   let connection: Connection | undefined;
 
   const thisPieceInstance = baseMovable.getSingleInstanceFromElement(element);
+
+  const piece = {
+    id: parseInt(element.dataset.pieceId as string),
+    group: element.dataset.groupId,
+    isSolved: element.dataset.isSolved,
+    type: Utils.getPieceType(element),
+    connectsTo: thisPieceInstance.connectsTo,
+  };
+
   // console.log("this piece instance", thisPieceInstance)
   const thisPieceConnectorBoundingBoxes = thisPieceInstance.getConnectorBoundingBoxes();
 
@@ -71,24 +74,10 @@ export function checkConnections(
         // console.log("target piece instance", targetPieceInstance)
 
         if (targetPieceInstance) {
-          const targetPieceConnectorBoundingBoxes = targetPieceInstance.getConnectorBoundingBoxes();
+          const collisionDetected = thisPieceInstance.connectors.some((connector) => {
+            const targetConnectorBoundingBox = targetPieceInstance.getCurrentBoundingBoxForConnector(connector.atDegrees + 180);
 
-          let collisionDetected = false;
-
-          // console.log("source bounding boxes", thisPieceConnectorBoundingBoxes.length)
-          // console.log("target bounding boxes", targetPieceConnectorBoundingBoxes.length)
-
-          // TODO: Nested 'some' loops bad for performance?
-          collisionDetected = thisPieceConnectorBoundingBoxes.some(sourceBox => {
-            // Utils.drawBox(sourceBox, null, 'red')
-            return targetPieceConnectorBoundingBoxes.some(targetBox => {
-              // Utils.drawBox(targetBox, null, "blue")
-              // console.log("compare", sourceBox, targetBox)
-              if (Utils.hasCollision(sourceBox, targetBox)) {
-                // console.log("collision detected")
-                return true;
-              }
-            })
+            return Utils.hasCollision(connector.boundingBox, targetConnectorBoundingBox)
           })
 
           if (collisionDetected) {
