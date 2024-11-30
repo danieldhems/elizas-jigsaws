@@ -10,6 +10,7 @@ import PathOperations from "./pathOperations";
 
 import {
   BoundingBox,
+  Connector,
   DomBox,
   InstanceTypes,
   JigsawPieceData,
@@ -25,18 +26,9 @@ export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
   shapeType = SHAPE_TYPES.PLAIN;
   pieceData: JigsawPieceData;
-  connectors: {
-    boundingBox: {
-      top: number;
-      left: number;
-      right: number;
-      bottom: number;
-    },
-    atDegrees: number;
-    isConnected: boolean;
-  }[];
-  connectsTo: number[];
+  connectors: Connector[];
   puzzleId: string;
+  index: number;
   _id: string;
   groupId: string;
   groupInstance: GroupMovable;
@@ -58,7 +50,6 @@ export default class SingleMovable extends BaseMovable {
     pieceData: JigsawPieceData;
   }) {
     super(puzzleData);
-    // console.log("SingleMovable constructor:", pieceData);
 
     this.GroupOperations = new GroupOperations({
       width: this.Puzzly.boardWidth,
@@ -72,6 +63,7 @@ export default class SingleMovable extends BaseMovable {
     this.Puzzly = puzzleData;
     this.puzzleId = this.Puzzly.puzzleId;
     this._id = pieceData._id;
+    this.index = pieceData.index;
     this.totalNumberOfPieces = this.Puzzly.selectedNumPieces;
 
     this.piecesPerSideHorizontal = this.Puzzly.piecesPerSideHorizontal;
@@ -85,6 +77,8 @@ export default class SingleMovable extends BaseMovable {
     if (pieceData.groupId) {
       this.groupId = pieceData.groupId;
     }
+
+    this.connectors = pieceData.connectors;
 
     this.setPiece(pieceData);
     this.element = this.createElement();
@@ -192,7 +186,7 @@ export default class SingleMovable extends BaseMovable {
       "data-pieces-per-side-vertical",
       numberOfPiecesVertical + ""
     );
-    this.connectsTo = this.getConnectingPieceIds(this.pieceData)
+    el.setAttribute('data-connects-to', JSON.stringify(this.getConnectingPieceIds(this.pieceData)));
     el.setAttribute(
       "data-connections",
       JSON.stringify(this.GroupOperations.getConnections(el))
@@ -269,6 +263,14 @@ export default class SingleMovable extends BaseMovable {
   }
 
   /**
+   * TODO: Abstract connector logic to own class
+   */
+
+  getConnectorByDegrees(atDegrees: number): Connector {
+    return this.connectors.find((connector: Connector) => connector.atDegrees = atDegrees) as Connector;
+  }
+
+  /**
    * Calculate the bounding boxes for this piece's connectors relative to the piece's 
    * perimeter.
    * 
@@ -301,16 +303,13 @@ export default class SingleMovable extends BaseMovable {
       };
     });
 
-    this.connectors = connectorBoundingBoxes.map((boundingBox: BoundingBox) => {
+    connectorBoundingBoxes.forEach((boundingBox: BoundingBox, n: number) => {
       // Utils.drawBox(boundingBox, this.element)
-      return {
-        boundingBox,
-        isConnected: false,
-      }
+      this.connectors[n].boundingBox = boundingBox;
     })
   }
 
-  getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox {
+  getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox | undefined {
     const position = Utils.getStyleBoundingBox(this.element);
     const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
     const groupInstance = this.groupId && this.getGroupInstanceFromElement(this.element);
@@ -321,15 +320,17 @@ export default class SingleMovable extends BaseMovable {
       position.left += groupBoundingBox.left;
     }
 
-    const relativeBoundingBox = this.connectors.find((connector) =>
-      connector.atDegrees === atDegrees
-    )?.boundingBox as BoundingBox;
+    const connector = this.connectors.find((connector) => {
+      return connector.atDegrees === atDegrees
+    });
 
-    return {
-      top: relativeBoundingBox.top + position.top + stagePosition.top,
-      left: relativeBoundingBox.left + position.left + stagePosition.left,
-      right: position.left + stagePosition.left + relativeBoundingBox.right,
-      bottom: position.top + stagePosition.top + relativeBoundingBox.bottom,
+    if (connector && connector.boundingBox) {
+      return {
+        top: connector.boundingBox.top + position.top + stagePosition.top,
+        left: connector.boundingBox.left + position.left + stagePosition.left,
+        right: connector.boundingBox.right + position.left + stagePosition.left,
+        bottom: connector.boundingBox.bottom + position.top + stagePosition.top,
+      }
     }
   }
 
@@ -344,8 +345,8 @@ export default class SingleMovable extends BaseMovable {
     return relativeBoundingBoxes.map((box: BoundingBox) => ({
       top: anchorTop + box.top,
       left: anchorLeft + box.left,
-      right: box.right,
-      bottom: box.bottom,
+      right: anchorLeft + box.right,
+      bottom: anchorTop + box.bottom,
     }))
   }
 
@@ -579,6 +580,7 @@ export default class SingleMovable extends BaseMovable {
       connectorSize: this.pieceData.connectorSize,
       connectorTolerance: this.pieceData.connectorTolerance,
       connectorDistanceFromCorner: this.pieceData.connectorDistanceFromCorner,
+      connectors: this.connectors,
       width: this.pieceData.width,
       height: this.pieceData.height,
       pageX: this.element.offsetLeft,

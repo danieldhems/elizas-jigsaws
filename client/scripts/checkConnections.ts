@@ -1,97 +1,59 @@
 import BaseMovable from "./BaseMovable";
+import SingleMovable from "./SingleMovable";
 import {
   BoundingBox,
-  Connection,
-  DomBox,
-  JigsawPieceData,
   MovableElement,
-  SideNames,
 } from "./types";
 import Utils from "./utils";
 
 export function checkConnections(
   element: MovableElement,
 ) {
-  // console.log("element", element)
   const baseMovable = new BaseMovable(window.Puzzly);
-
-
-
-  // console.log("checkConnections", piece);
-
-  const shouldCompare = (targetPiece: Partial<JigsawPieceData>) =>
-    (piece.group === undefined && targetPiece.groupId === undefined) ||
-    piece.group !== targetPiece.groupId;
-
-  let connection: Connection | undefined;
-
   const thisPieceInstance = baseMovable.getSingleInstanceFromElement(element);
 
-  const piece = {
-    id: parseInt(element.dataset.pieceId as string),
-    group: element.dataset.groupId,
-    isSolved: element.dataset.isSolved,
-    type: Utils.getPieceType(element),
-    connectsTo: thisPieceInstance.connectsTo,
-  };
-
-  // console.log("this piece instance", thisPieceInstance)
-  const thisPieceConnectorBoundingBoxes = thisPieceInstance.getConnectorBoundingBoxes();
-
-  // Check for solving connection
-  const solvedBoundingBoxes = thisPieceInstance.getSolvedBoundingBoxes();
-
-  solvedBoundingBoxes.forEach((solvedBox: BoundingBox, sN: number) => {
-    if (Utils.hasCollision(solvedBox, thisPieceConnectorBoundingBoxes[sN])) {
-      connection = {
-        sourceElement: element,
-        isSolving: true,
-      }
-    }
-  })
-
-  if (connection) {
-    return connection;
+  const shouldCompare = (targetPiece: SingleMovable) => {
+    const sourceGroupId = thisPieceInstance.groupId;
+    const targetGroupId = targetPiece.groupId;
+    return (
+      sourceGroupId === undefined && targetGroupId === undefined
+    ) ||
+      sourceGroupId !== targetGroupId;
   }
 
-  // Check for connection with adjacent pieces
-  const connectsTo = JSON.parse(element.dataset.connectsTo as string);
-  Object.keys(connectsTo).some((key: SideNames) => {
-    // console.log("key", key);
-    const targetElement = Utils.getElementByPieceId(connectsTo[key]);
-    // console.log("target element", targetElement)
+  const solvedBoundingBoxes = thisPieceInstance.getSolvedBoundingBoxes();
 
-    if (targetElement) {
-      const { pieceId, groupId, isSolved } = targetElement.dataset;
-      const targetPiece = {
-        pieceId: parseInt(pieceId as string),
-        groupId: groupId,
-        isSolved: isSolved === "true",
-      };
+  for (let n = 0, l = thisPieceInstance.connectors.length; n < l; n++) {
+    const connector = thisPieceInstance.connectors[n];
 
-      if (shouldCompare(targetPiece)) {
-        const targetPieceInstance = baseMovable.getSingleInstanceFromElement(targetElement);
-        // console.log("target piece instance", targetPieceInstance)
+    // The degrees location for the connector on the target piece
+    // based on the opposing degrees for this connector
+    // e.g. If this connector is at 180 deg then the target connector should be at 360deg 
+    const boundingBoxForSourceConnector = thisPieceInstance.getCurrentBoundingBoxForConnector(connector.atDegrees) as BoundingBox;
+    const adjacentDegrees = Utils.getAdjacentDegrees(connector.atDegrees);
 
-        if (targetPieceInstance) {
-          const collisionDetected = thisPieceInstance.connectors.some((connector) => {
-            const targetConnectorBoundingBox = targetPieceInstance.getCurrentBoundingBoxForConnector(connector.atDegrees + 180);
+    const targetPiece = baseMovable.getSingleInstanceByIndex(connector.ownerIndex);
+    const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
 
-            return Utils.hasCollision(connector.boundingBox, targetConnectorBoundingBox)
-          })
+    Utils.drawBox(solvedBoundingBoxes[n])
+    if (connector.boundingBox) {
+      if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
+        return {
+          sourceElement: element,
+          targetElement: targetPiece.element,
+          isSolving: true,
+        };
+      }
 
-          if (collisionDetected) {
-            connection = {
-              type: key,
-              sourceElement: element,
-              targetElement,
-              isSolving: targetElement.dataset.isSolved === "true",
-            };
+      if (shouldCompare(targetPiece) && boundingBoxForTargetConnector) {
+        if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
+          return {
+            sourceElement: element,
+            targetElement: targetPiece.element,
+            isSolving: false,
           }
         }
       }
     }
-  });
-
-  return connection;
+  }
 }

@@ -128,6 +128,14 @@ export default class BaseMovable {
     ) as SingleMovable;
   }
 
+  getSingleInstanceByIndex(
+    index: number
+  ): SingleMovable {
+    return this.Puzzly.pieceInstances.find(
+      (instance: SingleMovable) => instance.index === index
+    ) as SingleMovable;
+  }
+
   getGroupInstanceFromElement(
     element: MovableElement
   ): GroupMovable | undefined {

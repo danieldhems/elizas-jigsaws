@@ -88,6 +88,7 @@ export interface JigsawPieceData {
   connectorDistanceFromCorner: number;
   connectorSize: number;
   connectorTolerance: number;
+  connectors: Connector[];
   shadowOffset: number;
   puzzleWidth: number;
   puzzleHeight: number;
@@ -169,6 +170,16 @@ export interface PuzzleCreatorOptions {
   isIntegration: boolean;
 }
 
+export type Connector = {
+  type: ConnectorType,
+  // Which adjacecnt piece this connector connects to
+  ownerIndex: number;
+  // Where this connector lives on this piece
+  // ('degrees' being the orientation of the side this connector is on) 
+  atDegrees: number,
+  boundingBox?: BoundingBox,
+  isConnected: false
+};
 
 // Using 'pieceAbove' and 'pieceBehind' won't scale for wild piece shapes:
 // adjacentPieces[] would be more flexible...
@@ -179,6 +190,7 @@ export type SkeletonPiece = Pick<
   connectorDistanceFromCorner: number;
   connectorSize: number;
   connectorTolerance: number;
+  connectors: Connector[];
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
   pieceAbove: {
@@ -300,6 +312,7 @@ export interface SingleMovableSaveState {
   connectorSize: number;
   connectorTolerance: number;
   connectorDistanceFromCorner: number;
+  connectors: Connector[];
   groupId?: string;
   pageX: number;
   pageY: number;
@@ -321,7 +334,7 @@ export interface SingleMovableSaveState {
 export interface GroupMovableSaveState
   extends Omit<
     SingleMovableSaveState,
-    "pocketId" | "index" | "pageX" | "pageY" | "puzzleX" | "puzzleY" | "width" | "height" | "type" | "basePieceSize" | "connectorSize" | "connectorDistanceFromCorner" | "connectorTolerance" | "numberOfPiecesHorizontal" | "numberOfPiecesVertical"
+    "pocketId" | "index" | "pageX" | "pageY" | "puzzleX" | "puzzleY" | "width" | "height" | "type" | "basePieceSize" | "connectorSize" | "connectorDistanceFromCorner" | "connectorTolerance" | "connectors" | "numberOfPiecesHorizontal" | "numberOfPiecesVertical"
   > {
   position: {
     top: number;

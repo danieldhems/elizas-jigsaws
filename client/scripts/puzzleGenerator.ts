@@ -243,6 +243,8 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
       numberOfPiecesVertical,
     } as SkeletonPiece;
 
+    piece.connectors = [];
+
     if (n === 0) {
       // First piece
       topConnector = 0 as ConnectorType;
@@ -251,6 +253,21 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
       leftConnector = 0 as ConnectorType;
 
       piece.type = [topConnector, rightConnector, bottomConnector, leftConnector];
+      piece.connectors = [
+        {
+          type: rightConnector,
+          isConnected: false,
+          ownerIndex: n + 1,
+          atDegrees: 180,
+        },
+        {
+          type: bottomConnector,
+          ownerIndex: n + numberOfPiecesHorizontal,
+          isConnected: false,
+          atDegrees: 270,
+        },
+      ];
+
       piece.numPiecesFromTopEdge = 0;
       piece.numPiecesFromLeftEdge = 0;
     } else {
@@ -299,6 +316,41 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
       }
 
       piece.type = [topConnector, rightConnector, bottomConnector, leftConnector];
+      if (topConnector !== 0) {
+        piece.connectors.push({
+          type: topConnector,
+          atDegrees: 90,
+          ownerIndex: n - numberOfPiecesHorizontal,
+          isConnected: false,
+        })
+      }
+
+      if (rightConnector !== 0) {
+        piece.connectors.push({
+          type: rightConnector,
+          atDegrees: 180,
+          ownerIndex: n + 1,
+          isConnected: false
+        })
+      }
+
+      if (bottomConnector !== 0) {
+        piece.connectors.push({
+          type: bottomConnector,
+          atDegrees: 270,
+          ownerIndex: n + numberOfPiecesHorizontal,
+          isConnected: false
+        })
+      }
+
+      if (leftConnector !== 0) {
+        piece.connectors.push({
+          type: leftConnector,
+          atDegrees: 360,
+          ownerIndex: n - 1,
+          isConnected: false
+        })
+      }
     }
 
     pieces.push(piece);

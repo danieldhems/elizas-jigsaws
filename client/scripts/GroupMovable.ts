@@ -323,7 +323,6 @@ export default class GroupMovable extends BaseMovable {
       this.GroupOperations.getCollisionCandidatesInGroup(
         this.element.dataset.groupId + ""
       );
-    console.log("collision candidates found", collisionCandidates);
 
     let i = 0;
 

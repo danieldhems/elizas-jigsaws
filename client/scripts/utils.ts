@@ -966,9 +966,30 @@ const Utils = {
   getOppositeConnector(connector: ConnectorType) {
     if (connector === -1) return 1 as ConnectorType;
     if (connector === 1) return -1 as ConnectorType;
-  }
+  },
 
-  get
+  /**
+   * Get the opposite number of degrees for the provided value
+   * 
+   * If all sides of a jigsaw piece have a given orientation in degrees (between 1 and 360),
+   * this method returns the degree value for the opposite side of the circle 
+   * to the provided value.
+   * 
+   * For example:
+   * 
+   * Given 90 degrees, this will return 270.
+   * Given 180, this will return 360.
+   * Given 270, this will return 90.
+   * 
+   * TODO: Might want to abstract to a Connector class along with 
+   * the definitions and logic inside SingleMovable.
+   * 
+   * @param atDegrees
+   * @returns {number} A number between 1 and 360
+   */
+  getAdjacentDegrees(atDegrees: number): number {
+    return atDegrees <= 180 ? atDegrees + 180 : atDegrees - 180;
+  }
 };
 
 export default Utils;
