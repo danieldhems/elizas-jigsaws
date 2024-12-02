@@ -10,7 +10,6 @@ export enum ZoomTypes {
 
 export default class Zoom extends BaseMovable {
   stage: HTMLDivElement;
-  playBoundary: BaseMovable["playBoundary"];
   isPreviewActive: boolean;
   currentZoomInterval: number;
   zoomLevel: BaseMovable["zoomLevel"];
@@ -22,7 +21,6 @@ export default class Zoom extends BaseMovable {
 
   constructor(puzzly: Puzzly) {
     super(puzzly);
-    this.playBoundary = puzzly.playBoundary as HTMLDivElement;
     this.isPreviewActive = puzzly.isPreviewActive;
     this.stage = puzzly.stage as HTMLDivElement;
     this.currentZoomInterval = 0;
@@ -81,10 +79,10 @@ export default class Zoom extends BaseMovable {
       return {
         top:
           window.innerHeight / 2 -
-          (this.playBoundary as HTMLDivElement).offsetTop,
+          (window.Puzzly.playBoundary as HTMLDivElement).offsetTop,
         left:
           window.innerWidth / 2 -
-          (this.playBoundary as HTMLDivElement).offsetLeft,
+          (window.Puzzly.playBoundary as HTMLDivElement).offsetLeft,
       };
     } else if (this.zoomType === ZoomTypes.Pointer) {
       const pointerEvent = event as MouseEvent;
@@ -102,7 +100,7 @@ export default class Zoom extends BaseMovable {
     };
     // console.log("transform origin", top, left);
     (
-      this.playBoundary as HTMLDivElement
+      window.Puzzly.playBoundary as HTMLDivElement
     ).style.transformOrigin = `${top}px ${left}px`;
   }
 
@@ -145,7 +143,7 @@ export default class Zoom extends BaseMovable {
   }
 
   scalePlayBoundary(scale: number) {
-    (this.playBoundary as HTMLDivElement).style.transform = `scale(${scale})`;
+    (window.Puzzly.playBoundary as HTMLDivElement).style.transform = `scale(${scale})`;
 
     if (this.zoomLevel !== this.prevZoomLevel) {
       window.dispatchEvent(

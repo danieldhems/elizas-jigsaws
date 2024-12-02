@@ -28,6 +28,7 @@ import loadAssets from "./assetLoader";
 import Sounds from "./Sounds";
 import SolvingArea from "./SolvingArea";
 import Utils from "./utils";
+import GroupOperations from "./GroupOperations";
 /**
  * Puzzly
  *
@@ -99,6 +100,7 @@ export default class Puzzly {
   lengthForFullScreen: number;
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
+  GroupOperations: GroupOperations;
   cropData: {
     top: number,
     left: number,
@@ -189,6 +191,15 @@ export default class Puzzly {
 
     this.solvedCount = 0;
 
+    this.GroupOperations = new GroupOperations({
+      width: this.boardWidth,
+      height: this.boardHeight,
+      puzzleImage: this.puzzleImage,
+      shadowOffset: this.shadowOffset,
+      piecesPerSideHorizontal: this.piecesPerSideHorizontal,
+      piecesPerSideVertical: this.piecesPerSideVertical,
+    });
+
     const storage = this.PersistenceOperations.getPersistence(
       this.pieces,
       this.groups,
@@ -222,10 +233,11 @@ export default class Puzzly {
       if (Object.keys(this.groups).length) {
         for (let g in this.groups) {
           const group = this.groups[g];
+          console.log('group data', group)
           const pieceInstances = this.pieceInstances.filter((pieceInstance) => {
             return pieceInstance.groupId === group._id;
           });
-          // console.log("piece instances found for group", pieceInstances);
+          console.log("piece instances found for group", pieceInstances);
           const groupInstance = new GroupMovable({
             Puzzly: this,
             _id: group._id,

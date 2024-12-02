@@ -1,11 +1,8 @@
 import { ELEMENT_IDS, EVENT_TYPES, PUZZLE_PIECE_CLASSES } from "./constants";
 import Utils from "./utils";
-import GroupOperations from "./GroupOperations";
 import {
   BoundingBox,
   Connection,
-  DomBox,
-  DomBoxWithoutDimensions,
   InstanceTypes,
   MovableElement,
 } from "./types";
@@ -16,7 +13,6 @@ import Puzzly from "./Puzzly";
 export default class BaseMovable {
   instanceType: InstanceTypes;
   element: MovableElement;
-  Puzzly: Puzzly;
   lastPosition: {
     top: number;
     left: number;
@@ -25,8 +21,6 @@ export default class BaseMovable {
   puzzleId: string;
   connection: Connection | undefined;
   puzzleImage: HTMLImageElement;
-  // Element containing all pieces in-play
-  piecesContainer: HTMLDivElement | null;
   // Used by PocketMovable to know which pocket the movable originated from, and which the movable's child nodes will be returned to if out-of-bounds.
   activePocket?: HTMLDivElement;
   boardWidth: number;
@@ -37,43 +31,14 @@ export default class BaseMovable {
   connectorTolerance: number;
   shadowOffset: number;
   isDragAndSelectActive = false;
-  puzzly: any;
-  solvedContainer: HTMLDivElement;
-  solvedAreaElement: HTMLDivElement;
-  playBoundary: HTMLDivElement | null;
-  solvedCanvas: HTMLDivElement;
-  pocketsContainer: HTMLDivElement;
-  pockets: NodeListOf<HTMLDivElement>;
   connectorDistanceFromCorner: number;
   connectorSize: number;
-  groupOperations: any;
   solvedGroupId: number;
   dragAndSelectActive: boolean;
 
   constructor(puzzly: Puzzly) {
-    this.Puzzly = puzzly;
     // console.log("puzzly", puzzly);
     this.puzzleImage = puzzly.puzzleImage;
-
-    this.piecesContainer = document.querySelector(
-      `#${ELEMENT_IDS.PIECES_CONTAINER}`
-    ) as HTMLDivElement;
-    this.solvedContainer = document.getElementById(
-      ELEMENT_IDS.SOLVED_CONTAINER
-    ) as HTMLDivElement;
-    this.solvedAreaElement = document.getElementById(
-      ELEMENT_IDS.SOLVED_PUZZLE_AREA
-    ) as HTMLDivElement;
-    this.playBoundary = document.getElementById(
-      ELEMENT_IDS.PLAY_BOUNDARY
-    ) as HTMLDivElement;
-    this.solvedCanvas = document.getElementById(
-      ELEMENT_IDS.SOLVED_CANVAS
-    ) as HTMLDivElement;
-    this.pocketsContainer = document.querySelector(
-      `#${ELEMENT_IDS.POCKETS}`
-    ) as HTMLDivElement;
-    this.pockets = this.pocketsContainer.querySelectorAll(`.pocket`);
 
     // Needed for collision detection
     this.connectorTolerance = puzzly.connectorTolerance;
@@ -83,15 +48,6 @@ export default class BaseMovable {
 
     this.boardWidth = puzzly.boardWidth;
     this.boardHeight = puzzly.boardHeight;
-
-    this.groupOperations = new GroupOperations({
-      width: this.Puzzly.boardWidth,
-      height: this.Puzzly.boardHeight,
-      puzzleImage: this.Puzzly.puzzleImage,
-      shadowOffset: this.Puzzly.shadowOffset,
-      piecesPerSideHorizontal: this.Puzzly.piecesPerSideHorizontal,
-      piecesPerSideVertical: this.Puzzly.piecesPerSideVertical,
-    });
 
     window.addEventListener(
       EVENT_TYPES.CHANGE_SCALE,
@@ -122,7 +78,7 @@ export default class BaseMovable {
   getSingleInstanceFromElement(
     element: MovableElement
   ): SingleMovable {
-    return this.Puzzly.pieceInstances.find(
+    return window.Puzzly.pieceInstances.find(
       (instance: SingleMovable) =>
         instance._id === element.dataset.pieceIdInPersistence
     ) as SingleMovable;
@@ -131,7 +87,7 @@ export default class BaseMovable {
   getSingleInstanceByIndex(
     index: number
   ): SingleMovable {
-    return this.Puzzly.pieceInstances.find(
+    return window.Puzzly.pieceInstances.find(
       (instance: SingleMovable) => instance.index === index
     ) as SingleMovable;
   }
@@ -140,7 +96,7 @@ export default class BaseMovable {
     element: MovableElement
   ): GroupMovable | undefined {
     if (element.dataset.groupId) {
-      return this.Puzzly.groupInstances.find((instance: GroupMovable) =>
+      return window.Puzzly.groupInstances.find((instance: GroupMovable) =>
         // TODO: Need more efficient way to match IDs
         instance.piecesInGroup.some(
           (piece) => piece.groupId === element.dataset.groupId
@@ -200,8 +156,8 @@ export default class BaseMovable {
 
   getPocketByCollision(box: BoundingBox) {
     let i = 0;
-    while (i <= this.pockets.length) {
-      const pocket = this.pockets[i];
+    while (i <= window.Puzzly.pockets.length) {
+      const pocket = window.Puzzly.pockets[i];
       if (this.hasCollision(pocket, box)) {
         return pocket;
       }
@@ -221,18 +177,18 @@ export default class BaseMovable {
   isInsidePlayArea() {
     return Utils.isInside(
       this.element.getBoundingClientRect(),
-      (this.piecesContainer as HTMLDivElement).getBoundingClientRect()
+      (window.Puzzly.piecesContainer as HTMLDivElement).getBoundingClientRect()
     );
   }
 
   isOverPockets(event: MouseEvent) {
-    return this.hasCollision(this.pocketsContainer, Utils.getEventBox(event));
+    return this.hasCollision(window.Puzzly.Pockets.container, Utils.getEventBox(event));
   }
 
   addToStage(element?: MovableElement) {
     const elementToAdd = element || this.element;
     // console.log("element to add", this);
-    (this.piecesContainer as HTMLDivElement).prepend(elementToAdd);
+    (window.Puzzly.piecesContainer as HTMLDivElement).prepend(elementToAdd);
   }
 
   // Lifecycle method called when a movable is picked up i.e. the user has begun interacting with it
@@ -313,7 +269,12 @@ export default class BaseMovable {
     const sourceInstance = this.getMovableInstanceFromElement(sourceElement) as SingleMovable;
 
     if (isSolving) {
-      sourceInstance.solve();
+      if (sourceInstance.groupId) {
+        const groupInstance = this.getGroupInstanceFromElement(sourceElement);
+        groupInstance?.solve();
+      } else {
+        sourceInstance.solve();
+      }
     } else if (targetElement) {
       const targetInstance = this.getMovableInstanceFromElement(
         targetElement
@@ -355,16 +316,16 @@ export default class BaseMovable {
 
   getSolvingAreaBoundingBox() {
     return {
-      top: parseInt(this.solvedAreaElement.style.top),
-      left: parseInt(this.solvedAreaElement.style.left),
+      top: parseInt(window.Puzzly.SolvingArea.element.style.top),
+      left: parseInt(window.Puzzly.SolvingArea.element.style.left),
       right:
-        parseInt(this.solvedAreaElement.style.left) +
-        this.solvedAreaElement.offsetWidth,
+        parseInt(window.Puzzly.SolvingArea.element.style.left) +
+        window.Puzzly.SolvingArea.element.offsetWidth,
       bottom:
-        parseInt(this.solvedAreaElement.style.left) +
-        this.solvedAreaElement.offsetHeight,
-      width: this.solvedAreaElement.offsetWidth,
-      height: this.solvedAreaElement.offsetHeight,
+        parseInt(window.Puzzly.SolvingArea.element.style.left) +
+        window.Puzzly.SolvingArea.element.offsetHeight,
+      width: window.Puzzly.SolvingArea.element.offsetWidth,
+      height: window.Puzzly.SolvingArea.element.offsetHeight,
     };
   }
 

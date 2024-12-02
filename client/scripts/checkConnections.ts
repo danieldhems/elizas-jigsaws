@@ -35,7 +35,6 @@ export function checkConnections(
     const targetPiece = baseMovable.getSingleInstanceByIndex(connector.ownerIndex);
     const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
 
-    Utils.drawBox(solvedBoundingBoxes[n])
     if (connector.boundingBox) {
       if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
         return {

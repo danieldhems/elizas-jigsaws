@@ -119,11 +119,14 @@ var api = {
 
             for (let i = 0, l = data.pieces.length; i < l; i++) {
               pieceUpdateResults.push(
-                await pieces.findOneAndUpdate(
+                pieces.findOneAndUpdate(
                   { _id: new ObjectID(data.pieces[i]._id) },
                   { $set: { groupId: data._id, isSolved: data.isSolved } }
                 )
               );
+
+              const pieceUpdates = await Promise.all(pieceUpdateResults);
+              console.log('piece update results for group', pieceUpdates)
             }
           } catch (error) {
             console.error("Failed to update group:", error);

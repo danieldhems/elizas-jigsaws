@@ -11,7 +11,7 @@ const POCKET_DEPTH = 110;
 export default class Pockets {
   Puzzly: Puzzly;
   playBoundary: Puzzly["playBoundary"];
-  ui: HTMLDivElement | null;
+  container: HTMLDivElement | null;
   lastPosition: {
     top: number;
     left: number;
@@ -55,7 +55,7 @@ export default class Pockets {
     this.isCollapsed = false;
     this.currentOrientation = this.getOrientation();
 
-    this.ui = document.querySelector("#pockets");
+    this.container = document.querySelector("#pockets");
     this.pocketsHandle = document.querySelector("#pockets-handle");
 
     this.setSizeAndPosition();
@@ -69,8 +69,8 @@ export default class Pockets {
       this.pockets = [pocket0, pocket1, pocket2, pocket3];
     }
 
-    if (this.ui) {
-      this.ui.classList.add("initialised");
+    if (this.container) {
+      this.container.classList.add("initialised");
     }
 
     this.zoomLevel = config.zoomLevel;
@@ -83,23 +83,23 @@ export default class Pockets {
         if (orientation === Orientation.Landscape) {
           axisToAnimate = "x";
           windowPropForDepth = "innerWidth";
-          depth = (this.ui as HTMLDivElement).offsetWidth;
+          depth = (this.container as HTMLDivElement).offsetWidth;
         } else {
           axisToAnimate = "y";
           windowPropForDepth = "innerHeight";
-          depth = (this.ui as HTMLDivElement).offsetHeight;
+          depth = (this.container as HTMLDivElement).offsetHeight;
         }
 
         if (this.isCollapsed) {
           window
-            .move(this.ui)
+            .move(this.container)
           [axisToAnimate]((window as any)[windowPropForDepth] - depth)
             .duration(this.animationDuration)
             .end();
           this.isCollapsed = false;
         } else {
           window
-            .move(this.ui)
+            .move(this.container)
           [axisToAnimate](
             (window as any)[windowPropForDepth] -
             (this.pocketsHandle as HTMLDivElement).offsetWidth
@@ -120,12 +120,12 @@ export default class Pockets {
 
   setSizeAndPosition() {
     if (this.currentOrientation === Orientation.Landscape) {
-      (this.ui as HTMLDivElement).style.width = POCKET_DEPTH + "px";
-      (this.ui as HTMLDivElement).style.left =
+      (this.container as HTMLDivElement).style.width = POCKET_DEPTH + "px";
+      (this.container as HTMLDivElement).style.left =
         window.innerWidth - POCKET_DEPTH + "px";
     } else {
-      (this.ui as HTMLDivElement).style.height = POCKET_DEPTH + "px";
-      (this.ui as HTMLDivElement).style.top =
+      (this.container as HTMLDivElement).style.height = POCKET_DEPTH + "px";
+      (this.container as HTMLDivElement).style.top =
         window.innerHeight - POCKET_DEPTH + "px";
     }
   }
@@ -317,7 +317,7 @@ export default class Pockets {
       (el as HTMLDivElement).style.left = currX * this.zoomLevel + "px";
 
       const box = {
-        top: (this.ui as HTMLDivElement).offsetTop + el.offsetTop,
+        top: (this.container as HTMLDivElement).offsetTop + el.offsetTop,
         right: el.offsetLeft + el.offsetWidth,
         bottom: el.offsetTop + el.offsetHeight,
         left: (this.activePocket as HTMLDivElement).offsetLeft + el.offsetLeft,
@@ -383,14 +383,14 @@ export default class Pockets {
   }
 
   enablePointerEvents() {
-    const ui = this.ui as HTMLDivElement;
+    const ui = this.container as HTMLDivElement;
     ui.style.pointerEvents = "auto";
     const pieces = ui.querySelectorAll(".puzzle-piece");
     pieces.forEach((el) => ((el as HTMLElement).style.pointerEvents = "auto"));
   }
 
   disablePointerEvents() {
-    const ui = this.ui as HTMLDivElement;
+    const ui = this.container as HTMLDivElement;
     ui.style.pointerEvents = "none";
     const pieces = ui.querySelectorAll(".puzzle-piece");
     pieces.forEach((el) => ((el as HTMLElement).style.pointerEvents = "none"));

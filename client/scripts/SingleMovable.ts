@@ -32,15 +32,11 @@ export default class SingleMovable extends BaseMovable {
   _id: string;
   groupId: string;
   groupInstance: GroupMovable;
-  GroupOperations: GroupOperations;
   piecesPerSideHorizontal: number;
   piecesPerSideVertical: number;
   totalNumberOfPieces: number;
   isSolved: boolean;
-  Puzzly: Puzzly;
   pocketId?: number;
-  Pockets: Pockets;
-  SolvingArea: SolvingArea;
 
   constructor({
     puzzleData,
@@ -51,28 +47,15 @@ export default class SingleMovable extends BaseMovable {
   }) {
     super(puzzleData);
 
-    this.GroupOperations = new GroupOperations({
-      width: this.Puzzly.boardWidth,
-      height: this.Puzzly.boardHeight,
-      puzzleImage: this.Puzzly.puzzleImage,
-      shadowOffset: this.Puzzly.shadowOffset,
-      piecesPerSideHorizontal: this.Puzzly.piecesPerSideHorizontal,
-      piecesPerSideVertical: this.Puzzly.piecesPerSideVertical,
-    });
-
-    this.Puzzly = puzzleData;
-    this.puzzleId = this.Puzzly.puzzleId;
+    this.puzzleId = window.Puzzly.puzzleId;
     this._id = pieceData._id;
     this.index = pieceData.index;
-    this.totalNumberOfPieces = this.Puzzly.selectedNumPieces;
+    this.totalNumberOfPieces = window.Puzzly.selectedNumPieces;
 
-    this.piecesPerSideHorizontal = this.Puzzly.piecesPerSideHorizontal;
+    this.piecesPerSideHorizontal = window.Puzzly.piecesPerSideHorizontal;
     this.shadowOffset = puzzleData.shadowOffset;
     this.connectorDistanceFromCorner = puzzleData.connectorDistanceFromCorner;
     this.pocketId = pieceData.pocketId;
-    this.Pockets = this.Puzzly.Pockets;
-
-    this.SolvingArea = puzzleData.SolvingArea;
 
     if (pieceData.groupId) {
       this.groupId = pieceData.groupId;
@@ -85,7 +68,7 @@ export default class SingleMovable extends BaseMovable {
 
     this.setLastPosition({ top: pieceData.pageY, left: pieceData.pageX });
 
-    if (!this.Puzzly.complete) {
+    if (!window.Puzzly.complete) {
       this.render();
       this.save();
     }
@@ -189,7 +172,7 @@ export default class SingleMovable extends BaseMovable {
     el.setAttribute('data-connects-to', JSON.stringify(this.getConnectingPieceIds(this.pieceData)));
     el.setAttribute(
       "data-connections",
-      JSON.stringify(this.GroupOperations.getConnections(el))
+      JSON.stringify(window.Puzzly.GroupOperations.getConnections(el))
     );
     el.setAttribute("data-num-pieces-from-top-edge", numPiecesFromTopEdge + "");
     el.setAttribute(
@@ -210,7 +193,7 @@ export default class SingleMovable extends BaseMovable {
       el.setAttribute("data-pocket-id", pocketId + "");
     }
 
-    const { puzzleImagePath } = this.Puzzly;
+    const { puzzleImagePath } = window.Puzzly;
 
     // TODO: svg.ts is already generating and rendering the svg string so this might not be needed, and could be confusing.
     const pathString = getJigsawShapeSvgString(this.pieceData);
@@ -248,11 +231,11 @@ export default class SingleMovable extends BaseMovable {
     const { isSolved, pocketId } = this.pieceData;
 
     if (Number.isInteger(pocketId) && pocketId !== -1) {
-      const pocketElement = this.pocketsContainer.querySelector(
+      const pocketElement = window.Puzzly.Pockets.container.querySelector(
         `#pocket-${pocketId}`
       );
 
-      this.Pockets.addSingleToPocket(pocketElement as HTMLDivElement, this);
+      window.Puzzly.Pockets.addSingleToPocket(pocketElement as HTMLDivElement, this);
       return;
     }
 
@@ -311,7 +294,7 @@ export default class SingleMovable extends BaseMovable {
 
   getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox | undefined {
     const position = Utils.getStyleBoundingBox(this.element);
-    const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
+    const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
     const groupInstance = this.groupId && this.getGroupInstanceFromElement(this.element);
 
     if (groupInstance) {
@@ -335,8 +318,8 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getSolvedBoundingBoxes(): BoundingBox[] {
-    const stagePosition = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
-    const solvingAreaPosition = Utils.getStyleBoundingBox(this.SolvingArea.element as HTMLDivElement);
+    const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
+    const solvingAreaPosition = Utils.getStyleBoundingBox(window.Puzzly.SolvingArea.element as HTMLDivElement);
     const relativeBoundingBoxes = this.connectors.map((connector) => connector.boundingBox);
 
     const anchorTop = stagePosition.top + solvingAreaPosition.top + this.pieceData.puzzleY;
@@ -364,7 +347,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   addToSolved() {
-    this.GroupOperations.addToGroup(this, this.solvedGroupId + "");
+    window.Puzzly.GroupOperations.addToGroup(this, this.solvedGroupId + "");
   }
 
   isOutOfBounds(event: MouseEvent) {
@@ -454,7 +437,7 @@ export default class SingleMovable extends BaseMovable {
         !this.isSolved
       ) {
         this.active = true;
-        this.Puzzly.keepOnTop(this.element);
+        window.Puzzly.keepOnTop(this.element);
         super.onPickup(event);
       }
     }
@@ -467,7 +450,7 @@ export default class SingleMovable extends BaseMovable {
       } else if (this.isOverPockets(event)) {
         const pocket = this.getPocketByCollision(Utils.getEventBox(event));
         if (pocket) {
-          this.Pockets.addSingleToPocket(pocket, this);
+          window.Puzzly.Pockets.addSingleToPocket(pocket, this);
           this.pocketId = parseInt(pocket.id.split("-")[1]);
         }
       } else if (!this.groupId) {
@@ -520,7 +503,7 @@ export default class SingleMovable extends BaseMovable {
     // TODO: Should this be part of the hide() behaviour?
     this.element.style.pointerEvents = "none";
 
-    this.SolvingArea.add([this]);
+    window.Puzzly.SolvingArea.add([this]);
 
     this.save(true);
   }
@@ -557,10 +540,10 @@ export default class SingleMovable extends BaseMovable {
     // console.log("SingleInstance", this, "joinTo()", targetInstance);
     if (targetInstance.instanceType === InstanceTypes.SingleMovable) {
       const newGroup = new GroupMovable({
-        Puzzly: this.Puzzly,
+        Puzzly: window.Puzzly,
         pieces: [this, targetInstance as SingleMovable],
       });
-      this.Puzzly.groupInstances.push(newGroup);
+      window.Puzzly.groupInstances.push(newGroup);
     } else {
       const instance = targetInstance as GroupMovable;
       // console.log("SingleMovable joining to", instance);

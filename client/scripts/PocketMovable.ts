@@ -1,6 +1,5 @@
 import BaseMovable from "./BaseMovable";
 import { EVENT_TYPES } from "./constants";
-import Pockets from "./Pockets";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
 import { InstanceTypes, MovableElement } from "./types";
@@ -11,15 +10,11 @@ export class PocketMovable extends BaseMovable {
   piecesInPocket: SingleMovable[];
   activePocket?: HTMLDivElement;
   activePocketInnerElement = null;
-  Pockets: Pockets;
 
   constructor(puzzleData: Puzzly) {
     super(puzzleData);
 
-    this.Puzzly = puzzleData;
-    this.Pockets = puzzleData.Pockets;
-
-    this.pocketsContainer.addEventListener(
+    window.Puzzly.Pockets.container.addEventListener(
       "mousedown",
       this.onMouseDown.bind(this)
     );
@@ -53,9 +48,9 @@ export class PocketMovable extends BaseMovable {
         this.addToStage();
       } else if (this.isOverPockets(event)) {
         const pocket = this.getPocketByCollision(Utils.getEventBox(event));
-        this.Pockets.addManyToPocket(pocket as HTMLDivElement, this);
+        window.Puzzly.Pockets.addManyToPocket(pocket as HTMLDivElement, this);
       } else if (!this.isInsidePlayArea() && !this.isOverPockets(event)) {
-        this.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
+        window.Puzzly.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
       }
 
       this.save();
@@ -168,7 +163,7 @@ export class PocketMovable extends BaseMovable {
     this.piecesInPocket.forEach((instance: SingleMovable) => {
       const element = instance.element;
       const playboundaryRect = (
-        this.piecesContainer as HTMLDivElement
+        window.Puzzly.piecesContainer as HTMLDivElement
       ).getBoundingClientRect();
       const elRect = element.getBoundingClientRect();
 
@@ -180,7 +175,7 @@ export class PocketMovable extends BaseMovable {
       element.style.top = pos.y + "px";
       element.style.left = pos.x + "px";
 
-      (this.piecesContainer as HTMLDivElement).appendChild(element);
+      (window.Puzzly.piecesContainer as HTMLDivElement).appendChild(element);
       element.classList.remove("in-pocket");
       element.setAttribute("data-pocket-id", "");
       element.style.pointerEvents = "auto";

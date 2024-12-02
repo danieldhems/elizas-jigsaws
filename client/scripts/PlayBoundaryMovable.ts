@@ -14,7 +14,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
   constructor(puzzly: Puzzly) {
     super(puzzly);
 
-    this.element = this.playBoundary as HTMLDivElement;
+    this.element = window.Puzzly.playBoundary as HTMLDivElement;
     this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
     this.stage = puzzly.stage as HTMLDivElement;
     this.puzzleWidth = puzzly.boardWidth;
@@ -54,34 +54,35 @@ export default class PlayBoundaryMovable extends BaseMovable {
   }
 
   reCenter() {
-    if (this.playBoundary) {
+    const { playBoundary } = window.Puzzly;
+    if (playBoundary) {
       const stageRect = this.stage.getBoundingClientRect();
-      const playBoundaryRect = this.playBoundary.getBoundingClientRect();
+      const playBoundaryRect = playBoundary.getBoundingClientRect();
 
       // TODO: Abstract / clean up
       if (window.innerHeight < window.innerWidth) {
-        this.playBoundary.style.top = Utils.getPxString(
+        playBoundary.style.top = Utils.getPxString(
           SCREEN_MARGIN
         );
         if (window.innerWidth < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED) {
-          this.playBoundary.style.left = Utils.getPxString(
+          playBoundary.style.left = Utils.getPxString(
             SCREEN_MARGIN
           );
         } else {
-          this.playBoundary.style.left = Utils.getPxString(
+          playBoundary.style.left = Utils.getPxString(
             stageRect.width / 2 - playBoundaryRect.width / 2
           );
         }
       } else if (window.innerWidth < window.innerHeight) {
-        this.playBoundary.style.left = Utils.getPxString(
+        playBoundary.style.left = Utils.getPxString(
           SCREEN_MARGIN
         );
         if (window.innerHeight < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED) {
-          this.playBoundary.style.top = Utils.getPxString(
+          playBoundary.style.top = Utils.getPxString(
             SCREEN_MARGIN
           );
         } else {
-          this.playBoundary.style.top = Utils.getPxString(
+          playBoundary.style.top = Utils.getPxString(
             stageRect.height / 2 - playBoundaryRect.height / 2
           );
         }

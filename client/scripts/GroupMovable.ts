@@ -26,10 +26,6 @@ export default class GroupMovable extends BaseMovable {
   puzzleHeight: number;
   piecesInGroup: SingleMovable[];
   elementsInGroup: MovableElement[];
-  Puzzly: Puzzly;
-  GroupOperations: GroupOperations;
-  PersistenceOperations: PersistenceOperations;
-  SolvingArea: SolvingArea;
   position: {
     top: number;
     left: number;
@@ -60,11 +56,8 @@ export default class GroupMovable extends BaseMovable {
   }) {
     super(Puzzly);
 
-    this.Puzzly = Puzzly;
-
-    // console.log("GroupMovable constructor _id", _id);
-    // console.log("GroupMovable constructor pieces", pieces);
-    // console.log("new group", position)
+    console.log("GroupMovable constructor _id", _id);
+    console.log("GroupMovable constructor pieces", pieces);
 
     if (_id) {
       this._id = _id;
@@ -92,20 +85,6 @@ export default class GroupMovable extends BaseMovable {
     if (isSolved) {
       this.isSolved = isSolved;
     }
-
-    this.PersistenceOperations = new PersistenceOperations(this);
-    this.GroupOperations = new GroupOperations({
-      width: this.Puzzly.boardWidth,
-      height: this.Puzzly.boardHeight,
-      puzzleImage: this.puzzleImage,
-      shadowOffset: this.shadowOffset,
-      piecesPerSideHorizontal: Puzzly.piecesPerSideHorizontal,
-      piecesPerSideVertical: Puzzly.piecesPerSideVertical,
-      zIndex: this.zIndex,
-      position: this.position,
-    });
-
-    this.SolvingArea = this.Puzzly.SolvingArea;
 
     if (!_id) {
       this.initiateGroup();
@@ -149,7 +128,7 @@ export default class GroupMovable extends BaseMovable {
       left: targetPieceCurrentPosition.left - targetPiecePuzzleX,
     };
 
-    const groupContainer = this.GroupOperations.createGroupContainer(groupInitialPosition);
+    const groupContainer = window.Puzzly.GroupOperations.createGroupContainer(groupInitialPosition);
 
     sourcePiece.setPositionAsGrouped();
     targetPiece.setPositionAsGrouped();
@@ -169,7 +148,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   restoreFromPersistence() {
-    const container = this.GroupOperations.createGroupContainer(this.position, this._id);
+    const container = window.Puzzly.GroupOperations.createGroupContainer(this.position, this._id);
     GroupOperations.setIdForGroupElements(container, this._id as string);
 
     this.element = container;
@@ -249,9 +228,10 @@ export default class GroupMovable extends BaseMovable {
 
   render() {
     const pieces = this.piecesInGroup.map(piece => piece.pieceData);
+    console.log('render', pieces)
 
-    const puzzleWidth = this.Puzzly.boardWidth;
-    const puzzleHeight = this.Puzzly.boardHeight;
+    const puzzleWidth = window.Puzzly.boardWidth;
+    const puzzleHeight = window.Puzzly.boardHeight;
 
     const svgWidth = puzzleWidth + SHADOW_OFFSET;
     const svgHeight = puzzleHeight + SHADOW_OFFSET;
@@ -311,7 +291,7 @@ export default class GroupMovable extends BaseMovable {
         this.element = element.parentNode as MovableElement;
         // console.log("group movable: element", this.element);
         this.active = true;
-        this.Puzzly.keepOnTop(this.element);
+        window.Puzzly.keepOnTop(this.element);
 
         super.onPickup.call(this, event);
       }
@@ -320,7 +300,7 @@ export default class GroupMovable extends BaseMovable {
 
   getConnection() {
     const collisionCandidates =
-      this.GroupOperations.getCollisionCandidatesInGroup(
+      window.Puzzly.GroupOperations.getCollisionCandidatesInGroup(
         this.element.dataset.groupId + ""
       );
 
@@ -358,7 +338,7 @@ export default class GroupMovable extends BaseMovable {
 
   isOutOfBounds() {
     const playAreaBox = (
-      this.piecesContainer as HTMLDivElement
+      window.Puzzly.piecesContainer as HTMLDivElement
     ).getBoundingClientRect();
     return this.piecesInGroup.some(
       (instance) =>
@@ -368,13 +348,16 @@ export default class GroupMovable extends BaseMovable {
   }
 
   solve() {
+    console.log('solving group', this)
     this.piecesInGroup.forEach((instance) => {
       instance.markAsSolved();
     });
 
     this.isSolved = true;
 
-    this.SolvingArea.add(this.piecesInGroup);
+    this.save();
+
+    window.Puzzly.SolvingArea.add(this.piecesInGroup);
     this.destroy();
   }
 
@@ -467,7 +450,9 @@ export default class GroupMovable extends BaseMovable {
     // TODO: Still seeing duplicate saves
     // console.log("group save called", this);
     if (force || this.active || !this._id) {
-      const response = await this.PersistenceOperations.save(this.getDataForSave());
+      window.dispatchEvent(
+        new CustomEvent(EVENT_TYPES.SAVE, { detail: this.getDataForSave() })
+      );
     }
   }
 
@@ -477,6 +462,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   delete() {
+    console.log('destroy', this)
     window.dispatchEvent(
       new CustomEvent(EVENT_TYPES.SAVE, {
         detail: {
