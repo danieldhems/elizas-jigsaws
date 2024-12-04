@@ -10,6 +10,7 @@ import PathOperations from "./pathOperations";
 
 import {
   BoundingBox,
+  Connection,
   Connector,
   DomBox,
   InstanceTypes,
@@ -536,14 +537,27 @@ export default class SingleMovable extends BaseMovable {
     this.element.style.visibility = "hidden";
   }
 
-  joinTo(targetInstance: GroupMovable | SingleMovable) {
+  markConnectorUsed(atDegrees: number) {
+    this.connectors.forEach((connector: Connector) => {
+      if (connector.atDegrees === atDegrees) {
+        connector.isConnected = true;
+      }
+    });
+  }
+
+  joinTo(targetInstance: GroupMovable | SingleMovable, connection: Connection) {
     // console.log("SingleInstance", this, "joinTo()", targetInstance);
+    console.log(connection)
     if (targetInstance.instanceType === InstanceTypes.SingleMovable) {
-      const newGroup = new GroupMovable({
-        Puzzly: window.Puzzly,
-        pieces: [this, targetInstance as SingleMovable],
-      });
-      window.Puzzly.groupInstances.push(newGroup);
+      if (connection.atDegrees && connection.adjacentDegrees) {
+        this.markConnectorUsed(connection.atDegrees);
+        (targetInstance as SingleMovable).markConnectorUsed(connection.adjacentDegrees)
+        const newGroup = new GroupMovable({
+          Puzzly: window.Puzzly,
+          pieces: [this, targetInstance as SingleMovable],
+        });
+        window.Puzzly.groupInstances.push(newGroup);
+      }
     } else {
       const instance = targetInstance as GroupMovable;
       // console.log("SingleMovable joining to", instance);

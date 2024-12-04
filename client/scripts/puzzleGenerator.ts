@@ -2,8 +2,9 @@ import { LargeNumberLike } from "crypto";
 import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE, SCREEN_MARGIN, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
 import jigsawPath from "./jigsawPath";
 import { getJigsawShapeSvgString } from "./svg";
-import { ConnectorNames, ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SideNames, SkeletonPiece, PuzzleImpression } from "./types";
+import { ConnectorNames, ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SideNames, SkeletonPiece, PuzzleImpression, Connector } from "./types";
 import Utils from "./utils";
+import { nanoid } from "nanoid";
 
 
 
@@ -233,6 +234,8 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
   let currentIndexFromLeftEdge = 0;
   let currentIndexFromTopEdge = 0;
 
+  const allConnectors: Connector[] = [];
+
   while (n < puzzleConfig.totalNumberOfPieces) {
     const piece = {
       connectorSize,
@@ -253,20 +256,26 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
       leftConnector = 0 as ConnectorType;
 
       piece.type = [topConnector, rightConnector, bottomConnector, leftConnector];
-      piece.connectors = [
+      const connectors = [
         {
+          id: nanoid(),
+          ownerIndex: n + 1,
           type: rightConnector,
           isConnected: false,
-          ownerIndex: n + 1,
+          targetPieceIndex: n + 1,
           atDegrees: 180,
         },
         {
-          type: bottomConnector,
+          id: nanoid(),
           ownerIndex: n + numberOfPiecesHorizontal,
+          type: bottomConnector,
+          targetPieceIndex: n + numberOfPiecesHorizontal,
           isConnected: false,
           atDegrees: 270,
         },
       ];
+      piece.connectors = connectors;
+      allConnectors.push(...connectors);
 
       piece.numPiecesFromTopEdge = 0;
       piece.numPiecesFromLeftEdge = 0;
@@ -317,39 +326,51 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
 
       piece.type = [topConnector, rightConnector, bottomConnector, leftConnector];
       if (topConnector !== 0) {
-        piece.connectors.push({
+        const connector = {
+          id: nanoid(),
+          ownerIndex: n - numberOfPiecesHorizontal,
           type: topConnector,
           atDegrees: 90,
-          ownerIndex: n - numberOfPiecesHorizontal,
+          targetPieceIndex: n - numberOfPiecesHorizontal,
           isConnected: false,
-        })
+        }
+        piece.connectors.push(connector);
       }
 
       if (rightConnector !== 0) {
-        piece.connectors.push({
+        const connector = {
+          id: nanoid(),
+          ownerIndex: n + 1,
           type: rightConnector,
           atDegrees: 180,
-          ownerIndex: n + 1,
+          targetPieceIndex: n + 1,
           isConnected: false
-        })
+        };
+        piece.connectors.push(connector);
       }
 
       if (bottomConnector !== 0) {
-        piece.connectors.push({
+        const connector = {
+          id: nanoid(),
+          ownerIndex: n + numberOfPiecesHorizontal,
           type: bottomConnector,
           atDegrees: 270,
-          ownerIndex: n + numberOfPiecesHorizontal,
+          targetPieceIndex: n + numberOfPiecesHorizontal,
           isConnected: false
-        })
+        };
+        piece.connectors.push(connector);
       }
 
       if (leftConnector !== 0) {
-        piece.connectors.push({
+        const connector = {
+          id: nanoid(),
+          ownerIndex: n - 1,
           type: leftConnector,
           atDegrees: 360,
-          ownerIndex: n - 1,
+          targetPieceIndex: n - 1,
           isConnected: false
-        })
+        };
+        piece.connectors.push(connector);
       }
     }
 

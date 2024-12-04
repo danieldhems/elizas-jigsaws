@@ -253,7 +253,7 @@ export default class BaseMovable {
   onMouseUp(event: MouseEvent) {
     if (this.connection) {
       console.log("connection", this.connection);
-      this.handleConnection();
+      this.handleConnection(this.connection);
     }
 
     window.dispatchEvent(
@@ -262,9 +262,8 @@ export default class BaseMovable {
     this.clean();
   }
 
-  handleConnection() {
-    const { sourceElement, targetElement, isSolving } = this
-      .connection as Connection;
+  handleConnection(connection: Connection) {
+    const { sourceElement, targetElement, isSolving } = connection;
 
     const sourceInstance = this.getMovableInstanceFromElement(sourceElement) as SingleMovable;
 
@@ -280,7 +279,7 @@ export default class BaseMovable {
         targetElement
       ) as SingleMovable | GroupMovable;
 
-      sourceInstance.joinTo(targetInstance);
+      sourceInstance.joinTo(targetInstance, connection);
     }
 
     window.dispatchEvent(

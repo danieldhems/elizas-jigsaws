@@ -46,9 +46,12 @@ export function checkConnections(
 
       if (shouldCompare(targetPiece) && boundingBoxForTargetConnector) {
         if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
+          console.log('connection detected')
           return {
             sourceElement: element,
             targetElement: targetPiece.element,
+            atDegrees: connector.atDegrees,
+            adjacentDegrees: adjacentDegrees,
             isSolving: false,
           }
         }

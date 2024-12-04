@@ -67,7 +67,7 @@ export default class GroupMovable extends BaseMovable {
       this.position = position;
     }
 
-    this.piecesInGroup = pieces;
+    this.piecesInGroup = [];
 
     this.puzzleId = Puzzly.puzzleId;
     this.puzzleImage = Puzzly.puzzleImage;
@@ -87,12 +87,18 @@ export default class GroupMovable extends BaseMovable {
     }
 
     if (!_id) {
-      this.initiateGroup();
+      this.initiateGroup(pieces);
     } else {
       if (this.isSolved) {
         this.solve();
       } else {
-        this.restoreFromPersistence();
+        const container = window.Puzzly.GroupOperations.createGroupContainer(position, this._id);
+        GroupOperations.setIdForGroupElements(container, this._id as string);
+
+        this.element = container;
+
+        this.addPieces(pieces, { save: false });
+        this.addToStage(this.element);
       }
     }
 
@@ -113,10 +119,10 @@ export default class GroupMovable extends BaseMovable {
     );
   }
 
-  initiateGroup() {
+  initiateGroup(pieces: SingleMovable[]) {
     // console.log("initiating group")
-    const sourcePiece = this.piecesInGroup[0];
-    const targetPiece = this.piecesInGroup[1];
+    const sourcePiece = pieces[0];
+    const targetPiece = pieces[1];
 
     const targetPiecePuzzleX = targetPiece.pieceData.puzzleX;
     const targetPiecePuzzleY = targetPiece.pieceData.puzzleY;
@@ -140,23 +146,10 @@ export default class GroupMovable extends BaseMovable {
 
     this.element = groupContainer;
 
-    this.render();
-
     this.setLastPosition(groupInitialPosition);
+    this.addPieces(pieces)
     this.addToStage(this.element);
     this.save();
-  }
-
-  restoreFromPersistence() {
-    const container = window.Puzzly.GroupOperations.createGroupContainer(this.position, this._id);
-    GroupOperations.setIdForGroupElements(container, this._id as string);
-
-    this.element = container;
-
-    this.addPieces(this.piecesInGroup, { save: false });
-    this.attachElements();
-    this.addToStage(this.element);
-    this.render();
   }
 
   async joinTo(movableInstance: SingleMovable | GroupMovable) {
@@ -198,9 +191,9 @@ export default class GroupMovable extends BaseMovable {
   }
 
   async addPieces(pieceInstances: SingleMovable[], options?: { save: boolean; }) {
-    // console.log("pieces currently in group", this.piecesInGroup);
+    console.log("pieces currently in group", this.piecesInGroup);
     this.piecesInGroup.push(...pieceInstances);
-    // console.log("pieces in group after add", this.piecesInGroup);
+    console.log("pieces in group after add", this.piecesInGroup);
     this.piecesInGroup.forEach((instance) => {
       instance.setGroupIdAcrossInstance(this._id + "");
       instance.setPositionAsGrouped();
@@ -358,7 +351,6 @@ export default class GroupMovable extends BaseMovable {
     this.save();
 
     window.Puzzly.SolvingArea.add(this.piecesInGroup);
-    this.destroy();
   }
 
   getPieceIdsFromServerResponse(pieceData: JigsawPieceData[]) {

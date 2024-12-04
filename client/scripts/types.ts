@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import GroupMovable from "./GroupMovable";
 import { PocketMovable } from "./PocketMovable";
 import { DebugOptions } from "./puzzlyCreator";
@@ -33,6 +34,9 @@ export interface Connection {
   sourceElement: HTMLDivElement;
   type?: SideNames | undefined;
   targetElement?: HTMLDivElement;
+  // TODO: Restrict number type to values between 1 and 360
+  atDegrees?: number;
+  adjacentDegrees?: number;
   isSolving: boolean;
 }
 
@@ -171,14 +175,17 @@ export interface PuzzleCreatorOptions {
 }
 
 export type Connector = {
-  type: ConnectorType,
-  // Which adjacecnt piece this connector connects to
+  id: ReturnType<typeof nanoid>;
   ownerIndex: number;
+  // The unique ID for the connector on the adjacecnt piece that connects to this one
+  targetConnectorID?: ReturnType<typeof nanoid>;
+  targetPieceIndex: number;
+  type: ConnectorType,
   // Where this connector lives on this piece
   // ('degrees' being the orientation of the side this connector is on) 
   atDegrees: number,
   boundingBox?: BoundingBox,
-  isConnected: false
+  isConnected: boolean;
 };
 
 // Using 'pieceAbove' and 'pieceBehind' won't scale for wild piece shapes:
