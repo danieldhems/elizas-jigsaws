@@ -71,14 +71,12 @@ export default class SingleMovable extends BaseMovable {
 
     if (!window.Puzzly.complete) {
       this.render();
-      this.save();
     }
 
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
-    window.addEventListener(
-      EVENT_TYPES.PUZZLE_LOADED,
-      this.onPuzzleLoaded.bind(this)
-    );
     window.addEventListener(
       EVENT_TYPES.MOVE_FINISHED,
       this.onMoveFinished.bind(this)
@@ -425,50 +423,97 @@ export default class SingleMovable extends BaseMovable {
   }
 
   onMouseDown(event: MouseEvent) {
-    if (event.which === 1) {
+    if (event.button === 0) {
+      if (this.groupId) {
+        return;
+      }
+
       const element = Utils.getPuzzlePieceElementFromEvent(
         event
       ) as MovableElement;
       if (
-        element &&
-        !BaseMovable.isGroupedPiece(element) &&
-        this.hasMouseDown(element) &&
+        element.id === this.element.id &&
         !this.isPocketPiece(element) &&
         !this.isDragAndSelectActive &&
         !this.isSolved
       ) {
-        this.active = true;
         window.Puzzly.keepOnTop(this.element);
-        super.onPickup(event);
+
+        const mousePosition = {
+          top: event.clientY,
+          left: event.clientX,
+        };
+
+        // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
+        // TODO: Shouldn't be accessing the zoomLevel on a global like this.
+        this.diffX =
+          mousePosition.left -
+          parseInt(this.element.style.left) * window.Zoom.zoomLevel;
+        this.diffY =
+          mousePosition.top -
+          parseInt(this.element.style.top) * window.Zoom.zoomLevel;
       }
+
+      this.element.addEventListener('mousemove', this.onMouseMove)
+      this.element.addEventListener('mouseup', this.onMouseUp)
     }
   }
 
-  onMouseUp(event: MouseEvent) {
-    if (this.active) {
-      if (this.isOutOfBounds(event)) {
-        this.resetPosition();
-      } else if (this.isOverPockets(event)) {
-        const pocket = this.getPocketByCollision(Utils.getEventBox(event));
-        if (pocket) {
-          window.Puzzly.Pockets.addSingleToPocket(pocket, this);
-          this.pocketId = parseInt(pocket.id.split("-")[1]);
-        }
-      } else if (!this.groupId) {
-        // If this element is not in a group we can check for a connection with another piece
-        // console.log("solving area box", this.getSolvingAreaBoundingBox());
-        this.connection = checkConnections(
-          this.element,
-        );
-        console.log("connection", this.connection);
-      }
+  onMouseMove(event: MouseEvent) {
+    let newPosTop, newPosLeft;
 
-      if (!this.connection) {
+    newPosTop =
+      event.clientY / window.Zoom.zoomLevel -
+      this.diffY / window.Zoom.zoomLevel;
+    newPosLeft =
+      event.clientX / window.Zoom.zoomLevel -
+      this.diffX / window.Zoom.zoomLevel;
+
+    this.element.style.top = newPosTop + "px";
+    this.element.style.left = newPosLeft + "px";
+  }
+
+  onMouseUp(event: MouseEvent) {
+    if (this.isOutOfBounds(event)) {
+      this.resetPosition();
+    } else if (this.isOverPockets(event)) {
+      const pocket = this.getPocketByCollision(Utils.getEventBox(event));
+      if (pocket) {
+        window.Puzzly.Pockets.addSingleToPocket(pocket, this);
+        this.pocketId = parseInt(pocket.id.split("-")[1]);
+      }
+    } else {
+      // If this element is not in a group we can check for a connection with another piece
+      // console.log("solving area box", this.getSolvingAreaBoundingBox());
+      const connection = checkConnections(this);
+      console.log("connection", connection);
+
+      if (connection) {
+        const { targetElement, isSolving } = connection;
+
+        if (isSolving) {
+          this.solve();
+        } else if (targetElement) {
+          const targetInstance = this.getMovableInstanceFromElement(
+            targetElement
+          ) as SingleMovable | GroupMovable;
+
+          this.joinTo(targetInstance, connection);
+        }
+
+        window.dispatchEvent(
+          new CustomEvent(EVENT_TYPES.CONNECTION_MADE, {
+            detail: this.connection,
+          })
+        );
+
+      } else {
         this.save();
       }
     }
 
-    super.onMouseUp(event);
+    this.element.removeEventListener('mousemove', this.onMouseMove);
+    this.element.removeEventListener('mouseup', this.onMouseUp);
   }
 
   setLastPosition(position?: TopLeftCoordinate) {
@@ -478,20 +523,12 @@ export default class SingleMovable extends BaseMovable {
     };
   }
 
-  onPuzzleLoaded() {
-    this.save();
-  }
-
   onMoveFinished() {
-    if (this.active) {
-      if (!BaseMovable.isGroupedPiece(this.element)) {
-        this.setLastPosition({
-          left: this.element.offsetLeft,
-          top: this.element.offsetTop,
-        });
-
-        this.active = false;
-      }
+    if (!BaseMovable.isGroupedPiece(this.element)) {
+      this.setLastPosition({
+        left: this.element.offsetLeft,
+        top: this.element.offsetTop,
+      });
     }
   }
 
@@ -506,7 +543,8 @@ export default class SingleMovable extends BaseMovable {
 
     window.Puzzly.SolvingArea.add([this]);
 
-    this.save(true);
+    this.save();
+    this.destroy();
   }
 
   markAsSolved() {
@@ -557,6 +595,7 @@ export default class SingleMovable extends BaseMovable {
           pieces: [this, targetInstance as SingleMovable],
         });
         window.Puzzly.groupInstances.push(newGroup);
+        this.destroy();
       }
     } else {
       const instance = targetInstance as GroupMovable;
@@ -599,13 +638,19 @@ export default class SingleMovable extends BaseMovable {
     };
   }
 
-  save(force = false) {
+  save() {
     // console.log("Save single piece", this.getDataForSave());
-    if (force || (this.active && !this.connection)) {
-      window.dispatchEvent(
-        new CustomEvent(EVENT_TYPES.SAVE, { detail: this.getDataForSave() })
-      );
+    const { solvedCount, totalNumberOfPieces } = window.Puzzly;
+    let isComplete;
+    if (solvedCount === totalNumberOfPieces) {
+      isComplete = true;
     }
+
+    const options = {
+      isComplete,
+    }
+
+    window.Puzzly.PersistenceOperations.saveSinglePiece(this.getDataForSave(), options);
   }
 
   onUpdated(event: CustomEvent) {
@@ -622,5 +667,17 @@ export default class SingleMovable extends BaseMovable {
     this.pieceData._id = id;
     this.element.setAttribute("data-piece-id-in-persistence", id);
     this._id = id;
+  }
+
+  destroy() {
+    if (typeof this.onMouseDown === "function") {
+      window.removeEventListener("mousedown", this.onMouseDown);
+    }
+    if (typeof this.onMouseMove === "function") {
+      window.removeEventListener("mousemove", this.onMouseMove);
+    }
+    if (typeof this.onMouseUp === "function") {
+      window.removeEventListener("mouseup", this.onMouseUp);
+    }
   }
 }

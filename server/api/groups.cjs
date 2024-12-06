@@ -29,11 +29,9 @@ var api = {
     dbClient.connect().then(async (client, err) => {
       assert.strictEqual(err, undefined);
       db = client.db(dbName);
-      const { pieces, groups } = getDatabaseCollections(db, req.body);
+      const { pieces, groups } = getDatabaseCollections(db, req.body.payload);
 
-      const data = req.body;
-      // delete data._id;
-      // delete data.puzzleId;
+      const data = req.body.payload;
       console.log("attempting to create group", data);
 
       const pieceUpdateResults = [];
@@ -81,7 +79,7 @@ var api = {
     });
   },
   update: function (req, res) {
-    var data = req.body;
+    var data = req.body.payload;
     // console.log("update group request", req.body);
 
     dbClient.connect().then(async (client, err) => {

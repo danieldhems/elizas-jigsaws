@@ -33,7 +33,7 @@ var api = {
 
       const { pieces } = getDatabaseCollections(db, req.body);
 
-      const data = req.body;
+      const data = req.body.payload;
       console.log("attempting to save pieces for first time", data);
 
       pieces.insertMany(data, function (err, result) {
@@ -41,9 +41,7 @@ var api = {
 
         const response = {
           status: "success",
-          data: {
-            pieceData: result.ops,
-          },
+          data: result.ops,
         };
 
         res.status(200).send(response);
@@ -87,8 +85,8 @@ var api = {
         let queryObject = {};
 
         try {
-          if (Array.isArray(data)) {
-            puzzleId = data[0].puzzleId;
+          if (Array.isArray(data.payload)) {
+            puzzleId = data.payload[0].puzzleId;
             console.log("Attempting to update collection of pieces", data);
 
             response.pieces = [];
@@ -130,15 +128,16 @@ var api = {
               response.pieces[i] = currentPiece;
             }
           } else {
-            puzzleId = data.puzzle;
+            const piece = data.payload;
+            puzzleId = piece.puzzle;
 
-            queryObject._id = new ObjectID(data._id);
+            queryObject._id = new ObjectID(piece._id);
             // console.log("Single piece update requested with data", data);
 
-            delete data._id;
+            delete piece._id;
             update = {
               $set: {
-                ...data,
+                ...piece,
               },
             };
 
@@ -151,11 +150,13 @@ var api = {
             _id: new ObjectID(puzzleId),
           };
 
+          const zIndex = Array.isArray(data.payload) ? data.payload[0].zIndex : data.payload.zIndex;
+
           const puzzleUpdateOp = {
             $set: {
               lastSaveDate: lastSaveDate,
-              complete: data.isPuzzleComplete,
-              zIndex: data.zIndex,
+              complete: data.options.isComplete,
+              zIndex,
             },
           };
 

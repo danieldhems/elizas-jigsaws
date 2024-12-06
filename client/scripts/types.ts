@@ -311,7 +311,7 @@ export enum LocalStorageKeys {
 }
 
 export interface SingleMovableSaveState {
-  _id: string | undefined;
+  _id?: string;
   index: number;
   width: number;
   height: number;
@@ -338,11 +338,15 @@ export interface SingleMovableSaveState {
   integration?: boolean;
 }
 
-export interface GroupMovableSaveState
-  extends Omit<
-    SingleMovableSaveState,
-    "pocketId" | "index" | "pageX" | "pageY" | "puzzleX" | "puzzleY" | "width" | "height" | "type" | "basePieceSize" | "connectorSize" | "connectorDistanceFromCorner" | "connectorTolerance" | "connectors" | "numberOfPiecesHorizontal" | "numberOfPiecesVertical"
-  > {
+export interface GroupMovableSaveState {
+  _id?: string;
+  puzzleId: string;
+  puzzleWidth: number;
+  puzzleHeight: number;
+  zIndex: number;
+  instanceType: InstanceTypes;
+  integration?: boolean;
+  isSolved?: boolean;
   position: {
     top: number;
     left: number;
@@ -351,7 +355,7 @@ export interface GroupMovableSaveState
   pieces: SingleMovableSaveState[];
 }
 
-export type SaveStates = (SingleMovableSaveState | GroupMovableSaveState) & { isComplete?: boolean; };
+export type SaveStates = SingleMovableSaveState | SingleMovableSaveState[] | GroupMovableSaveState;
 
 export type PathPartHorizontalRelative = `h ${number}`;
 export type PathPartVerticalRelative = `v ${number}`;
@@ -392,3 +396,20 @@ export type PuzzleImpression = {
   impressionHeight?: number;
   pieces: SkeletonPiece[]
 };
+
+export interface SaveOptions {
+  isIntegration: boolean;
+  isComplete: boolean;
+}
+
+export interface SinglePieceSavePayload {
+  data: SingleMovableSaveState;
+}
+
+export interface MultiplePieceSavePayload {
+  data: SingleMovableSaveState[];
+}
+
+export interface GroupSavePayload {
+  data: GroupMovableSaveState;
+}

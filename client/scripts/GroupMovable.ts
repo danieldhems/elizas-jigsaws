@@ -13,6 +13,7 @@ import {
   GroupMovableSaveState,
   BoundingBox,
   TopLeftCoordinate,
+  ConnectorType,
 } from "./types";
 import Puzzly from "./Puzzly";
 import { getSvg } from "./svg";
@@ -35,6 +36,7 @@ export default class GroupMovable extends BaseMovable {
   height: number;
   zoomLevel: number;
   isSolved: boolean;
+  totalNumberOfPieces: number;
 
   constructor({
     Puzzly,
@@ -68,6 +70,7 @@ export default class GroupMovable extends BaseMovable {
     }
 
     this.piecesInGroup = [];
+    this.totalNumberOfPieces = Puzzly.selectedNumPieces;
 
     this.puzzleId = Puzzly.puzzleId;
     this.puzzleImage = Puzzly.puzzleImage;
@@ -97,10 +100,13 @@ export default class GroupMovable extends BaseMovable {
 
         this.element = container;
 
-        this.addPieces(pieces, { save: false });
+        this.addPieces(pieces);
         this.addToStage(this.element);
       }
     }
+
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
 
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
     window.addEventListener(
@@ -159,16 +165,13 @@ export default class GroupMovable extends BaseMovable {
     if (movableInstance.instanceType === InstanceTypes.SingleMovable) {
       instance = movableInstance as SingleMovable;
       this.alignWith(instance);
-      this.addPieces([instance], { save: true });
+      this.addPieces([instance]);
       this.render();
-      instance.setPositionAsGrouped();
-      instance.setGroupIdAcrossInstance(this._id + "");
-      // TODO: This should be done by the movable instance
-      instance.element.classList.add("grouped");
     } else if (movableInstance.instanceType === InstanceTypes.GroupMovable) {
       instance = movableInstance as GroupMovable;
-      await instance.addPieces(this.piecesInGroup, { save: true });
+      instance.addPieces(this.piecesInGroup);
       this.destroy();
+      instance.save();
     }
   }
 
@@ -190,21 +193,15 @@ export default class GroupMovable extends BaseMovable {
     this.element.style.left = position.left + "px";
   }
 
-  async addPieces(pieceInstances: SingleMovable[], options?: { save: boolean; }) {
-    console.log("pieces currently in group", this.piecesInGroup);
+  addPieces(pieceInstances: SingleMovable[]) {
     this.piecesInGroup.push(...pieceInstances);
-    console.log("pieces in group after add", this.piecesInGroup);
     this.piecesInGroup.forEach((instance) => {
+      instance.hide();
       instance.setGroupIdAcrossInstance(this._id + "");
       instance.setPositionAsGrouped();
-      instance.hide();
     });
     this.attachElements();
     this.render();
-
-    if (options?.save) {
-      await this.save(true);
-    }
   }
 
   attachElements() {
@@ -269,56 +266,110 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseDown(event: MouseEvent) {
-    if (event.which === 1) {
+    if (event.button === 0) {
       const element = Utils.getPuzzlePieceElementFromEvent(
         event
       ) as MovableElement;
-      // console.log("group onmousedown", element)
       if (
         element &&
-        BaseMovable.isGroupedPiece(element) &&
         this.isPuzzlePieceInThisGroup(element) &&
         !Utils.isSolved(element) &&
-        !this.isSolved
+        !this.isSolved &&
+        !this.dragAndSelectActive
       ) {
         this.element = element.parentNode as MovableElement;
         // console.log("group movable: element", this.element);
         this.active = true;
         window.Puzzly.keepOnTop(this.element);
 
-        super.onPickup.call(this, event);
+        const mousePosition = {
+          top: event.clientY,
+          left: event.clientX,
+        };
+
+        // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
+        // TODO: Shouldn't be accessing the zoomLevel on a global like this.
+        this.diffX =
+          mousePosition.left -
+          parseInt(this.element.style.left) * window.Zoom.zoomLevel;
+        this.diffY =
+          mousePosition.top -
+          parseInt(this.element.style.top) * window.Zoom.zoomLevel;
+
+        this.element.addEventListener('mousemove', this.onMouseMove)
+        this.element.addEventListener('mouseup', this.onMouseUp)
       }
     }
   }
 
+  onMouseMove(event: MouseEvent) {
+    let newPosTop, newPosLeft;
+
+    newPosTop =
+      event.clientY / window.Zoom.zoomLevel -
+      this.diffY / window.Zoom.zoomLevel;
+    newPosLeft =
+      event.clientX / window.Zoom.zoomLevel -
+      this.diffX / window.Zoom.zoomLevel;
+
+    this.element.style.top = newPosTop + "px";
+    this.element.style.left = newPosLeft + "px";
+  }
+
   getConnection() {
-    const collisionCandidates =
-      window.Puzzly.GroupOperations.getCollisionCandidatesInGroup(
-        this.element.dataset.groupId + ""
-      );
+    if (this.piecesInGroup.length === this.totalNumberOfPieces) {
+      return checkConnections(window.Puzzly.getSingleInstanceByIndex(0));
+    } else {
+      const collisionCandidates = this.getCollisionCandidatesInGroup();
 
-    let i = 0;
+      let i = 0;
 
-    while (i < collisionCandidates.length) {
-      const connection = checkConnections(
-        collisionCandidates[i],
-      );
-      if (connection) return connection;
-      i++;
+      while (i < collisionCandidates.length) {
+        const connection = checkConnections(
+          collisionCandidates[i],
+        );
+        if (connection) return connection;
+        i++;
+      }
     }
   }
 
   onMouseUp(event: MouseEvent) {
-    if (this.active) {
-      if (this.isOutOfBounds()) {
-        this.resetPosition();
-      } else {
-        this.connection = this.getConnection();
-        super.onMouseUp(event);
+    console.log(event.currentTarget)
+    if (this.isOutOfBounds()) {
+      this.resetPosition();
+    } else {
+      const connection = this.getConnection();
+
+      if (connection) {
+        console.log("connection", connection);
+
+        const { sourceElement, targetElement, isSolving } = connection;
+
+        if (isSolving) {
+          this.solve();
+        } else if (targetElement) {
+          const targetInstance = this.getMovableInstanceFromElement(
+            targetElement
+          ) as SingleMovable | GroupMovable;
+
+          this.joinTo(targetInstance);
+        }
+
+        window.dispatchEvent(
+          new CustomEvent(EVENT_TYPES.CONNECTION_MADE, {
+            detail: this.connection,
+          })
+        );
       }
 
-      this.clean();
+      window.dispatchEvent(
+        new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
+      );
     }
+
+    this.element.removeEventListener('mousemove', this.onMouseMove);
+    this.element.removeEventListener('mouseup', this.onMouseUp);
   }
 
   onMoveFinished() {
@@ -327,6 +378,30 @@ export default class GroupMovable extends BaseMovable {
       this.setLastPosition();
       this.save();
     }
+  }
+
+  getCollisionCandidatesInGroup(): SingleMovable[] {
+    const candidates: SingleMovable[] = [];
+
+
+    this.piecesInGroup.forEach((piece: SingleMovable) => {
+      const element = piece.element;
+      const connections = window.Puzzly.GroupOperations.getConnections(element);
+      const pieceType = (element.dataset.jigsawType as string)
+        .split(",")
+        .map((n) => parseInt(n)) as ConnectorType[];
+      const isSolved = element.dataset.isSolved === "true";
+      if (Utils.isInnerPiece(pieceType) && connections.length < 4) {
+        candidates.push(piece);
+      }
+      if (Utils.isSidePiece(pieceType) && connections.length < 3) {
+        candidates.push(piece);
+      }
+      if (Utils.isCornerPiece(pieceType) && !isSolved) {
+        candidates.push(piece);
+      }
+    });
+    return candidates;
   }
 
   isOutOfBounds() {
@@ -342,15 +417,10 @@ export default class GroupMovable extends BaseMovable {
 
   solve() {
     console.log('solving group', this)
-    this.piecesInGroup.forEach((instance) => {
-      instance.markAsSolved();
-    });
+    window.Puzzly.SolvingArea.add(this.piecesInGroup);
 
     this.isSolved = true;
-
     this.save();
-
-    window.Puzzly.SolvingArea.add(this.piecesInGroup);
   }
 
   getPieceIdsFromServerResponse(pieceData: JigsawPieceData[]) {
@@ -441,11 +511,15 @@ export default class GroupMovable extends BaseMovable {
   async save(force = false) {
     // TODO: Still seeing duplicate saves
     // console.log("group save called", this);
-    if (force || this.active || !this._id) {
-      window.dispatchEvent(
-        new CustomEvent(EVENT_TYPES.SAVE, { detail: this.getDataForSave() })
-      );
+
+    const { solvedCount, totalNumberOfPieces } = window.Puzzly;
+    let isComplete;
+    if (solvedCount === totalNumberOfPieces) {
+      isComplete = true;
     }
+
+    const saveResult = await window.Puzzly.PersistenceOperations.saveGroup(this.getDataForSave());
+    console.log('saveResult', saveResult)
   }
 
   onSaveSuccess(event: CustomEvent) {
@@ -466,21 +540,28 @@ export default class GroupMovable extends BaseMovable {
     );
   }
 
-  detachElements() {
-    this.element.remove();
+  clean() {
+    if (this.active) {
+      this.active = false;
+    }
   }
 
   destroy() {
-    this.detachElements();
     if (!this.isSolved) {
       window.Puzzly.removeGroupInstance(this);
     }
-    this.delete();
-  }
 
-  clean() {
-    if (this.active) {
-      super.clean();
+    if (typeof this.onMouseDown === "function") {
+      window.removeEventListener("mousedown", this.onMouseDown);
     }
+    if (typeof this.onMouseMove === "function") {
+      window.removeEventListener("mousemove", this.onMouseMove);
+    }
+    if (typeof this.onMouseUp === "function") {
+      window.removeEventListener("mouseup", this.onMouseUp);
+    }
+
+    this.element.remove();
+    this.delete();
   }
 }

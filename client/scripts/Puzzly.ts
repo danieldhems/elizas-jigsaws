@@ -12,7 +12,6 @@ import {
 } from "./constants";
 import { PocketMovable } from "./PocketMovable";
 import PersistenceOperations from "./persistence";
-import CanvasOperations from "./CanvasOperations";
 import Zoom from "./zoom";
 import PlayBoundaryMovable from "./PlayBoundaryMovable";
 import SolvedPuzzlePreview from "./SolvedPuzzlePreview";
@@ -40,7 +39,6 @@ export default class Puzzly {
   PocketMovable: PocketMovable;
   PieceLayouts: PieceLayouts;
   PersistenceOperations: PersistenceOperations;
-  CanvasOperations: CanvasOperations;
   PlayBoundaryMovable: PlayBoundaryMovable;
   SolvingArea: SolvingArea;
   Zoom: Zoom;
@@ -177,9 +175,7 @@ export default class Puzzly {
 
     this.PlayBoundaryMovable = new PlayBoundaryMovable(this);
     this.SolvingArea = new SolvingArea(this.boardWidth, this.boardHeight, this.puzzleImage.src)
-
     this.Zoom = new Zoom(this);
-
     this.Pockets = new Pockets(this);
     this.DragAndSelect = new DragAndSelect(this);
     this.SolvedPuzzlePreview = new SolvedPuzzlePreview(this);
@@ -187,7 +183,6 @@ export default class Puzzly {
     this.PieceLayouts = new PieceLayouts(this);
     this.PersistenceOperations = new PersistenceOperations(this);
     this.Sounds = new Sounds();
-    this.CanvasOperations = new CanvasOperations(this);
 
     this.solvedCount = 0;
 
@@ -266,13 +261,15 @@ export default class Puzzly {
         });
         this.pieceInstances.push(pieceInstance);
       });
+
       if (!this.noDispersal) {
         this.PieceLayouts.arrangePiecesAroundEdge();
       } else {
         // NOTE: Initial save once all pieces have been rendered
         // Only necessary when loading puzzle without disperal (for debug)
         // else the save would be called elsewhere
-        window.dispatchEvent(new CustomEvent(EVENT_TYPES.SAVE));
+        const dataForSave = this.pieceInstances.map((piece) => piece.getDataForSave());
+        this.PersistenceOperations.saveMultiplePieces(dataForSave)
       }
     }
 
@@ -292,9 +289,7 @@ export default class Puzzly {
 
     (this.stage as HTMLDivElement).classList.add("loaded");
 
-    window.dispatchEvent(
-      new CustomEvent(EVENT_TYPES.PUZZLE_LOADED, { detail: this })
-    );
+
 
     const integrationTestDragHelper = document.querySelector(
       "#integration-test-drag-helper"
@@ -307,13 +302,19 @@ export default class Puzzly {
     integrationTestDragHelper.style.height = "100px";
   }
 
+  getSingleInstanceByIndex(
+    index: number
+  ): SingleMovable {
+    return window.Puzzly.pieceInstances.find(
+      (instance: SingleMovable) => instance.index === index
+    ) as SingleMovable;
+  }
+
   removeGroupInstance(groupInstance: GroupMovable) {
     this.groupInstances = this.groupInstances.filter(
       (instance) => instance._id !== groupInstance._id
     );
   }
-
-
 
   updateElapsedTime(isComplete = false) {
     const now = new Date().getTime();

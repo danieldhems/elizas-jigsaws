@@ -1,9 +1,6 @@
-import CanvasOperations from "./CanvasOperations";
 import { ConnectorType, MovableElement } from "./types";
 import Utils from "./utils";
 import SingleMovable from "./SingleMovable";
-import { getJigsawShapeSvgString } from "./svg";
-import { getSvg } from "./svg";
 
 export interface GroupOperationsProperties {
   width: number;
@@ -19,11 +16,19 @@ export interface GroupOperationsProperties {
   zIndex?: number;
 }
 
-export default interface GroupOperations extends GroupOperationsProperties {
-  CanvasOperations: CanvasOperations;
-}
+export default class GroupOperations {
+  width: number;
+  height: number;
+  puzzleImage: HTMLImageElement;
+  shadowOffset: number;
+  piecesPerSideHorizontal: number;
+  piecesPerSideVertical: number;
+  position?: {
+    top: number;
+    left: number;
+  };
+  zIndex?: number;
 
-export default class GroupOperations implements GroupOperationsProperties {
   constructor(config: GroupOperationsProperties) {
     this.width = config.width;
     this.height = config.height;
@@ -33,12 +38,6 @@ export default class GroupOperations implements GroupOperationsProperties {
     this.zIndex = config.zIndex;
     this.piecesPerSideHorizontal = config.piecesPerSideHorizontal;
     this.piecesPerSideVertical = config.piecesPerSideVertical;
-    this.CanvasOperations = new CanvasOperations({
-      boardWidth: this.width,
-      boardHeight: this.height,
-      puzzleImage: this.puzzleImage,
-      shadowOffset: this.shadowOffset,
-    });
   }
 
   isGroupSolved(groupId: string): boolean | void {
@@ -91,39 +90,7 @@ export default class GroupOperations implements GroupOperationsProperties {
       : [];
   }
 
-  getCollisionCandidatesInGroup(groupId: string) {
-    const elementsInGroup = this.getPiecesInGroup(groupId);
-    console.log(
-      "getCollisionCandidatesInGroup: piecesInGroup",
-      groupId,
-      elementsInGroup
-    );
-    const candidates: MovableElement[] = [];
-    const totalNumberOfPieces = parseInt(
-      elementsInGroup[0].dataset.totalNumberOfPieces as string
-    );
-    if (elementsInGroup.length === totalNumberOfPieces) {
-      return [Utils.getElementByPieceId(0)];
-    }
 
-    elementsInGroup.forEach((element: MovableElement) => {
-      const connections = this.getConnections(element);
-      const pieceType = (element.dataset.jigsawType as string)
-        .split(",")
-        .map((n) => parseInt(n)) as ConnectorType[];
-      const isSolved = element.dataset.isSolved === "true";
-      if (Utils.isInnerPiece(pieceType) && connections.length < 4) {
-        candidates.push(element);
-      }
-      if (Utils.isSidePiece(pieceType) && connections.length < 3) {
-        candidates.push(element);
-      }
-      if (Utils.isCornerPiece(pieceType) && !isSolved) {
-        candidates.push(element);
-      }
-    });
-    return candidates;
-  }
 
   static generateGroupId() {
     return new Date().getTime();
@@ -294,15 +261,6 @@ export default class GroupOperations implements GroupOperationsProperties {
     // Re-draw group with new piece
     const elementsInTargetGroup = Array.from(this.getPiecesInGroup(groupId));
     const allPieces = [...elementsInTargetGroup, ...followingEls];
-    const canvas = this.CanvasOperations.getCanvas(
-      groupId
-    ) as HTMLCanvasElement;
-    this.CanvasOperations.drawMovableElementsOntoCanvas(
-      canvas,
-      allPieces,
-      this.puzzleImage,
-      this.shadowOffset
-    );
 
     // Update all connections
     this.updateConnections(allPieces);

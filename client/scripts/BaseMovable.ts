@@ -84,14 +84,6 @@ export default class BaseMovable {
     ) as SingleMovable;
   }
 
-  getSingleInstanceByIndex(
-    index: number
-  ): SingleMovable {
-    return window.Puzzly.pieceInstances.find(
-      (instance: SingleMovable) => instance.index === index
-    ) as SingleMovable;
-  }
-
   getGroupInstanceFromElement(
     element: MovableElement
   ): GroupMovable | undefined {
@@ -211,20 +203,6 @@ export default class BaseMovable {
         mousePosition.top -
         parseInt(this.element.style.top) * window.Zoom.zoomLevel;
     }
-
-    // Store a reference to our event handlers so we can remove them later
-    // (They don't get removed if we don't use these)
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-
-    window.addEventListener("mousemove", this.onMouseMove);
-    window.addEventListener("mouseup", this.onMouseUp);
-  }
-
-  // Lifecycle method called when a movable is put down up i.e. the user has finished interacting with it
-  // Actually not sure about this one...
-  onDrop() {
-    this.clean();
   }
 
   onMouseMove(event: MouseEvent) {
@@ -259,7 +237,6 @@ export default class BaseMovable {
     window.dispatchEvent(
       new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
     );
-    this.clean();
   }
 
   handleConnection(connection: Connection) {
@@ -339,17 +316,6 @@ export default class BaseMovable {
     if (this.active) {
       this.element.style.top = this.lastPosition.top + "px";
       this.element.style.left = this.lastPosition.left + "px";
-    }
-  }
-
-  clean() {
-    this.active = false;
-
-    if (typeof this.onMouseMove === "function") {
-      window.removeEventListener("mousemove", this.onMouseMove);
-    }
-    if (typeof this.onMouseUp === "function") {
-      window.removeEventListener("mouseup", this.onMouseUp);
     }
   }
 }

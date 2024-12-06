@@ -103,6 +103,21 @@ export default class PlayBoundaryMovable extends BaseMovable {
     }
   }
 
+  onMouseMove(event: MouseEvent) {
+    if (this.active && !this.dragAndSelectActive) {
+      let newPosTop, newPosLeft;
+
+      // this.shouldConstrainViewport()
+      // Viewport constraint not yet implemented so just ignore for now and move the play boundary around freely
+      newPosTop = event.clientY - this.diffY;
+      newPosLeft = event.clientX - this.diffX;
+
+
+      this.element.style.top = newPosTop + "px";
+      this.element.style.left = newPosLeft + "px";
+    }
+  }
+
   // Determine whether to allow the play boundary to be dragged any further based on its relation to the viewport
   shouldConstrainViewport(event: MouseEvent) {
     // TODO: Implement

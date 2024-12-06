@@ -1,4 +1,5 @@
 import { EVENT_TYPES } from "./constants";
+import GroupMovable from "./GroupMovable";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
 import {
@@ -8,7 +9,9 @@ import {
   JigsawPieceData,
   LocalStorageKeys,
   SavedProgress,
+  SaveOptions,
   SaveStates,
+  SingleMovableSaveState,
 } from "./types";
 
 const PIECES_ENDPOINT = "/api/pieces";
@@ -32,10 +35,6 @@ export default class PersistenceOperations {
 
     this.LOCAL_STORAGE_PUZZLY_PROGRESS_KEY = `Puzzly_ID${this.localStorageStringReplaceKey}_progress`;
     this.LOCAL_STORAGE_PUZZLY_LAST_SAVE_KEY = `Puzzly_ID${this.localStorageStringReplaceKey}_lastSave`;
-
-    window.addEventListener(EVENT_TYPES.SAVE, (event: CustomEvent) => {
-      this.save(event.detail);
-    });
   }
 
   getPersistence(
@@ -103,7 +102,7 @@ export default class PersistenceOperations {
     return this[key].replace(this.localStorageStringReplaceKey, this.puzzleId);
   }
 
-  saveToLocalStorage(data: SaveStates) {
+  saveToLocalStorage(data: SingleMovableSaveState | SingleMovableSaveState[] | GroupMovableSaveState) {
     let time = Date.now();
 
     const progressKey = this.getUniqueLocalStorageKeyForPuzzle(
@@ -134,46 +133,25 @@ export default class PersistenceOperations {
     return urlParams.get("integration") === "true";
   }
 
-  async save(dataToSave: SaveStates) {
+  async saveSinglePiece(piece: SingleMovableSaveState, options: SaveOptions) {
     // console.log("saving", data);
-    // console.trace()
+
     const useLocalStorage = false;
 
-    const data = dataToSave || window.Puzzly.pieceInstances.map(
-      (instance: SingleMovable) => instance.getDataForSave()
-    );
+    const requestMethod = piece._id ? "PUT" : "POST";
 
-    let endpoint;
-    let requestMethod;
-
-    if (data.instanceType === InstanceTypes.SingleMovable) {
-      requestMethod = data._id ? "PUT" : "POST";
-      endpoint = PIECES_ENDPOINT;
-    } else if (data.instanceType === InstanceTypes.GroupMovable) {
-      requestMethod = (data as GroupMovableSaveState).remove
-        ? "DELETE"
-        : data._id
-          ? "PUT"
-          : "POST";
-      endpoint = GROUPS_ENDPOINT;
-    } else if (Array.isArray(data)) {
-      requestMethod = "PUT";
-      endpoint = PIECES_ENDPOINT;
-    } else {
-      return;
-    }
-
-    data.integration = this.isIntegration();
-
-    const { solvedCount, totalNumberOfPieces } = window.Puzzly;
-    if (solvedCount === totalNumberOfPieces) {
-      data.isComplete = true;
-    }
+    const data: {
+      payload?: SingleMovableSaveState,
+      options?: {}
+    } = {};
+    data.payload = piece;
+    data.options = options;
 
     if (useLocalStorage) {
+      this.saveToLocalStorage(piece as SingleMovableSaveState);
     } else {
       // const isFirstSave = !payload[0]?._id;
-      return fetch(endpoint, {
+      return fetch(PIECES_ENDPOINT, {
         method: requestMethod,
         headers: {
           "Content-Type": "Application/json",
@@ -195,8 +173,97 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data);
+          this.saveToLocalStorage(data.payload as SingleMovableSaveState);
         });
+    }
+  }
+
+  async saveMultiplePieces(pieces: SingleMovableSaveState[], options?: SaveOptions) {
+    const useLocalStorage = false;
+
+    const requestMethod = pieces[0]._id ? "PUT" : "POST";
+
+    const data: {
+      payload?: SingleMovableSaveState[],
+      options?: {}
+    } = {};
+    data.payload = pieces;
+    data.options = options;
+
+    if (useLocalStorage) {
+      this.saveToLocalStorage(pieces);
+    } else {
+      // const isFirstSave = !payload[0]?._id;
+      return fetch(PIECES_ENDPOINT, {
+        method: requestMethod,
+        headers: {
+          "Content-Type": "Application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          console.log('response', response)
+          response.data.forEach((piece: any) => {
+            window.dispatchEvent(
+              new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
+            );
+          })
+          window.dispatchEvent(
+            new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response })
+          );
+        })
+        .catch((error) => {
+          console.error(error);
+          this.saveToLocalStorage(pieces);
+        });
+    }
+  }
+
+  async saveGroup(groupData: GroupMovableSaveState, options: SaveOptions) {
+    // console.log("saving", data);
+
+    const useLocalStorage = false;
+
+    const requestMethod = groupData._id ? "PUT" : "POST";
+
+    const data: {
+      payload?: GroupMovableSaveState,
+      options?: {}
+    } = {};
+
+    data.payload = groupData;
+    data.options = options;
+
+    if (useLocalStorage) {
+      this.saveToLocalStorage(data.payload as GroupMovableSaveState);
+    } else {
+      return fetch(GROUPS_ENDPOINT, {
+        method: requestMethod,
+        headers: {
+          "Content-Type": "Application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => response.json())
+        .then((response) => {
+          if (Array.isArray(response.pieces)) {
+            response.pieces.forEach((piece: any) => {
+              window.dispatchEvent(
+                new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
+              );
+            })
+          }
+          window.dispatchEvent(
+            new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response })
+          );
+
+          return response;
+        })
+        .catch((error) => {
+          console.error(error);
+          this.saveToLocalStorage(data.payload as GroupMovableSaveState);
+        })
     }
   }
 }
