@@ -27,25 +27,52 @@ module.exports.clean = function () {
 
 var api = {
   create: function (req, res) {
-    dbClient.connect().then((client, err) => {
+    dbClient.connect().then(async (client, err) => {
       assert.strictEqual(err, undefined);
-      db = client.db(dbName);
 
-      const { pieces } = getDatabaseCollections(db, req.body);
+      try {
 
-      const data = req.body.payload;
-      console.log("attempting to save pieces for first time", data);
+        db = client.db(dbName);
 
-      pieces.insertMany(data, function (err, result) {
-        if (err) throw new Error(err);
+        const { pieces, puzzles } = getDatabaseCollections(db, req.body);
+
+        const data = req.body.payload;
+        const puzzleId = data[0].puzzleId;
+        console.log("Pieces->Create: Attempting to save pieces for first time", data);
+
+        const pieceCreationResponse = await pieces.insertMany(data);
+        const lastSaveDate = Date.now();
+
+        const puzzleUpdateQuery = {
+          _id: new ObjectID(puzzleId),
+        };
+
+        const puzzleUpdateOp = {
+          $set: {
+            lastSaveDate: lastSaveDate,
+          },
+        };
+
+        console.log("Pieces->Create: Updating puzzle", puzzleUpdateOp);
+
+        const puzzleUpdateResult = await puzzles.updateOne(
+          puzzleUpdateQuery,
+          puzzleUpdateOp
+        );
+        console.log("Pieces->Create: puzzle update result", puzzleUpdateResult.ops)
 
         const response = {
           status: "success",
-          data: result.ops,
+          data: {
+            pieces: pieceCreationResponse.ops,
+            lastSaveDate,
+          }
         };
 
         res.status(200).send(response);
-      });
+      } catch (e) {
+        throw new Error(e);
+      }
     });
   },
   read: function (req, res) {
@@ -68,7 +95,7 @@ var api = {
   },
   update: function (req, res) {
     var data = req.body;
-    console.log("Pieces: update request", req.body);
+    // console.log("Pieces: update request", req.body);
 
     dbClient.connect().then(async (client, err) => {
       if (!err) {
@@ -87,7 +114,7 @@ var api = {
         try {
           if (Array.isArray(data.payload)) {
             puzzleId = data.payload[0].puzzleId;
-            console.log("Attempting to update collection of pieces", data);
+            // console.log("Attempting to update collection of pieces", data);
 
             response.pieces = [];
 
@@ -141,9 +168,9 @@ var api = {
               },
             };
 
-            console.log("Single piece update instruction", update);
+            // console.log("Single piece update instruction", update);
             const result = await pieces.updateOne(queryObject, update);
-            console.log("Single piece update result", result.result);
+            // console.log("Single piece update result", result.result);
           }
 
           const puzzleUpdateQuery = {
@@ -166,7 +193,7 @@ var api = {
             puzzleUpdateQuery,
             puzzleUpdateOp
           );
-          // console.log("Pieces: puzzle update result", result)
+          console.log("Pieces: puzzle update result", result)
 
           response.lastSaveDate = lastSaveDate;
 

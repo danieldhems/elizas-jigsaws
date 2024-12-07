@@ -204,13 +204,13 @@ export default class PersistenceOperations {
         .then((response) => response.json())
         .then((response) => {
           console.log('response', response)
-          response.data.forEach((piece: any) => {
+          response.data.pieces.forEach((piece: any) => {
             window.dispatchEvent(
               new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
             );
           })
           window.dispatchEvent(
-            new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response })
+            new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response.data })
           );
         })
         .catch((error) => {

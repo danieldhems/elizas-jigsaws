@@ -1,3 +1,4 @@
+import GroupMovable from "./GroupMovable";
 import SingleMovable from "./SingleMovable";
 import { ELEMENT_IDS, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
 import { getSvg } from "./svg";
@@ -40,10 +41,26 @@ export default class SolvingArea {
         this.render()
     }
 
-    add(pieces: SingleMovable[]) {
-        this.pieces.push(...pieces.map((piece: SingleMovable) => piece.pieceData))
+    addPiece(piece: SingleMovable) {
+        this.pieces.push(piece.pieceData);
+        piece.destroy();
         this.render();
-        window.Puzzly.solvedCount += pieces.length;
+        window.Puzzly.solvedCount += 1;
+    }
+
+    addPieces(pieces: SingleMovable[]) {
+        pieces.forEach((piece: SingleMovable) => {
+            this.pieces.push(piece.pieceData);
+            piece.destroy();
+        });
+        this.render();
+        window.Puzzly.solvedCount += 1;
+    }
+
+    addGroup(group: GroupMovable) {
+        this.pieces.push(...group.piecesInGroup.map((piece: SingleMovable) => piece.pieceData))
+        this.render();
+        window.Puzzly.solvedCount += group.piecesInGroup.length;
     }
 
     render() {

@@ -29,7 +29,7 @@ var api = {
     dbClient.connect().then(async (client, err) => {
       assert.strictEqual(err, undefined);
       db = client.db(dbName);
-      const { pieces, groups } = getDatabaseCollections(db, req.body.payload);
+      const { pieces, groups, puzzles } = getDatabaseCollections(db, req.body.payload);
 
       const data = req.body.payload;
       console.log("attempting to create group", data);
@@ -49,11 +49,32 @@ var api = {
           );
         }
 
+        const lastSaveDate = Date.now();
+
+        const puzzleUpdateQuery = {
+          _id: new ObjectID(data.puzzleId),
+        };
+
+        const puzzleUpdateOp = {
+          $set: {
+            lastSaveDate: lastSaveDate,
+          },
+        };
+
+        console.log("Groups->Create: Updating puzzle", puzzleUpdateOp);
+
+        const puzzleUpdateResult = await puzzles.updateOne(
+          puzzleUpdateQuery,
+          puzzleUpdateOp
+        );
+        console.log("Groups->Create: Puzzle update result", puzzleUpdateResult.ops)
+
         const response = {
           status: "success",
           data: {
             pieces: pieceUpdateResults.map((result) => result.value),
             _id: groupSaveResult.ops[0]._id,
+            lastSaveDate,
           },
         };
 
@@ -111,20 +132,16 @@ var api = {
 
           // console.log("update instruction", update);
 
-          try {
-            const result = await groups.findOneAndUpdate(query, update);
-            // console.log("group update result", result.ops);
+          const result = await groups.findOneAndUpdate(query, update);
+          // console.log("group update result", result.ops);
 
-            for (let i = 0, l = data.pieces.length; i < l; i++) {
-              pieceUpdateResults.push(
-                await pieces.findOneAndUpdate(
-                  { _id: new ObjectID(data.pieces[i]._id) },
-                  { $set: { groupId: data._id, isSolved: data.isSolved } }
-                )
-              );
-            }
-          } catch (error) {
-            console.error("Failed to update group:", error);
+          for (let i = 0, l = data.pieces.length; i < l; i++) {
+            pieceUpdateResults.push(
+              await pieces.findOneAndUpdate(
+                { _id: new ObjectID(data.pieces[i]._id) },
+                { $set: { groupId: data._id, isSolved: data.isSolved } }
+              )
+            );
           }
 
           const puzzleUpdateQuery = {

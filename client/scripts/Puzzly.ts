@@ -3,10 +3,8 @@ import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
 import DragAndSelect from "./dragAndSelect";
 import {
-  CONNECTOR_SIZE_PERC,
   CONNECTOR_TOLERANCE_AMOUNT,
   ELEMENT_IDS,
-  EVENT_TYPES,
   FLOAT_TOLERANCE_AMOUNT,
   SHADOW_OFFSET_RATIO,
 } from "./constants";
@@ -19,14 +17,12 @@ import {
   GroupData,
   JigsawPieceData,
   MovableElement,
-  PuzzleConfig,
   SolvedPuzzlePreviewType,
 } from "./types";
 import PieceLayouts from "./PieceLayouts";
 import loadAssets from "./assetLoader";
 import Sounds from "./Sounds";
 import SolvingArea from "./SolvingArea";
-import Utils from "./utils";
 import GroupOperations from "./GroupOperations";
 /**
  * Puzzly
@@ -221,7 +217,7 @@ export default class Puzzly {
       });
 
       if (solvedPieces.length > 0) {
-        this.SolvingArea.add(solvedPieces);
+        this.SolvingArea.addPieces(solvedPieces);
       }
 
       // console.log("groups from persistence", this.groups);
@@ -247,7 +243,7 @@ export default class Puzzly {
       }
 
       if (this.complete) {
-        this.SolvingArea.add(this.pieceInstances)
+        this.SolvingArea.addPieces(this.pieceInstances)
       }
     } else {
       console.log("pieces", this.pieces);

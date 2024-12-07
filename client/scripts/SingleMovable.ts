@@ -534,15 +534,14 @@ export default class SingleMovable extends BaseMovable {
 
   solve() {
     // console.log("SingleInstance", this, "solve()");
-    this.setPositionAsGrouped();
     this.hide();
-    this.markAsSolved();
 
     // TODO: Should this be part of the hide() behaviour?
     this.element.style.pointerEvents = "none";
 
-    window.Puzzly.SolvingArea.add([this]);
+    window.Puzzly.SolvingArea.addPiece(this);
 
+    this.isSolved = true;
     this.save();
     this.destroy();
   }
@@ -604,6 +603,7 @@ export default class SingleMovable extends BaseMovable {
       this.element.classList.add("grouped");
       // TDOD: Encapsulate in single method on target instance?
       instance.addPieces([this]);
+      instance.save();
       this.setPositionAsGrouped();
       this.hide();
     }

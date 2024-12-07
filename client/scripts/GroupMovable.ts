@@ -417,10 +417,11 @@ export default class GroupMovable extends BaseMovable {
 
   solve() {
     console.log('solving group', this)
-    window.Puzzly.SolvingArea.add(this.piecesInGroup);
+    window.Puzzly.SolvingArea.addGroup(this);
 
     this.isSolved = true;
     this.save();
+    this.destroy();
   }
 
   getPieceIdsFromServerResponse(pieceData: JigsawPieceData[]) {
