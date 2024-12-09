@@ -177,8 +177,8 @@ export default class BaseMovable {
     return this.hasCollision(window.Puzzly.Pockets.container, Utils.getEventBox(event));
   }
 
-  addToStage(element?: MovableElement) {
-    const elementToAdd = element || this.element;
+  addToStage(element: MovableElement) {
+    const elementToAdd = element;
     // console.log("element to add", this);
     (window.Puzzly.piecesContainer as HTMLDivElement).prepend(elementToAdd);
   }

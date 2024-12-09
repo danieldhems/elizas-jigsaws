@@ -182,7 +182,7 @@ var api = {
           const puzzleUpdateOp = {
             $set: {
               lastSaveDate: lastSaveDate,
-              complete: data.options.isComplete,
+              complete: data.options?.isComplete,
               zIndex,
             },
           };
@@ -193,7 +193,7 @@ var api = {
             puzzleUpdateQuery,
             puzzleUpdateOp
           );
-          console.log("Pieces: puzzle update result", result)
+          // console.log("Pieces->Update: puzzle update result", result.modifiedCount)
 
           response.lastSaveDate = lastSaveDate;
 

@@ -8,13 +8,11 @@ export function checkConnections(
   piece: SingleMovable,
 ) {
 
-  const shouldCompare = (targetPiece: SingleMovable) => {
-    const sourceGroupId = piece.groupId;
-    const targetGroupId = targetPiece.groupId;
+  const shouldCompare = (sourcePiece: SingleMovable, targetPiece: SingleMovable) => {
     return (
-      sourceGroupId === undefined && targetGroupId === undefined
+      sourcePiece.groupId === undefined && targetPiece.groupId === undefined
     ) ||
-      sourceGroupId !== targetGroupId;
+      sourcePiece.groupId !== targetPiece.groupId;
   }
 
   const solvedBoundingBoxes = piece.getSolvedBoundingBoxes();
@@ -29,18 +27,12 @@ export function checkConnections(
     const adjacentDegrees = Utils.getAdjacentDegrees(connector.atDegrees);
 
     const targetPiece = window.Puzzly.getSingleInstanceByIndex(connector.ownerIndex);
-    const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
 
-    if (connector.boundingBox) {
-      if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
-        return {
-          sourceElement: piece.element,
-          targetElement: targetPiece.element,
-          isSolving: true,
-        };
-      }
-
-      if (shouldCompare(targetPiece) && boundingBoxForTargetConnector) {
+    if (targetPiece) {
+      const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
+      // Utils.drawBox(boundingBoxForSourceConnector)
+      // Utils.drawBox(boundingBoxForTargetConnector)
+      if (shouldCompare(piece, targetPiece) && boundingBoxForTargetConnector) {
         if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
           return {
             sourceElement: piece.element,
@@ -50,6 +42,15 @@ export function checkConnections(
             isSolving: false,
           }
         }
+      }
+    }
+
+    if (connector.boundingBox) {
+      if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
+        return {
+          sourceElement: piece.element,
+          isSolving: true,
+        };
       }
     }
   }

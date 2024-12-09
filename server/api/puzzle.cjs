@@ -1,6 +1,4 @@
 var router = require("express").Router();
-// var { default: PuzzleGenerator } = require("../../common/puzzleGenerator");
-var Sharp = require("sharp");
 const ObjectID = require("mongodb").ObjectID;
 const assert = require("assert");
 const {
@@ -79,24 +77,27 @@ var api = {
 
       const puzzleQuery = { _id: new ObjectID(puzzleId) };
       const piecesQuery = { puzzleId: puzzleId };
-      const groupsQuery = { puzzleId: puzzleId };
+      const groupsQuery = { puzzleId: puzzleId, isSolved: false };
 
       // console.log("puzzle query", puzzleQuery);
-      console.log("Puzzle: read, pieces query", piecesQuery);
+      console.log("Puzzle->Read: pieces query", piecesQuery);
       // console.log("groups query", groupsQuery);
 
       const puzzle = await puzzles.findOne(puzzleQuery);
       const piecesResult = await pieces.find(piecesQuery).toArray();
       const groupsResult = await groups.find(groupsQuery).toArray();
       // console.log("puzzle found", puzzle);
-      console.log("pieces found for puzzle", puzzleId, piecesResult);
-      // console.log("groups found for puzzle", puzzleId, groupsResult);
+      // console.log("pieces found for puzzle", puzzleId, piecesResult);
+      console.log("Puzzle->Read: Groups found for puzzle", puzzleId, groupsResult);
 
       const result = {
         ...puzzle,
         pieces: piecesResult,
-        groups: groupsResult,
       };
+
+      if (groupsResult.length) {
+        result.groups = groupsResult;
+      }
 
       res.status(200).send(result);
     });

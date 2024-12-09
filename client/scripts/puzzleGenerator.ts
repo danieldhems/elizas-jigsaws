@@ -213,7 +213,7 @@ const generateDataForPuzzlePieces = async () => {
 };
 
 export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
-  const pieces: SkeletonPiece[] = [];
+  let pieces: SkeletonPiece[] = [];
   let n = 0;
 
   let pieceAbove = {} as Pick<JigsawPieceData, "type">;
@@ -245,6 +245,8 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): SkeletonPiece[] => {
       numberOfPiecesHorizontal,
       numberOfPiecesVertical,
     } as SkeletonPiece;
+
+    piece.id = 'piece-' + nanoid();
 
     piece.connectors = [];
 
@@ -411,7 +413,7 @@ export const addPuzzleDataToPieces = (
     puzzleHeight,
   } = puzzleConfig;
 
-  return pieces.map((piece, index) => {
+  pieces = pieces.map((piece, index) => {
     let width = pieceSize;
     let height = pieceSize;
 
@@ -456,6 +458,63 @@ export const addPuzzleDataToPieces = (
       height,
     }
   })
+
+  /**
+   * Now all pieces and connectors have been generated, and all have unique IDs,
+   * let's marry up each connector pair by finding their collisions and assigning their opposing IDs.
+   * NB: This should work for any puzzle configuration including 'wild' pieces
+   * because, given each piece's collision with its adjacent pieces,
+   * and each connector's orientation in degrees i.e. connector A at 30deg belongs to
+   * connector B at 310deg.
+   */
+
+  for (const thisPiece of pieces) {
+    console.log('current piece', thisPiece)
+    // Get adjacent pieces by collision
+    if (thisPiece.puzzleX && thisPiece.puzzleY && thisPiece.width && thisPiece.height) {
+      const thisPieceBoundingBox = {
+        top: thisPiece.puzzleX,
+        left: thisPiece.puzzleY,
+        right: thisPiece.puzzleX + thisPiece.width,
+        bottom: thisPiece.puzzleY + thisPiece.height,
+      };
+
+      const adjacentPieces = pieces.filter((targetPiece) => {
+        // Get adjacent pieces by collision
+        if (targetPiece.puzzleX && targetPiece.puzzleY && targetPiece.width && targetPiece.height) {
+          const targetPieceBoundingBox = {
+            top: targetPiece.puzzleX,
+            left: targetPiece.puzzleY,
+            right: targetPiece.puzzleX + targetPiece.width,
+            bottom: targetPiece.puzzleY + targetPiece.height,
+          };
+
+          return Utils.hasCollision(thisPieceBoundingBox, targetPieceBoundingBox);
+        }
+      });
+
+      console.log('adjacent pieces', adjacentPieces)
+
+      // Marry up connectors by their adjacent degrees
+      thisPiece.connectors = thisPiece.connectors.map((thisPieceConnector) => {
+        const adjacentDegrees = Utils.getAdjacentDegrees(thisPieceConnector.atDegrees);
+        for (const adjacentPiece of adjacentPieces) {
+          for (const adjacentPieceConnector of adjacentPiece.connectors) {
+            if (adjacentPieceConnector.atDegrees === adjacentDegrees) {
+              thisPieceConnector.targetConnectorID = adjacentPieceConnector.id;
+              return thisPieceConnector;
+            }
+          }
+        }
+
+        return thisPieceConnector;
+      })
+    }
+  };
+
+  console.log('pieces', pieces)
+
+  return pieces;
 }
 
 const createCanvas = (width: number, height: number, id?: string) => {
@@ -946,7 +1005,10 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
       y: 0,
     }
     const currentConfig = puzzleConfigs[nConf];
-    const pieces = generatePieces(currentConfig);
+    let pieces = generatePieces(currentConfig);
+
+
+
 
     const element = document.createElement("div");
     element.dataset.impressionIndex = nConf + '';

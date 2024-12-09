@@ -188,12 +188,17 @@ export type Connector = {
   isConnected: boolean;
 };
 
+// FIX: JigsawPieceData and SkeletonPiece describe the same entity
+// at different stages of puzzle generation lifecycle.
+// Very confusing.
+
 // Using 'pieceAbove' and 'pieceBehind' won't scale for wild piece shapes:
 // adjacentPieces[] would be more flexible...
 export type SkeletonPiece = Pick<
   JigsawPieceData,
   "type" | "numPiecesFromLeftEdge" | "numPiecesFromTopEdge"
 > & {
+  id: string;
   connectorDistanceFromCorner: number;
   connectorSize: number;
   connectorTolerance: number;
@@ -346,7 +351,7 @@ export interface GroupMovableSaveState {
   zIndex: number;
   instanceType: InstanceTypes;
   integration?: boolean;
-  isSolved?: boolean;
+  isSolved: boolean;
   position: {
     top: number;
     left: number;

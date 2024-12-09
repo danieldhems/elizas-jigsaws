@@ -40,11 +40,13 @@ var api = {
         const groupSaveResult = await groups.insertOne(data);
         console.log("group creation response", groupSaveResult.ops);
 
+        const newGroupId = groupSaveResult.ops[0]._id;
+
         for (let i = 0, l = data.pieces.length; i < l; i++) {
           pieceUpdateResults.push(
             await pieces.findOneAndUpdate(
               { _id: new ObjectID(data.pieces[i]._id) },
-              { $set: { groupId: data._id } }
+              { $set: { groupId: newGroupId } }
             )
           );
         }
@@ -63,17 +65,17 @@ var api = {
 
         console.log("Groups->Create: Updating puzzle", puzzleUpdateOp);
 
-        const puzzleUpdateResult = await puzzles.updateOne(
+        await puzzles.updateOne(
           puzzleUpdateQuery,
           puzzleUpdateOp
         );
-        console.log("Groups->Create: Puzzle update result", puzzleUpdateResult.ops)
+        // console.log("Groups->Create: Puzzle update result", puzzleUpdateResult.modifiedCount)
 
         const response = {
           status: "success",
           data: {
             pieces: pieceUpdateResults.map((result) => result.value),
-            _id: groupSaveResult.ops[0]._id,
+            _id: newGroupId,
             lastSaveDate,
           },
         };
@@ -82,21 +84,6 @@ var api = {
       } catch (error) {
         console.error(error);
       }
-    });
-  },
-  read: function (req, res) {
-    const puzzleId = req.params.id;
-
-    dbClient.connect().then(async (client, err) => {
-      assert.strictEqual(err, undefined);
-      db = client.db(dbName);
-      const { groups } = getDatabaseCollections(db, req.body);
-
-      const query = { puzzleId };
-      // console.log("group read query", query);
-      const queryResult = await groups.find(query);
-
-      res.status(200).send(queryResult);
     });
   },
   update: function (req, res) {
@@ -185,7 +172,7 @@ var api = {
       const { groups } = getDatabaseCollections(db, req.body);
       const data = req.body;
 
-      const groupId = new ObjectID(data._id);
+      const groupId = new ObjectID(data.id);
       const query = { _id: groupId };
 
       try {
@@ -203,7 +190,6 @@ var api = {
 };
 
 // Set API CRUD endpoints
-router.get("/:puzzleId", api.read);
 router.post("/", api.create);
 router.put("/", api.update);
 router.delete("/", api.destroy);

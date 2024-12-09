@@ -82,10 +82,6 @@ export default class SingleMovable extends BaseMovable {
       this.onMoveFinished.bind(this)
     );
     window.addEventListener(
-      EVENT_TYPES.GROUP_CREATED,
-      this.onGroupCreated.bind(this)
-    );
-    window.addEventListener(
       EVENT_TYPES.PIECE_UPDATED,
       this.onUpdated.bind(this)
     );
@@ -345,10 +341,6 @@ export default class SingleMovable extends BaseMovable {
     innerElement?.prepend(this.element);
   }
 
-  addToSolved() {
-    window.Puzzly.GroupOperations.addToGroup(this, this.solvedGroupId + "");
-  }
-
   isOutOfBounds(event: MouseEvent) {
     return !this.isInsidePlayArea() && !this.isOverPockets(event);
   }
@@ -428,11 +420,9 @@ export default class SingleMovable extends BaseMovable {
         return;
       }
 
-      const element = Utils.getPuzzlePieceElementFromEvent(
-        event
-      ) as MovableElement;
+      const element = Utils.getPuzzlePieceElementFromEvent(event) as MovableElement;
       if (
-        element.id === this.element.id &&
+        element?.id === this.element.id &&
         !this.isPocketPiece(element) &&
         !this.isDragAndSelectActive &&
         !this.isSolved
@@ -474,6 +464,9 @@ export default class SingleMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
+    this.element.removeEventListener('mousemove', this.onMouseMove);
+    this.element.removeEventListener('mouseup', this.onMouseUp);
+
     if (this.isOutOfBounds(event)) {
       this.resetPosition();
     } else if (this.isOverPockets(event)) {
@@ -511,9 +504,6 @@ export default class SingleMovable extends BaseMovable {
         this.save();
       }
     }
-
-    this.element.removeEventListener('mousemove', this.onMouseMove);
-    this.element.removeEventListener('mouseup', this.onMouseUp);
   }
 
   setLastPosition(position?: TopLeftCoordinate) {
@@ -553,15 +543,11 @@ export default class SingleMovable extends BaseMovable {
   }
 
   setGroupIdAcrossInstance(groupId: string) {
-    this.groupId = groupId;
-    this.element.dataset.groupId = groupId;
-    this.pieceData.groupId = groupId;
-  }
-
-  onGroupCreated(event: CustomEvent) {
-    const { groupId, elementIds } = event.detail;
-    if (elementIds.includes(this.element.dataset.pieceIndex)) {
-      this.setGroupIdAcrossInstance(groupId);
+    console.log('setGroupIdAcrossInstance', groupId)
+    if (groupId !== 'undefined') {
+      this.groupId = groupId;
+      this.element.dataset.groupId = groupId;
+      this.pieceData.groupId = groupId;
     }
   }
 
@@ -590,11 +576,10 @@ export default class SingleMovable extends BaseMovable {
         this.markConnectorUsed(connection.atDegrees);
         (targetInstance as SingleMovable).markConnectorUsed(connection.adjacentDegrees)
         const newGroup = new GroupMovable({
-          Puzzly: window.Puzzly,
           pieces: [this, targetInstance as SingleMovable],
         });
         window.Puzzly.groupInstances.push(newGroup);
-        this.destroy();
+        this.stopListening();
       }
     } else {
       const instance = targetInstance as GroupMovable;
@@ -669,15 +654,12 @@ export default class SingleMovable extends BaseMovable {
     this._id = id;
   }
 
+  stopListening() {
+    this.element.removeEventListener('mousedown', this.onMouseDown);
+  }
+
   destroy() {
-    if (typeof this.onMouseDown === "function") {
-      window.removeEventListener("mousedown", this.onMouseDown);
-    }
-    if (typeof this.onMouseMove === "function") {
-      window.removeEventListener("mousemove", this.onMouseMove);
-    }
-    if (typeof this.onMouseUp === "function") {
-      window.removeEventListener("mouseup", this.onMouseUp);
-    }
+    window.Puzzly.removeSingleInstance(this);
+    this.element.remove();
   }
 }

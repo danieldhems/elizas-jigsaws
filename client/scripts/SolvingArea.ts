@@ -63,6 +63,18 @@ export default class SolvingArea {
         window.Puzzly.solvedCount += group.piecesInGroup.length;
     }
 
+    /**
+     * Use when loading puzzle from persistence to add pieces that have already been solved.
+     * 
+     * This method allows us to avoid instantiating instances of SingleMovable when we don't need to. 
+     * 
+     * @param {JigsawPieceData} pieces Collection of pieces by data only i.e. not an instance of SingleMovable
+     */
+    addSolvedPieces(pieces: JigsawPieceData[]) {
+        this.pieces.push(...pieces);
+        this.render();
+    }
+
     render() {
         const svgWidth = this.width + SHADOW_OFFSET;
         const svgHeight = this.height + SHADOW_OFFSET;

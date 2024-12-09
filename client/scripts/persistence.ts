@@ -38,9 +38,7 @@ export default class PersistenceOperations {
   }
 
   getPersistence(
-    piecesFromServer: JigsawPieceData[],
-    groupsFromServer: GroupData[],
-    lastSaveTimeFromServer: number
+    puzzleData: any
   ) {
     const progressKey = this.getUniqueLocalStorageKeyForPuzzle(
       LocalStorageKeys.Progress
@@ -61,15 +59,15 @@ export default class PersistenceOperations {
       latestSave: 0,
     } as SavedProgress;
 
-    if (!lastSaveTimeFromServer && !lastSaveInLocalStorage) {
+    if (!puzzleData.lastSaveDate && !lastSaveInLocalStorage) {
       console.info("Puzzly: No saved data found");
       return;
     }
 
-    if (piecesFromServer && piecesFromServer.length) {
+    if (puzzleData.pieces?.length) {
       if (
         lastSaveInLocalStorage &&
-        parseInt(lastSaveInLocalStorage) > lastSaveTimeFromServer
+        parseInt(lastSaveInLocalStorage) > puzzleData.lastSaveTimeFromServer
       ) {
         availableStorage = "local";
       } else {
@@ -82,14 +80,19 @@ export default class PersistenceOperations {
     switch (availableStorage) {
       case "server":
         console.info(`[Puzzly] Restoring from server-side storage`);
-        storage.pieces = piecesFromServer;
-        storage.groups = groupsFromServer;
-        storage.latestSave = lastSaveTimeFromServer;
+        storage.pieces = puzzleData.pieces;
+        if (puzzleData.groups) {
+          storage.groups = puzzleData.groups;
+        }
+        storage.latestSave = puzzleData.lastSaveDate;
         break;
       case "local":
         if (progressInLocalStorage && lastSaveInLocalStorage) {
           console.info(`[Puzzly] Restoring from local storage`);
           storage.pieces = JSON.parse(progressInLocalStorage);
+          if (puzzleData.groups) {
+            storage.groups = puzzleData.groups;
+          }
           storage.latestSave = parseInt(lastSaveInLocalStorage);
         }
         break;
@@ -134,7 +137,7 @@ export default class PersistenceOperations {
   }
 
   async saveSinglePiece(piece: SingleMovableSaveState, options: SaveOptions) {
-    // console.log("saving", data);
+    console.log("saveSinglePiece", piece);
 
     const useLocalStorage = false;
 
@@ -179,6 +182,7 @@ export default class PersistenceOperations {
   }
 
   async saveMultiplePieces(pieces: SingleMovableSaveState[], options?: SaveOptions) {
+    console.log('saveMultiplePieces', pieces)
     const useLocalStorage = false;
 
     const requestMethod = pieces[0]._id ? "PUT" : "POST";
@@ -221,7 +225,7 @@ export default class PersistenceOperations {
   }
 
   async saveGroup(groupData: GroupMovableSaveState, options: SaveOptions) {
-    // console.log("saving", data);
+    console.log("saveGroup", groupData);
 
     const useLocalStorage = false;
 
@@ -265,5 +269,23 @@ export default class PersistenceOperations {
           this.saveToLocalStorage(data.payload as GroupMovableSaveState);
         })
     }
+  }
+
+  async deleteGroup(group: GroupMovable) {
+    return fetch(GROUPS_ENDPOINT, {
+      method: 'DELETE',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({ id: group._id }),
+    })
+      .then((response) => response.json())
+      .then((response) => {
+
+        return response;
+      })
+      .catch((error) => {
+        console.error(error);
+      })
   }
 }

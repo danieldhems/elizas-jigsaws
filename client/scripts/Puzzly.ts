@@ -191,37 +191,34 @@ export default class Puzzly {
       piecesPerSideVertical: this.piecesPerSideVertical,
     });
 
-    const storage = this.PersistenceOperations.getPersistence(
-      this.pieces,
-      this.groups,
-      this.lastSaveDate
-    );
+    const storage = this.PersistenceOperations.getPersistence(this);
 
     this.pieceInstances = [];
     this.groupInstances = [];
-    const solvedPieces: SingleMovable[] = [];
+    const solvedPieces: JigsawPieceData[] = [];
 
     if (storage && storage.pieces.length > 0) {
       // console.log("Getting pieces from storage", storage)
       storage.pieces.forEach((p) => {
-        const pieceInstance = new SingleMovable({
-          puzzleData: this,
-          pieceData: p,
-        });
-
-        this.pieceInstances.push(pieceInstance);
-
         if (p.isSolved) {
-          solvedPieces.push(pieceInstance);
+          solvedPieces.push(p);
+        } else {
+          const pieceInstance = new SingleMovable({
+            puzzleData: this,
+            pieceData: p,
+          });
+
+          this.pieceInstances.push(pieceInstance);
         }
       });
+      console.log('Single pieces', this.pieceInstances)
 
       if (solvedPieces.length > 0) {
-        this.SolvingArea.addPieces(solvedPieces);
+        this.SolvingArea.addSolvedPieces(solvedPieces);
       }
 
       // console.log("groups from persistence", this.groups);
-      if (Object.keys(this.groups).length) {
+      if (this.groups && Object.keys(this.groups).length) {
         for (let g in this.groups) {
           const group = this.groups[g];
           console.log('group data', group)
@@ -230,7 +227,6 @@ export default class Puzzly {
           });
           console.log("piece instances found for group", pieceInstances);
           const groupInstance = new GroupMovable({
-            Puzzly: this,
             _id: group._id,
             pieces: pieceInstances,
             zIndex: group.zIndex,
@@ -240,10 +236,6 @@ export default class Puzzly {
           this.groupInstances.push(groupInstance);
           // console.log("group instances", this.groupInstances);
         }
-      }
-
-      if (this.complete) {
-        this.SolvingArea.addPieces(this.pieceInstances)
       }
     } else {
       console.log("pieces", this.pieces);
@@ -304,6 +296,12 @@ export default class Puzzly {
     return window.Puzzly.pieceInstances.find(
       (instance: SingleMovable) => instance.index === index
     ) as SingleMovable;
+  }
+
+  removeSingleInstance(singleInstance: SingleMovable) {
+    this.pieceInstances = this.pieceInstances.filter(
+      (instance) => instance._id !== singleInstance._id
+    );
   }
 
   removeGroupInstance(groupInstance: GroupMovable) {

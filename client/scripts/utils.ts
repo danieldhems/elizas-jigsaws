@@ -820,9 +820,48 @@ const Utils = {
     }
   },
 
+  getPuzzlePieceFromElement(element: Element): MovableElement | undefined {
+    if (!element) {
+      return;
+    }
+
+    if (element.tagName.toLowerCase() === 'div' && element.classList.contains('puzzle-piece')) {
+      return element as MovableElement;
+    } else if (element.tagName.toLowerCase() === "body") {
+      return;
+    } else {
+      return Utils.getPuzzlePieceFromElement(element.parentNode as Element);
+    }
+  },
+
   getPuzzlePieceElementFromEvent(e: MouseEvent): MovableElement | undefined {
-    const eventTarget = e.target as HTMLElement;
-    return Utils.getPuzzlePieceFromChild(eventTarget);
+    const eventTarget = e.target;
+
+    if (eventTarget instanceof Element) {
+      return Utils.getPuzzlePieceFromElement(eventTarget);
+    }
+  },
+
+  getGroupContainerFromElement(element: Element, groupId: string): MovableElement | undefined {
+    if (!element) {
+      return;
+    }
+
+    if (element.tagName.toLowerCase() === 'div' && element.classList.contains('group-container') && element.id === `group-container-${groupId}`) {
+      return element as MovableElement;
+    } else if (element.tagName.toLowerCase() === "body") {
+      return;
+    } else {
+      return Utils.getGroupContainerFromElement(element.parentNode as Element, groupId);
+    }
+  },
+
+  getGroupContainerElementFromEvent(e: MouseEvent, groupId: string): MovableElement | undefined {
+    const eventTarget = e.target;
+
+    if (eventTarget instanceof Element) {
+      return Utils.getGroupContainerFromElement(eventTarget, groupId);
+    }
   },
 
   elementIsInDragContainer(element: HTMLDivElement) {
