@@ -44,12 +44,14 @@ export default class GroupMovable extends BaseMovable {
   constructor({
     pieces,
     _id,
+    id,
     position,
     zIndex,
     isSolved,
   }: {
     pieces: SingleMovable[];
     _id?: string;
+    id: string;
     position?: {
       top: number;
       left: number;
@@ -59,7 +61,7 @@ export default class GroupMovable extends BaseMovable {
   }) {
     super(window.Puzzly);
 
-    this.id = nanoid();
+    this.id = id;
 
     if (position) {
       this.position = position;
@@ -159,6 +161,7 @@ export default class GroupMovable extends BaseMovable {
         return pieceInGroup;
       });
       piece.markConnectorUsed(adjacentDegrees);
+      piece.groupInstance = this;
       this.alignWith(piece);
       this.addPiece(piece);
       piece.setPositionAsGrouped();
@@ -193,8 +196,9 @@ export default class GroupMovable extends BaseMovable {
   }
 
   addPieces(pieceInstances: SingleMovable[]) {
-    console.log("GroupMovable addPieces")
+    // console.log("GroupMovable addPieces")
     pieceInstances.forEach((piece) => {
+      piece.groupInstance = this;
       this.piecesInGroup.push(piece);
       piece.setGroupIdAcrossInstance(this.id)
       this.element.appendChild(piece.element)
@@ -204,7 +208,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   addPiece(piece: SingleMovable) {
-    console.log("GroupMovable addPiece")
+    // console.log("GroupMovable addPiece")
     this.piecesInGroup.push(piece);
     this.attachElements();
     this.render();
@@ -318,6 +322,8 @@ export default class GroupMovable extends BaseMovable {
       return checkConnections(window.window.Puzzly.getSingleInstanceByIndex(0));
     } else {
       const collisionCandidates = this.getCollisionCandidatesInGroup();
+      console.log('collision candidates for group', this);
+      console.log(collisionCandidates)
 
       let i = 0;
 
@@ -332,7 +338,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
-    // console.log('GroupMovable mouseup', this)
+    console.log('GroupMovable mouseup', this)
     if (this.isOutOfBounds()) {
       this.resetPosition();
     } else {
@@ -341,16 +347,13 @@ export default class GroupMovable extends BaseMovable {
       if (connection) {
         console.log("connection", connection);
 
-        const { sourcePiece, targetPiece, isSolving } = connection;
+        const { targetPiece, isSolving } = connection;
 
         if (isSolving) {
           this.solve();
         } else {
-          if (targetPiece.groupId) {
-            const group = this.getGroupInstanceFromElement(targetPiece.element);
-            if (group) {
-              this.connectWithGroup(group);
-            }
+          if (targetPiece.groupInstance) {
+            this.connectWithGroup(targetPiece.groupInstance);
           } else {
             this.connectWithPiece(targetPiece, connection)
           }
@@ -384,6 +387,7 @@ export default class GroupMovable extends BaseMovable {
     const candidates: SingleMovable[] = [];
 
     this.piecesInGroup.forEach((piece: SingleMovable) => {
+      console.log('piece', piece)
       const connections = piece.connections;
       const pieceType = piece.jigsawType;
       const isSolved = piece.isSolved;

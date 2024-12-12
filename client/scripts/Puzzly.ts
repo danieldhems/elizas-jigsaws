@@ -228,6 +228,7 @@ export default class Puzzly {
           console.log("piece instances found for group", pieceInstances);
           const groupInstance = new GroupMovable({
             _id: group._id,
+            id: group.id,
             pieces: pieceInstances,
             zIndex: group.zIndex,
             position: group.position,

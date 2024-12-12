@@ -97,12 +97,6 @@ export default class BaseMovable {
     }
   }
 
-  getGroupInstanceById(groupId: string): GroupMovable {
-    return window.Puzzly.groupInstances.find((instance: GroupMovable) =>
-      instance.id === groupId
-    );
-  }
-
   onChangeScale(event: MouseEvent) {
     this.zoomLevel = event.detail;
   }

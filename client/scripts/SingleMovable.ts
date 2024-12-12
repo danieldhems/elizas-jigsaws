@@ -23,6 +23,7 @@ import {
 } from "./types";
 import Utils from "./utils";
 import SolvingArea from "./SolvingArea";
+import { nanoid } from "nanoid";
 
 export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
@@ -56,6 +57,7 @@ export default class SingleMovable extends BaseMovable {
     super(puzzleData);
 
     this.connectsTo = this.getConnectingPieceIds(pieceData) as number[];
+    this.connections = [];
     this.jigsawType = pieceData.type;
 
     this.puzzleId = window.Puzzly.puzzleId;
@@ -303,7 +305,6 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox | undefined {
-    const groupInstance = this.groupId && this.getGroupInstanceById(this.groupId);
     const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
 
     let position = {
@@ -311,8 +312,8 @@ export default class SingleMovable extends BaseMovable {
       left: 0,
     };
 
-    if (groupInstance) {
-      const groupBoundingBox = Utils.getStyleBoundingBox(groupInstance.element);
+    if (this.groupInstance) {
+      const groupBoundingBox = Utils.getStyleBoundingBox(this.groupInstance.element);
       position.top = groupBoundingBox.top + this.pieceData.puzzleY;
       position.left = groupBoundingBox.left + this.pieceData.puzzleX;
     } else {
@@ -511,11 +512,8 @@ export default class SingleMovable extends BaseMovable {
         if (isSolving) {
           this.solve();
         } else {
-          if (targetPiece.groupId) {
-            const group = this.getGroupInstanceFromElement(targetPiece.element);
-            if (group) {
-              this.connectWithGroup(group, targetPiece);
-            }
+          if (targetPiece.groupInstance) {
+            this.connectWithGroup(targetPiece.groupInstance, connection);
           } else {
             this.connectWithPiece(targetPiece, connection);
           }
@@ -597,9 +595,11 @@ export default class SingleMovable extends BaseMovable {
     if (connection.atDegrees && connection.adjacentDegrees) {
 
       const newGroup = new GroupMovable({
+        id: `group-${nanoid()}`,
         pieces: [this, piece],
       });
       window.Puzzly.groupInstances.push(newGroup);
+      this.groupInstance = newGroup;
       this.markConnectorUsed(connection.atDegrees);
       piece.markConnectorUsed(connection.adjacentDegrees)
       this.setPositionAsGrouped();
@@ -617,15 +617,13 @@ export default class SingleMovable extends BaseMovable {
       this.markConnectorUsed(atDegrees);
       targetPiece.markConnectorUsed(adjacentDegrees)
 
-      if (this.groupId) {
+      if (this.groupInstance) {
         console.log("This piece already belongs to a group")
-        const group = this.getGroupInstanceById(this.groupId);
-        if (group) {
-          group.addPieces(group.piecesInGroup);
-        }
+        group.addPieces(this.groupInstance.piecesInGroup);
       } else {
         console.log("This piece doesn't yet belong to a group")
         group.addPiece(this);
+        this.groupInstance = group;
         this.setGroupIdAcrossInstance(group.id);
         // TDOD: Encapsulate in single method on target instance?
         this.setPositionAsGrouped();

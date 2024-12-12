@@ -179,7 +179,7 @@ const Utils = {
   getPieceFromElement(el: HTMLDivElement): JigsawPieceData {
     const data = {} as JigsawPieceData;
     data._id = el.dataset.pieceIdInPersistence as string;
-    data.id = parseInt(el.dataset.pieceId as string);
+    // data.id = parseInt(el.dataset.pieceId as string);
     data.puzzleId = el.dataset.puzzleId as string;
     data.imgX = parseInt(el.dataset.imgx as string);
     data.imgY = parseInt(el.dataset.imgy as string);

@@ -125,6 +125,7 @@ export interface JigsawPieceData {
 
 export interface GroupData {
   _id: string;
+  id: string;
   puzzleId: string;
   piecesInGroup: JigsawPieceData;
   position: {
