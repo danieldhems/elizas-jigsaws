@@ -97,6 +97,12 @@ export default class BaseMovable {
     }
   }
 
+  getGroupInstanceById(groupId: string): GroupMovable {
+    return window.Puzzly.groupInstances.find((instance: GroupMovable) =>
+      instance.id === groupId
+    );
+  }
+
   onChangeScale(event: MouseEvent) {
     this.zoomLevel = event.detail;
   }
@@ -230,63 +236,12 @@ export default class BaseMovable {
 
   onMouseUp(event: MouseEvent) {
     if (this.connection) {
-      console.log("connection", this.connection);
-      this.handleConnection(this.connection);
+      // console.log("connection", this.connection);
+      // this.handleConnection(this.connection);
     }
 
     window.dispatchEvent(
       new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
-    );
-  }
-
-  handleConnection(connection: Connection) {
-    const { sourceElement, targetElement, isSolving } = connection;
-
-    const sourceInstance = this.getMovableInstanceFromElement(sourceElement) as SingleMovable;
-
-    if (isSolving) {
-      if (sourceInstance.groupId) {
-        const groupInstance = this.getGroupInstanceFromElement(sourceElement);
-        groupInstance?.solve();
-      } else {
-        sourceInstance.solve();
-      }
-    } else if (targetElement) {
-      const targetInstance = this.getMovableInstanceFromElement(
-        targetElement
-      ) as SingleMovable | GroupMovable;
-
-      sourceInstance.joinTo(targetInstance, connection);
-    }
-
-    window.dispatchEvent(
-      new CustomEvent(EVENT_TYPES.CONNECTION_MADE, {
-        detail: this.connection,
-      })
-    );
-  }
-
-  isConnectionBetweenSingleAndGroup(
-    sourceInstanceType: InstanceTypes,
-    targetInstanceType: InstanceTypes
-  ) {
-    return (
-      (sourceInstanceType === InstanceTypes.SingleMovable &&
-        targetInstanceType === InstanceTypes.GroupMovable) ||
-      (targetInstanceType === InstanceTypes.SingleMovable &&
-        sourceInstanceType === InstanceTypes.GroupMovable)
-    );
-  }
-
-  isConnectionBetweenTwoGroups(
-    sourceInstanceType: InstanceTypes,
-    targetInstanceType: InstanceTypes
-  ) {
-    return (
-      (sourceInstanceType === "GroupMovable" &&
-        targetInstanceType === "GroupMovable") ||
-      (sourceInstanceType === "GroupMovable" &&
-        targetInstanceType === "GroupMovable")
     );
   }
 
@@ -313,6 +268,7 @@ export default class BaseMovable {
   }
 
   resetPosition() {
+    console.log('resetPosition', this)
     if (this.active) {
       this.element.style.top = this.lastPosition.top + "px";
       this.element.style.left = this.lastPosition.left + "px";

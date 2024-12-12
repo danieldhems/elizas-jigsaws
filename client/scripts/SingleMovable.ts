@@ -12,6 +12,7 @@ import {
   BoundingBox,
   Connection,
   Connector,
+  ConnectorType,
   DomBox,
   InstanceTypes,
   JigsawPieceData,
@@ -30,6 +31,7 @@ export default class SingleMovable extends BaseMovable {
   connectors: Connector[];
   puzzleId: string;
   index: number;
+  id: string;
   _id: string;
   groupId: string;
   groupInstance: GroupMovable;
@@ -38,6 +40,11 @@ export default class SingleMovable extends BaseMovable {
   totalNumberOfPieces: number;
   isSolved: boolean;
   pocketId?: number;
+  // Currently using piece index to minimise changes, for now
+  connectsTo: number[];
+  // Currently using piece index to minimise changes, for now
+  connections: number[];
+  jigsawType: ConnectorType[];
 
   constructor({
     puzzleData,
@@ -48,7 +55,11 @@ export default class SingleMovable extends BaseMovable {
   }) {
     super(puzzleData);
 
+    this.connectsTo = this.getConnectingPieceIds(pieceData) as number[];
+    this.jigsawType = pieceData.type;
+
     this.puzzleId = window.Puzzly.puzzleId;
+    this.id = pieceData.id;
     this._id = pieceData._id;
     this.index = pieceData.index;
     this.totalNumberOfPieces = window.Puzzly.selectedNumPieces;
@@ -123,6 +134,8 @@ export default class SingleMovable extends BaseMovable {
 
     // console.log("SingleMovable", this.pieceData)
 
+
+
     const el = document.createElement("div");
     el.classList.add("puzzle-piece");
     el.id = "piece-" + index;
@@ -169,6 +182,8 @@ export default class SingleMovable extends BaseMovable {
       "data-connections",
       JSON.stringify(window.Puzzly.GroupOperations.getConnections(el))
     );
+
+
     el.setAttribute("data-num-pieces-from-top-edge", numPiecesFromTopEdge + "");
     el.setAttribute(
       "data-num-pieces-from-left-edge",
@@ -235,7 +250,7 @@ export default class SingleMovable extends BaseMovable {
     }
 
     if (!isSolved) {
-      this.addToStage.call(this);
+      this.addToStage(this.element);
       this.setConnectorBoundingBoxes()
     }
   }
@@ -288,14 +303,20 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox | undefined {
-    const position = Utils.getStyleBoundingBox(this.element);
+    const groupInstance = this.groupId && this.getGroupInstanceById(this.groupId);
     const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
-    const groupInstance = this.groupId && this.getGroupInstanceFromElement(this.element);
+
+    let position = {
+      top: 0,
+      left: 0,
+    };
 
     if (groupInstance) {
       const groupBoundingBox = Utils.getStyleBoundingBox(groupInstance.element);
-      position.top += groupBoundingBox.top;
-      position.left += groupBoundingBox.left;
+      position.top = groupBoundingBox.top + this.pieceData.puzzleY;
+      position.left = groupBoundingBox.left + this.pieceData.puzzleX;
+    } else {
+      position = Utils.getStyleBoundingBox(this.element);
     }
 
     const connector = this.connectors.find((connector) => {
@@ -420,6 +441,8 @@ export default class SingleMovable extends BaseMovable {
         return;
       }
 
+      Utils.removeAllBoundingBoxIndicators();
+
       const element = Utils.getPuzzlePieceElementFromEvent(event) as MovableElement;
       if (
         element?.id === this.element.id &&
@@ -464,6 +487,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
+    console.log('SingleMovable mouseup', this)
     this.element.removeEventListener('mousemove', this.onMouseMove);
     this.element.removeEventListener('mouseup', this.onMouseUp);
 
@@ -482,16 +506,19 @@ export default class SingleMovable extends BaseMovable {
       console.log("connection", connection);
 
       if (connection) {
-        const { targetElement, isSolving } = connection;
+        const { targetPiece, isSolving } = connection;
 
         if (isSolving) {
           this.solve();
-        } else if (targetElement) {
-          const targetInstance = this.getMovableInstanceFromElement(
-            targetElement
-          ) as SingleMovable | GroupMovable;
-
-          this.joinTo(targetInstance, connection);
+        } else {
+          if (targetPiece.groupId) {
+            const group = this.getGroupInstanceFromElement(targetPiece.element);
+            if (group) {
+              this.connectWithGroup(group, targetPiece);
+            }
+          } else {
+            this.connectWithPiece(targetPiece, connection);
+          }
         }
 
         window.dispatchEvent(
@@ -543,12 +570,9 @@ export default class SingleMovable extends BaseMovable {
   }
 
   setGroupIdAcrossInstance(groupId: string) {
-    console.log('setGroupIdAcrossInstance', groupId)
-    if (groupId !== 'undefined') {
-      this.groupId = groupId;
-      this.element.dataset.groupId = groupId;
-      this.pieceData.groupId = groupId;
-    }
+    this.groupId = groupId;
+    this.element.dataset.groupId = groupId;
+    this.pieceData.groupId = groupId;
   }
 
   setPositionAsGrouped() {
@@ -561,36 +585,53 @@ export default class SingleMovable extends BaseMovable {
   }
 
   markConnectorUsed(atDegrees: number) {
-    this.connectors.forEach((connector: Connector) => {
+    this.connectors = this.connectors.map((connector: Connector) => {
       if (connector.atDegrees === atDegrees) {
         connector.isConnected = true;
       }
+      return connector;
     });
   }
 
-  joinTo(targetInstance: GroupMovable | SingleMovable, connection: Connection) {
-    // console.log("SingleInstance", this, "joinTo()", targetInstance);
-    console.log(connection)
-    if (targetInstance.instanceType === InstanceTypes.SingleMovable) {
-      if (connection.atDegrees && connection.adjacentDegrees) {
-        this.markConnectorUsed(connection.atDegrees);
-        (targetInstance as SingleMovable).markConnectorUsed(connection.adjacentDegrees)
-        const newGroup = new GroupMovable({
-          pieces: [this, targetInstance as SingleMovable],
-        });
-        window.Puzzly.groupInstances.push(newGroup);
-        this.stopListening();
-      }
-    } else {
-      const instance = targetInstance as GroupMovable;
-      // console.log("SingleMovable joining to", instance);
-      this.setGroupIdAcrossInstance(instance._id + "");
-      this.element.classList.add("grouped");
-      // TDOD: Encapsulate in single method on target instance?
-      instance.addPieces([this]);
-      instance.save();
+  connectWithPiece(piece: SingleMovable, connection: Connection) {
+    if (connection.atDegrees && connection.adjacentDegrees) {
+
+      const newGroup = new GroupMovable({
+        pieces: [this, piece],
+      });
+      window.Puzzly.groupInstances.push(newGroup);
+      this.markConnectorUsed(connection.atDegrees);
+      piece.markConnectorUsed(connection.adjacentDegrees)
       this.setPositionAsGrouped();
       this.hide();
+      this.stopListening();
+    }
+  }
+
+  connectWithGroup(group: GroupMovable, connection: Connection) {
+    console.log("SingleMovable connectWithGroup", group)
+
+    const { atDegrees, adjacentDegrees, targetPiece } = connection;
+
+    if (atDegrees && adjacentDegrees && targetPiece) {
+      this.markConnectorUsed(atDegrees);
+      targetPiece.markConnectorUsed(adjacentDegrees)
+
+      if (this.groupId) {
+        console.log("This piece already belongs to a group")
+        const group = this.getGroupInstanceById(this.groupId);
+        if (group) {
+          group.addPieces(group.piecesInGroup);
+        }
+      } else {
+        console.log("This piece doesn't yet belong to a group")
+        group.addPiece(this);
+        this.setGroupIdAcrossInstance(group.id);
+        // TDOD: Encapsulate in single method on target instance?
+        this.setPositionAsGrouped();
+        this.hide();
+        this.stopListening();
+      }
     }
   }
 

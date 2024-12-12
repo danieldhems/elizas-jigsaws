@@ -37,16 +37,14 @@ var api = {
       const pieceUpdateResults = [];
 
       try {
-        const groupSaveResult = await groups.insertOne(data);
+        const groupSaveResult = await groups.insertOne(data, { upsert: true });
         console.log("group creation response", groupSaveResult.ops);
-
-        const newGroupId = groupSaveResult.ops[0]._id;
 
         for (let i = 0, l = data.pieces.length; i < l; i++) {
           pieceUpdateResults.push(
             await pieces.findOneAndUpdate(
               { _id: new ObjectID(data.pieces[i]._id) },
-              { $set: { groupId: newGroupId } }
+              { $set: { groupId: data.id } }
             )
           );
         }
@@ -75,7 +73,6 @@ var api = {
           status: "success",
           data: {
             pieces: pieceUpdateResults.map((result) => result.value),
-            _id: newGroupId,
             lastSaveDate,
           },
         };
@@ -105,8 +102,7 @@ var api = {
         const pieceUpdateResults = [];
 
         try {
-          const groupId = new ObjectID(data._id);
-          query = { _id: groupId };
+          query = { id: data.id };
           // console.log("updating group", data);
           update = {
             $set: {
@@ -126,7 +122,7 @@ var api = {
             pieceUpdateResults.push(
               await pieces.findOneAndUpdate(
                 { _id: new ObjectID(data.pieces[i]._id) },
-                { $set: { groupId: data._id, isSolved: data.isSolved } }
+                { $set: { groupId: data.id, isSolved: data.isSolved } }
               )
             );
           }
@@ -153,7 +149,7 @@ var api = {
             status: "success",
             data: {
               pieces: pieceUpdateResults.map((result) => result.value),
-              _id: data._id,
+              id: data.id,
             },
           };
 
@@ -172,8 +168,7 @@ var api = {
       const { groups } = getDatabaseCollections(db, req.body);
       const data = req.body;
 
-      const groupId = new ObjectID(data.id);
-      const query = { _id: groupId };
+      const query = { id: data.id };
 
       try {
         const result = await groups.deleteOne(query);

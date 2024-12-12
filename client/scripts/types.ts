@@ -31,9 +31,9 @@ export type MovableElement =
 export type MovableInstance = SingleMovable | GroupMovable | PocketMovable;
 
 export interface Connection {
-  sourceElement: HTMLDivElement;
+  sourcePiece: SingleMovable;
+  targetPiece?: SingleMovable;
   type?: SideNames | undefined;
-  targetElement?: HTMLDivElement;
   // TODO: Restrict number type to values between 1 and 360
   atDegrees?: number;
   adjacentDegrees?: number;
@@ -74,8 +74,7 @@ export enum SideNames {
 export type CurrentConnections = [SideNames, SideNames, SideNames, SideNames];
 export type ConnectsTo = Record<string, number>;
 export interface JigsawPieceData {
-  // This is actually the index of the piece
-  id: number;
+  id: string;
   index: number;
   // This is the true ID for the piece in the database
   _id: string;
@@ -344,7 +343,7 @@ export interface SingleMovableSaveState {
 }
 
 export interface GroupMovableSaveState {
-  _id?: string;
+  id: string;
   puzzleId: string;
   puzzleWidth: number;
   puzzleHeight: number;

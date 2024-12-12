@@ -14,6 +14,7 @@ import {
   BoundingBox,
   TopLeftCoordinate,
   ConnectorType,
+  Connection,
 } from "./types";
 import Puzzly from "./Puzzly";
 import { getSvg } from "./svg";
@@ -23,6 +24,7 @@ import { nanoid } from "nanoid";
 export default class GroupMovable extends BaseMovable {
   instanceType = InstanceTypes.GroupMovable;
   _id?: string;
+  id: string;
   svg: HTMLOrSVGElement;
   puzzleWidth: number;
   puzzleHeight: number;
@@ -57,12 +59,7 @@ export default class GroupMovable extends BaseMovable {
   }) {
     super(window.Puzzly);
 
-    console.log("GroupMovable constructor _id", _id);
-    console.log("GroupMovable constructor pieces", pieces);
-
-    if (_id) {
-      this._id = _id;
-    }
+    this.id = nanoid();
 
     if (position) {
       this.position = position;
@@ -100,8 +97,8 @@ export default class GroupMovable extends BaseMovable {
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
 
-    window.addEventListener("mousedown", this.onMouseDown.bind(this));
-    window.addEventListener(
+    this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
+    this.element.addEventListener(
       EVENT_TYPES.MOVE_FINISHED,
       this.onMoveFinished.bind(this)
     );
@@ -109,7 +106,7 @@ export default class GroupMovable extends BaseMovable {
 
   isElementOwned(element: MovableElement) {
     return this.piecesInGroup.some(
-      (piece) => piece.pieceData.groupId === element.dataset.groupId
+      (piece) => piece.groupId === element.dataset.groupId
     );
   }
 
@@ -129,6 +126,7 @@ export default class GroupMovable extends BaseMovable {
     };
 
     const groupContainer = window.window.Puzzly.GroupOperations.createGroupContainer(groupInitialPosition);
+    groupContainer.id = `group-container-${this.id}`;
 
     sourcePiece.setPositionAsGrouped();
     targetPiece.setPositionAsGrouped();
@@ -138,6 +136,9 @@ export default class GroupMovable extends BaseMovable {
     sourcePiece.hide();
     targetPiece.hide();
 
+    sourcePiece.setGroupIdAcrossInstance(this.id);
+    targetPiece.setGroupIdAcrossInstance(this.id);
+
     this.element = groupContainer;
 
     this.setLastPosition(groupInitialPosition);
@@ -146,21 +147,31 @@ export default class GroupMovable extends BaseMovable {
     this.save();
   }
 
-  async joinTo(movableInstance: SingleMovable | GroupMovable) {
-    console.log("GroupMovable joining to", movableInstance);
+  connectWithPiece(piece: SingleMovable, connection: Connection) {
+    console.log('GroupMovable connectWithPiece', piece)
+    const { atDegrees, adjacentDegrees, sourcePiece, targetPiece } = connection;
 
-    let instance: SingleMovable | GroupMovable;
-    if (movableInstance.instanceType === InstanceTypes.SingleMovable) {
-      instance = movableInstance as SingleMovable;
-      this.alignWith(instance);
-      this.addPieces([instance]);
-      this.render();
-    } else if (movableInstance.instanceType === InstanceTypes.GroupMovable) {
-      instance = movableInstance as GroupMovable;
-      instance.addPieces(this.piecesInGroup);
-      this.destroy();
-      instance.save();
+    if (atDegrees && adjacentDegrees && sourcePiece && targetPiece) {
+      this.piecesInGroup = this.piecesInGroup.map((pieceInGroup: SingleMovable) => {
+        if (pieceInGroup.id === sourcePiece.id) {
+          pieceInGroup.markConnectorUsed(atDegrees);
+        }
+        return pieceInGroup;
+      });
+      piece.markConnectorUsed(adjacentDegrees);
+      this.alignWith(piece);
+      this.addPiece(piece);
+      piece.setPositionAsGrouped();
+      piece.setGroupIdAcrossInstance(this.id);
+      piece.hide();
+      piece.stopListening();
     }
+  }
+
+  connectWithGroup(group: GroupMovable) {
+    console.log('GroupMovable connectWithGroup', group)
+    group.addPieces(this.piecesInGroup);
+    this.destroy();
   }
 
   alignWith(movableInstance: SingleMovable | GroupMovable) {
@@ -182,26 +193,33 @@ export default class GroupMovable extends BaseMovable {
   }
 
   addPieces(pieceInstances: SingleMovable[]) {
-    this.piecesInGroup.push(...pieceInstances);
+    console.log("GroupMovable addPieces")
+    pieceInstances.forEach((piece) => {
+      this.piecesInGroup.push(piece);
+      piece.setGroupIdAcrossInstance(this.id)
+      this.element.appendChild(piece.element)
+    });
+    this.render();
+    this.save();
+  }
+
+  addPiece(piece: SingleMovable) {
+    console.log("GroupMovable addPiece")
+    this.piecesInGroup.push(piece);
     this.attachElements();
     this.render();
+    piece.setGroupIdAcrossInstance(this.id)
+    this.save();
   }
 
   attachElements() {
-    // console.log("attachElements", this.piecesInGroup);
-    Array.from(this.piecesInGroup).forEach((piece) => {
-      // console.log("attaching piece", piece);
-      if (piece.element.parentNode !== this.element) {
-        this.element.appendChild(piece.element);
-      } else {
-        // console.info(`Piece ${piece.pieceData.index} already attached to group`);
-      }
+    this.piecesInGroup.forEach((piece) => {
+      this.element.appendChild(piece.element);
     });
   }
 
   render() {
     const pieces = this.piecesInGroup.map(piece => piece.pieceData);
-    console.log('render', pieces)
 
     const puzzleWidth = window.window.Puzzly.boardWidth;
     const puzzleHeight = window.window.Puzzly.boardHeight;
@@ -249,14 +267,14 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseDown(event: MouseEvent) {
-    if (event.button === 0 && this._id) {
-      const element = Utils.getGroupContainerElementFromEvent(event, this._id) as MovableElement;
+    if (event.button === 0) {
+      Utils.removeAllBoundingBoxIndicators();
+      const element = event.currentTarget as MovableElement;
       if (
-        element.id === this.element.id &&
+        element.id === `group-container-${this.id}` &&
         !this.isSolved &&
         !this.dragAndSelectActive
       ) {
-        this.element = element.parentNode as MovableElement;
         // console.log("group movable: element", this.element);
         this.active = true;
         window.window.Puzzly.keepOnTop(this.element);
@@ -314,6 +332,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
+    // console.log('GroupMovable mouseup', this)
     if (this.isOutOfBounds()) {
       this.resetPosition();
     } else {
@@ -322,16 +341,19 @@ export default class GroupMovable extends BaseMovable {
       if (connection) {
         console.log("connection", connection);
 
-        const { sourceElement, targetElement, isSolving } = connection;
+        const { sourcePiece, targetPiece, isSolving } = connection;
 
         if (isSolving) {
           this.solve();
-        } else if (targetElement) {
-          const targetInstance = this.getMovableInstanceFromElement(
-            targetElement
-          ) as SingleMovable | GroupMovable;
-
-          this.joinTo(targetInstance);
+        } else {
+          if (targetPiece.groupId) {
+            const group = this.getGroupInstanceFromElement(targetPiece.element);
+            if (group) {
+              this.connectWithGroup(group);
+            }
+          } else {
+            this.connectWithPiece(targetPiece, connection)
+          }
         }
 
         window.dispatchEvent(
@@ -361,14 +383,10 @@ export default class GroupMovable extends BaseMovable {
   getCollisionCandidatesInGroup(): SingleMovable[] {
     const candidates: SingleMovable[] = [];
 
-
     this.piecesInGroup.forEach((piece: SingleMovable) => {
-      const element = piece.element;
-      const connections = window.window.Puzzly.GroupOperations.getConnections(element);
-      const pieceType = (element.dataset.jigsawType as string)
-        .split(",")
-        .map((n) => parseInt(n)) as ConnectorType[];
-      const isSolved = element.dataset.isSolved === "true";
+      const connections = piece.connections;
+      const pieceType = piece.jigsawType;
+      const isSolved = piece.isSolved;
       if (Utils.isInnerPiece(pieceType) && connections.length < 4) {
         candidates.push(piece);
       }
@@ -424,30 +442,15 @@ export default class GroupMovable extends BaseMovable {
     return data._id === this._id || this.arePieceIdsInThisGroup(pieceIds);
   }
 
-  setGroupIdAcrossInstance(id: string) {
-    this._id = id;
-    this.element.id = `group-container-${this._id}`;
-
-    this.element.dataset.groupId = this._id + "";
-
-    this.piecesInGroup.forEach((pieceInstance) => {
-      pieceInstance.setGroupIdAcrossInstance(this._id + "");
-    });
-  }
-
   onSaveResponse(result: any) {
-    console.log("GroupMovable save response", result);
     if (this.isServerResponseForThisGroup(result.data)) {
-      if (!this._id) {
-        this.setGroupIdAcrossInstance(result.data._id);
-        window.dispatchEvent(
-          new CustomEvent(EVENT_TYPES.GROUP_CREATED, {
-            detail: {
-              groupId: this._id,
-            },
-          })
-        );
-      }
+      window.dispatchEvent(
+        new CustomEvent(EVENT_TYPES.GROUP_CREATED, {
+          detail: {
+            groupId: this._id,
+          },
+        })
+      );
 
       this.setLastPosition();
     }
@@ -459,6 +462,7 @@ export default class GroupMovable extends BaseMovable {
       left: parseInt(this.element.style.left),
     };
     const data: Partial<GroupMovableSaveState> = {
+      id: this.id,
       pieces: this.piecesInGroup.map((piece) => piece.getDataForSave()),
       puzzleId: this.puzzleId,
       puzzleWidth: this.puzzleWidth,
@@ -467,10 +471,6 @@ export default class GroupMovable extends BaseMovable {
       zIndex: parseInt(this.element.style.zIndex),
       instanceType: this.instanceType,
     };
-
-    if (this._id) {
-      data._id = this._id
-    }
 
     if (this.isSolved) {
       data.isSolved = this.isSolved;
@@ -500,26 +500,30 @@ export default class GroupMovable extends BaseMovable {
     this.onSaveResponse(saveResult);
   }
 
+  hide() {
+    this.element.style.visibility = "hidden";
+  }
+
   delete() {
     console.log('delete', this)
     window.window.Puzzly.PersistenceOperations.deleteGroup(this);
   }
 
   destroy() {
-    window.window.Puzzly.removeGroupInstance(this);
-
     if (typeof this.onMouseDown === "function") {
-      window.removeEventListener("mousedown", this.onMouseDown);
+      this.element.removeEventListener("mousedown", this.onMouseDown);
     }
     if (typeof this.onMouseMove === "function") {
-      window.removeEventListener("mousemove", this.onMouseMove);
+      this.element.removeEventListener("mousemove", this.onMouseMove);
     }
     if (typeof this.onMouseUp === "function") {
-      window.removeEventListener("mouseup", this.onMouseUp);
+      this.element.removeEventListener("mouseup", this.onMouseUp);
     }
 
-    this.element.remove();
-    this.piecesInGroup.forEach((piece: SingleMovable) => piece.destroy());
+    // this.piecesInGroup.forEach((piece: SingleMovable) => piece.destroy());
+    // this.element.remove();
+    this.hide();
     this.delete();
+    window.window.Puzzly.removeGroupInstance(this);
   }
 }

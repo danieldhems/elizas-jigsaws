@@ -534,8 +534,8 @@ export default class PuzzlyCreator {
         activeImpression.pieces,
         this.selectedPuzzleConfig
       );
+      console.log("mapped pieces", mappedPieces);
     }
-    // console.log("mapped pieces", mappedPieces);
 
     console.log("selected config", this.selectedPuzzleConfig)
 
@@ -566,8 +566,6 @@ export default class PuzzlyCreator {
       isIntegration: this.isIntegration,
     };
 
-    // const puzzleSprite = await generatePuzzleSprite(puzzleImagePath, mappedPieces);
-
     fetch("/api/puzzle", {
       body: JSON.stringify(data),
       method: "POST",
@@ -590,7 +588,6 @@ export default class PuzzlyCreator {
             pieces: mappedPieces,
             _id: response._id,
             previewPath: response.previewPath,
-            // puzzleSprite,
             puzzleImagePath,
             boardWidth: puzzleWidth,
             boardHeight: puzzleHeight,

@@ -468,49 +468,50 @@ export const addPuzzleDataToPieces = (
    * connector B at 310deg.
    */
 
-  for (const thisPiece of pieces) {
-    console.log('current piece', thisPiece)
-    // Get adjacent pieces by collision
-    if (thisPiece.puzzleX && thisPiece.puzzleY && thisPiece.width && thisPiece.height) {
-      const thisPieceBoundingBox = {
-        top: thisPiece.puzzleX,
-        left: thisPiece.puzzleY,
-        right: thisPiece.puzzleX + thisPiece.width,
-        bottom: thisPiece.puzzleY + thisPiece.height,
-      };
+  // for (const thisPiece of pieces) {
+  //   console.log('current piece', thisPiece)
+  //   // Get adjacent pieces by collision
+  //   const thisPieceBoundingBox = {
+  //     top: thisPiece.puzzleX as number,
+  //     left: thisPiece.puzzleY as number,
+  //     right: (thisPiece.puzzleX as number) + (thisPiece.width as number),
+  //     bottom: (thisPiece.puzzleY as number) + (thisPiece.height as number),
+  //   };
 
-      const adjacentPieces = pieces.filter((targetPiece) => {
-        // Get adjacent pieces by collision
-        if (targetPiece.puzzleX && targetPiece.puzzleY && targetPiece.width && targetPiece.height) {
-          const targetPieceBoundingBox = {
-            top: targetPiece.puzzleX,
-            left: targetPiece.puzzleY,
-            right: targetPiece.puzzleX + targetPiece.width,
-            bottom: targetPiece.puzzleY + targetPiece.height,
-          };
+  //   // console.log('this piece bounding box', thisPieceBoundingBox)
 
-          return Utils.hasCollision(thisPieceBoundingBox, targetPieceBoundingBox);
-        }
-      });
+  //   const adjacentPieces = pieces.filter((targetPiece) => {
+  //     // console.log('filtering piece', targetPiece)
+  //     if (thisPiece.id === targetPiece.id) return;
+  //     // Get adjacent pieces by collision
+  //     const targetPieceBoundingBox = {
+  //       top: targetPiece.puzzleX as number,
+  //       left: targetPiece.puzzleY as number,
+  //       right: (targetPiece.puzzleX as number) + (targetPiece.width as number),
+  //       bottom: (targetPiece.puzzleY as number) + (targetPiece.height as number),
+  //     };
+  //     // console.log('filtered piece bounding box', targetPieceBoundingBox)
 
-      console.log('adjacent pieces', adjacentPieces)
+  //     return Utils.hasCollision(thisPieceBoundingBox, targetPieceBoundingBox);
+  //   });
 
-      // Marry up connectors by their adjacent degrees
-      thisPiece.connectors = thisPiece.connectors.map((thisPieceConnector) => {
-        const adjacentDegrees = Utils.getAdjacentDegrees(thisPieceConnector.atDegrees);
-        for (const adjacentPiece of adjacentPieces) {
-          for (const adjacentPieceConnector of adjacentPiece.connectors) {
-            if (adjacentPieceConnector.atDegrees === adjacentDegrees) {
-              thisPieceConnector.targetConnectorID = adjacentPieceConnector.id;
-              return thisPieceConnector;
-            }
-          }
-        }
+  //   console.log('adjacent pieces', adjacentPieces)
 
-        return thisPieceConnector;
-      })
-    }
-  };
+  //   // Marry up connectors by their adjacent degrees
+  //   thisPiece.connectors = thisPiece.connectors.map((thisPieceConnector) => {
+  //     const adjacentDegrees = Utils.getAdjacentDegrees(thisPieceConnector.atDegrees);
+  //     for (const adjacentPiece of adjacentPieces) {
+  //       for (const adjacentPieceConnector of adjacentPiece.connectors) {
+  //         if (adjacentPieceConnector.atDegrees === adjacentDegrees) {
+  //           thisPieceConnector.targetConnectorID = adjacentPieceConnector.id;
+  //           return thisPieceConnector;
+  //         }
+  //       }
+  //     }
+
+  //     return thisPieceConnector;
+  //   })
+  // };
 
   console.log('pieces', pieces)
 

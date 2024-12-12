@@ -225,11 +225,11 @@ export default class PersistenceOperations {
   }
 
   async saveGroup(groupData: GroupMovableSaveState, options: SaveOptions) {
-    console.log("saveGroup", groupData);
+    // console.log("saveGroup", groupData);
 
     const useLocalStorage = false;
 
-    const requestMethod = groupData._id ? "PUT" : "POST";
+    const requestMethod = groupData.id ? "PUT" : "POST";
 
     const data: {
       payload?: GroupMovableSaveState,
@@ -243,7 +243,7 @@ export default class PersistenceOperations {
       this.saveToLocalStorage(data.payload as GroupMovableSaveState);
     } else {
       return fetch(GROUPS_ENDPOINT, {
-        method: requestMethod,
+        method: 'PUT',
         headers: {
           "Content-Type": "Application/json",
         },
