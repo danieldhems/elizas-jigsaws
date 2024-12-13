@@ -2,8 +2,6 @@ import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
 import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
 import GroupMovable from "./GroupMovable";
-import GroupOperations from "./GroupOperations";
-import Pockets from "./Pockets";
 import { getJigsawShapeSvgString, getSvg } from "./svg";
 import Puzzly from "./Puzzly";
 import PathOperations from "./pathOperations";
@@ -22,7 +20,6 @@ import {
   XYCoordinate,
 } from "./types";
 import Utils from "./utils";
-import SolvingArea from "./SolvingArea";
 import { nanoid } from "nanoid";
 
 export default class SingleMovable extends BaseMovable {
@@ -614,8 +611,8 @@ export default class SingleMovable extends BaseMovable {
     const { atDegrees, adjacentDegrees, targetPiece } = connection;
 
     if (atDegrees && adjacentDegrees && targetPiece) {
-      this.markConnectorUsed(atDegrees);
-      targetPiece.markConnectorUsed(adjacentDegrees)
+      // this.markConnectorUsed(atDegrees);
+      // targetPiece.markConnectorUsed(adjacentDegrees)
 
       if (this.groupInstance) {
         console.log("This piece already belongs to a group")

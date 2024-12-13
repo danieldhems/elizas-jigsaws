@@ -1,6 +1,7 @@
 import SingleMovable from "./SingleMovable";
 import {
   BoundingBox,
+  Connector,
 } from "./types";
 import Utils from "./utils";
 
@@ -8,17 +9,12 @@ export function checkConnections(
   piece: SingleMovable,
 ) {
 
-  const shouldCompare = (sourcePiece: SingleMovable, targetPiece: SingleMovable) => {
-    return (
-      sourcePiece.groupId === undefined && targetPiece.groupId === undefined
-    ) ||
-      sourcePiece.groupId !== targetPiece.groupId;
-  }
-
   const solvedBoundingBoxes = piece.getSolvedBoundingBoxes();
 
   for (let n = 0, l = piece.connectors.length; n < l; n++) {
     const connector = piece.connectors[n];
+
+    if (connector.isConnected) continue;
 
     // The degrees location for the connector on the target piece
     // based on the opposing degrees for this connector
@@ -28,25 +24,35 @@ export function checkConnections(
 
     const targetPiece = window.Puzzly.getSingleInstanceByIndex(connector.ownerIndex);
 
-    if (targetPiece) {
-      const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
-      Utils.drawBox(boundingBoxForSourceConnector, null, 'green')
-      Utils.drawBox(boundingBoxForTargetConnector, null, 'red')
-      if (shouldCompare(piece, targetPiece) && boundingBoxForTargetConnector) {
-        if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
-          return {
-            sourcePiece: piece,
-            targetPiece: targetPiece,
-            atDegrees: connector.atDegrees,
-            adjacentDegrees: adjacentDegrees,
-            isSolving: false,
+    if (piece.groupInstance && targetPiece.groupInstance && piece.groupInstance.id === targetPiece.groupInstance.id) continue;
+
+    const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
+    Utils.drawBox(boundingBoxForSourceConnector, null, 'green')
+    Utils.drawBox(boundingBoxForTargetConnector, null, 'red')
+
+    if (boundingBoxForTargetConnector) {
+      if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
+        connector.isConnected = true;
+        for (const connector of targetPiece.connectors) {
+          if (connector.atDegrees === adjacentDegrees) {
+            connector.isConnected = true;
           }
+        }
+        return {
+          sourcePiece: piece,
+          targetPiece: targetPiece,
+          atDegrees: connector.atDegrees,
+          adjacentDegrees: adjacentDegrees,
+          isSolving: false,
         }
       }
     }
 
     if (connector.boundingBox) {
       if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
+        for (const connector of piece.connectors) {
+          connector.isConnected = true;
+        }
         return {
           sourcePiece: piece,
           isSolving: true,

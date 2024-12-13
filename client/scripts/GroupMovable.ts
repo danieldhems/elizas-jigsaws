@@ -154,13 +154,15 @@ export default class GroupMovable extends BaseMovable {
     const { atDegrees, adjacentDegrees, sourcePiece, targetPiece } = connection;
 
     if (atDegrees && adjacentDegrees && sourcePiece && targetPiece) {
-      this.piecesInGroup = this.piecesInGroup.map((pieceInGroup: SingleMovable) => {
-        if (pieceInGroup.id === sourcePiece.id) {
-          pieceInGroup.markConnectorUsed(atDegrees);
-        }
-        return pieceInGroup;
-      });
-      piece.markConnectorUsed(adjacentDegrees);
+      // this.piecesInGroup = this.piecesInGroup.map((pieceInGroup: SingleMovable) => {
+      //   console.log('piece in group', pieceInGroup)
+      //   console.log('source piece that connected', sourcePiece)
+      //   if (pieceInGroup.id === sourcePiece.id) {
+      //     pieceInGroup.markConnectorUsed(atDegrees);
+      //   }
+      //   return pieceInGroup;
+      // });
+      // piece.markConnectorUsed(adjacentDegrees);
       piece.groupInstance = this;
       this.alignWith(piece);
       this.addPiece(piece);
