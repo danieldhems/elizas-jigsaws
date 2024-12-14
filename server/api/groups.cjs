@@ -1,4 +1,3 @@
-var path = require("path");
 var router = require("express").Router();
 
 const ObjectID = require("mongodb").ObjectID;
@@ -17,7 +16,7 @@ module.exports.clean = function () {
     db = client.db(dbName);
     collection = db.collection(collectionName);
 
-    collection.remove({}, function (err, result) {
+    collection.remove({}, function (err) {
       if (err) throw new Error(err);
       console.log("DB cleaned");
     });
@@ -34,19 +33,15 @@ var api = {
       const data = req.body.payload;
       console.log("attempting to create group", data);
 
-      const pieceUpdateResults = [];
-
       try {
         const groupSaveResult = await groups.insertOne(data, { upsert: true });
         console.log("group creation response", groupSaveResult.ops);
 
         for (let i = 0, l = data.pieces.length; i < l; i++) {
-          pieceUpdateResults.push(
-            await pieces.findOneAndUpdate(
-              { _id: new ObjectID(data.pieces[i]._id) },
-              { $set: { groupId: data.id } }
-            )
-          );
+          await pieces.findOneAndUpdate(
+            { _id: new ObjectID(data.pieces[i]._id) },
+            { $set: { groupId: data.id } }
+          )
         }
 
         const lastSaveDate = Date.now();
@@ -72,7 +67,6 @@ var api = {
         const response = {
           status: "success",
           data: {
-            pieces: pieceUpdateResults.map((result) => result.value),
             lastSaveDate,
           },
         };
@@ -85,11 +79,9 @@ var api = {
   },
   update: function (req, res) {
     var data = req.body.payload;
-    // console.log("update group request", req.body);
+    console.log("update group request", req.body);
 
     dbClient.connect().then(async (client, err) => {
-      const response = {};
-
       if (!err) {
         db = client.db(dbName);
 
@@ -99,14 +91,13 @@ var api = {
         );
         let query, update;
 
-        const pieceUpdateResults = [];
-
         try {
           query = { id: data.id };
           // console.log("updating group", data);
           update = {
             $set: {
               pieces: data.pieces,
+              puzzleId: data.puzzleId,
               zIndex: data.zIndex,
               position: data.position,
               isSolved: data.isSolved,
@@ -115,16 +106,13 @@ var api = {
 
           // console.log("update instruction", update);
 
-          const result = await groups.findOneAndUpdate(query, update);
-          // console.log("group update result", result.ops);
+          await groups.findOneAndUpdate(query, update, { upsert: true });
 
           for (let i = 0, l = data.pieces.length; i < l; i++) {
-            pieceUpdateResults.push(
-              await pieces.findOneAndUpdate(
-                { _id: new ObjectID(data.pieces[i]._id) },
-                { $set: { groupId: data.id, isSolved: data.isSolved } }
-              )
-            );
+            await pieces.findOneAndUpdate(
+              { id: data.pieces[i].id },
+              { $set: { groupId: data.id, isSolved: data.isSolved } }
+            )
           }
 
           const puzzleUpdateQuery = {
@@ -147,10 +135,7 @@ var api = {
 
           const response = {
             status: "success",
-            data: {
-              pieces: pieceUpdateResults.map((result) => result.value),
-              id: data.id,
-            },
+            data: { lastSaveDate },
           };
 
           res.status(200).send(response);
@@ -175,7 +160,11 @@ var api = {
         // console.log("Successfully delete group with ID", groupId);
         console.log(result.ops);
 
-        res.status(200).send({});
+        const response = {
+          status: "success",
+        };
+
+        res.status(200).send(response);
       } catch (error) {
         // console.log("Failed to delete group with ID", groupId);
         console.log(error);

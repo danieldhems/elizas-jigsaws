@@ -254,13 +254,6 @@ export default class BaseMovable {
     };
   }
 
-  getPosition() {
-    return {
-      top: this.element.offsetTop,
-      left: this.element.offsetLeft,
-    };
-  }
-
   resetPosition() {
     console.log('resetPosition', this)
     if (this.active) {

@@ -1,14 +1,9 @@
 import {
-  CONNECTOR_SIZE_PERC,
-  CONNECTOR_TOLERANCE_AMOUNT,
   MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
-  MINIMUM_PIECE_SIZE,
   MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT,
-  SHADOW_OFFSET_RATIO,
-  SHOULDER_SIZE_PERC,
 } from "./constants";
 import GeneratorSteps from "./generatorSteps";
-import puzzleGenerator, {
+import {
   addPuzzleDataToPieces,
   getPuzzleConfigs,
 } from "./puzzleGenerator";
@@ -16,7 +11,6 @@ import PuzzleImpressionOverlay from "./PuzzleImpressionOverlay";
 import Puzzly from "./Puzzly";
 import {
   PuzzleConfig,
-  PuzzleImpression,
   PuzzleShapes,
   SkeletonPiece,
 } from "./types";
@@ -314,7 +308,6 @@ export default class PuzzlyCreator {
   }
 
   onOverlayMove(event: CustomEvent) {
-    console.log(event.detail);
     const { left, top } = event.detail;
     this.puzzleTargetAreaOffsetLeft = left;
     this.puzzleTargetAreaOffsetTop = top;
@@ -328,7 +321,7 @@ export default class PuzzlyCreator {
   }
 
   onUploadSuccess(response: { data: SourceImage }) {
-    console.log("onUploadSuccess", response);
+    // console.log("onUploadSuccess", response);
 
     if (response.data) {
       this.imagePreviewEl.style.display = "flex";
@@ -345,8 +338,6 @@ export default class PuzzlyCreator {
   onImagePreviewLoad() {
     const { width, height } = this.sourceImage.dimensions;
 
-    console.log("onImagePreviewLoad", width, height)
-
     this.imageAspectRatio = width / height;
 
     const { maxWidth, maxHeight } = GeneratorSteps.getMaximumPuzzleDimensionsForViewport(
@@ -357,7 +348,6 @@ export default class PuzzlyCreator {
     this.maximumPuzzleHeight = maxHeight;
 
     const minimumPieceSize = Math.min(window.innerWidth, window.innerHeight) / 100 * MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT;
-    console.log("Minimum piece size:", minimumPieceSize)
 
     const { rectangularPuzzleConfigs, squarePuzzleConfigs } =
       getPuzzleConfigs(
@@ -534,10 +524,7 @@ export default class PuzzlyCreator {
         activeImpression.pieces,
         this.selectedPuzzleConfig
       );
-      console.log("mapped pieces", mappedPieces);
     }
-
-    console.log("selected config", this.selectedPuzzleConfig)
 
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
@@ -576,7 +563,6 @@ export default class PuzzlyCreator {
       .then((response) => response.json())
       .then(
         function (response: any) {
-          console.log("Puzzle creation response", response);
           const puzzleId = response._id;
 
           Utils.insertUrlParam("puzzleId", puzzleId);

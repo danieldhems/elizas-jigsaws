@@ -11,7 +11,6 @@ import {
   Connection,
   Connector,
   ConnectorType,
-  DomBox,
   InstanceTypes,
   JigsawPieceData,
   MovableElement,
@@ -90,10 +89,6 @@ export default class SingleMovable extends BaseMovable {
     window.addEventListener(
       EVENT_TYPES.MOVE_FINISHED,
       this.onMoveFinished.bind(this)
-    );
-    window.addEventListener(
-      EVENT_TYPES.PIECE_UPDATED,
-      this.onUpdated.bind(this)
     );
   }
 
@@ -651,7 +646,7 @@ export default class SingleMovable extends BaseMovable {
       type: this.pieceData.type,
       zIndex: parseInt(this.element.style.zIndex),
       isSolved: this.isSolved,
-      groupId: this.pieceData.groupId,
+      groupId: this.groupInstance?.id,
       puzzleId: this.puzzleId,
       _id: this.pieceData._id,
       pocketId: this.pocketId as number,
@@ -672,15 +667,6 @@ export default class SingleMovable extends BaseMovable {
     }
 
     window.Puzzly.PersistenceOperations.saveSinglePiece(this.getDataForSave(), options);
-  }
-
-  onUpdated(event: CustomEvent) {
-    // console.log(this.pieceData.index, "Received piece_updated event", event)
-    const { index, puzzleX, puzzleY } = this.pieceData;
-    const { index: uIndex, puzzleX: uPuzzleX, puzzleY: uPuzzleY, _id: uId } = event.detail;
-    if (uId && uIndex === index && uPuzzleX === puzzleX && uPuzzleY === puzzleY) {
-      this.setId(uId);
-    }
   }
 
   setId(id: string) {

@@ -1,7 +1,6 @@
 import SingleMovable from "./SingleMovable";
 import {
   BoundingBox,
-  Connector,
 } from "./types";
 import Utils from "./utils";
 
@@ -27,8 +26,8 @@ export function checkConnections(
     if (piece.groupInstance && targetPiece.groupInstance && piece.groupInstance.id === targetPiece.groupInstance.id) continue;
 
     const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
-    Utils.drawBox(boundingBoxForSourceConnector, null, 'green')
-    Utils.drawBox(boundingBoxForTargetConnector, null, 'red')
+    // Utils.drawBox(boundingBoxForSourceConnector, null, 'green')
+    // Utils.drawBox(boundingBoxForTargetConnector, null, 'red')
 
     if (boundingBoxForTargetConnector) {
       if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {

@@ -1,8 +1,6 @@
-import { LargeNumberLike } from "crypto";
-import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE, SCREEN_MARGIN, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
-import jigsawPath from "./jigsawPath";
+import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
 import { getJigsawShapeSvgString } from "./svg";
-import { ConnectorNames, ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SideNames, SkeletonPiece, PuzzleImpression, Connector } from "./types";
+import { ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SkeletonPiece, PuzzleImpression, Connector } from "./types";
 import Utils from "./utils";
 import { nanoid } from "nanoid";
 
@@ -512,8 +510,6 @@ export const addPuzzleDataToPieces = (
   //     return thisPieceConnector;
   //   })
   // };
-
-  console.log('pieces', pieces)
 
   return pieces;
 }

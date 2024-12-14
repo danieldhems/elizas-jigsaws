@@ -1,25 +1,17 @@
-import GroupOperations from "./GroupOperations";
 import { checkConnections } from "./checkConnections";
 import { EVENT_TYPES, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
 import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
 import SingleMovable from "./SingleMovable";
-import PersistenceOperations from "./persistence";
 import {
-  DomBox,
   InstanceTypes,
   JigsawPieceData,
   MovableElement,
   GroupMovableSaveState,
-  BoundingBox,
   TopLeftCoordinate,
-  ConnectorType,
   Connection,
 } from "./types";
-import Puzzly from "./Puzzly";
 import { getSvg } from "./svg";
-import SolvingArea from "./SolvingArea";
-import { nanoid } from "nanoid";
 
 export default class GroupMovable extends BaseMovable {
   instanceType = InstanceTypes.GroupMovable;
@@ -146,11 +138,10 @@ export default class GroupMovable extends BaseMovable {
     this.setLastPosition(groupInitialPosition);
     this.addPieces(pieces)
     this.addToStage(this.element);
-    this.save();
   }
 
   connectWithPiece(piece: SingleMovable, connection: Connection) {
-    console.log('GroupMovable connectWithPiece', piece)
+    // console.log('GroupMovable connectWithPiece', piece)
     const { atDegrees, adjacentDegrees, sourcePiece, targetPiece } = connection;
 
     if (atDegrees && adjacentDegrees && sourcePiece && targetPiece) {
@@ -174,27 +165,23 @@ export default class GroupMovable extends BaseMovable {
   }
 
   connectWithGroup(group: GroupMovable) {
-    console.log('GroupMovable connectWithGroup', group)
     group.addPieces(this.piecesInGroup);
     this.destroy();
   }
 
-  alignWith(movableInstance: SingleMovable | GroupMovable) {
+  alignWith(movableInstance: SingleMovable) {
     // console.log("group alignwith", movableInstance)
     const position = { top: 0, left: 0 };
 
-    if (movableInstance instanceof SingleMovable) {
-      const { top, left } = movableInstance.getPosition();
-      const { puzzleX, puzzleY } = movableInstance.pieceData;
+    const { top, left } = Utils.getStyleBoundingBox(movableInstance.element);
+    const { puzzleX, puzzleY } = movableInstance.pieceData;
 
-      // console.log(top, solvedY, left, solvedX);
-      position.top = top - puzzleY;
-      position.left = left - puzzleX;
-    } else if (movableInstance instanceof GroupMovable) {
-    }
+    // console.log(top, solvedY, left, solvedX);
+    position.top = top - puzzleY;
+    position.left = left - puzzleX;
 
-    this.element.style.top = position.top + "px";
-    this.element.style.left = position.left + "px";
+    this.element.style.top = position.top + movableInstance.shadowOffset + "px";
+    this.element.style.left = position.left + movableInstance.shadowOffset + "px";
   }
 
   addPieces(pieceInstances: SingleMovable[]) {
