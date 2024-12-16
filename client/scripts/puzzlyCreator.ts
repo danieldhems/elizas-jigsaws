@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import {
   MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
   MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT,
@@ -545,6 +546,7 @@ export default class PuzzlyCreator {
 
     const data = {
       ...this.selectedPuzzleConfig,
+      id: nanoid(),
       boardWidth: puzzleWidth,
       boardHeight: puzzleHeight,
       imageName: this.sourceImage.imageName,
@@ -563,7 +565,7 @@ export default class PuzzlyCreator {
       .then((response) => response.json())
       .then(
         function (response: any) {
-          const puzzleId = response._id;
+          const puzzleId = response.id;
 
           Utils.insertUrlParam("puzzleId", puzzleId);
 
@@ -571,8 +573,8 @@ export default class PuzzlyCreator {
 
           window.Puzzly = new Puzzly(puzzleId, {
             ...data,
+            id: response.id,
             pieces: mappedPieces,
-            _id: response._id,
             previewPath: response.previewPath,
             puzzleImagePath,
             boardWidth: puzzleWidth,

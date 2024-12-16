@@ -311,18 +311,18 @@ export default class Puzzly {
     );
   }
 
-  updateElapsedTime(isComplete = false) {
+  updateElapsedTime() {
     const now = new Date().getTime();
     const elapsedTime = now - this.timeStarted;
 
-    return fetch(`/api/puzzle/updateTime/${this.puzzleId}`, {
+    return fetch(`/api/puzzle/updateTimePlayed`, {
       method: "put",
       headers: {
         "Content-Type": "Application/json",
       },
       body: JSON.stringify({
-        time: elapsedTime,
-        isComplete,
+        puzzleId: this.puzzleId,
+        timePlayed: elapsedTime,
       }),
     });
   }

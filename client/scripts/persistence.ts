@@ -141,8 +141,6 @@ export default class PersistenceOperations {
 
     const useLocalStorage = false;
 
-    const requestMethod = piece._id ? "PUT" : "POST";
-
     const data: {
       payload?: SingleMovableSaveState,
       options?: {}
@@ -155,7 +153,7 @@ export default class PersistenceOperations {
     } else {
       // const isFirstSave = !payload[0]?._id;
       return fetch(PIECES_ENDPOINT, {
-        method: requestMethod,
+        method: 'PUT',
         headers: {
           "Content-Type": "Application/json",
         },

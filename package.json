@@ -29,7 +29,6 @@
     "method-override": "^2.3.7",
     "mongod": "^2.0.0",
     "mongodb": "^3.7.3",
-    "mongoose": "^4.2.3",
     "multer": "^1.1.0",
     "nanoid": "^5.0.9",
     "nodemon": "^2.0.7",

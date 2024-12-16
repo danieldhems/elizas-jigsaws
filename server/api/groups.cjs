@@ -1,6 +1,5 @@
 var router = require("express").Router();
 
-const ObjectID = require("mongodb").ObjectID;
 const assert = require("assert");
 const getDatabaseCollections = require("./getDatabaseCollections.cjs").default;
 const dbClient = require('../database.cjs').default;
@@ -39,7 +38,7 @@ var api = {
 
         for (let i = 0, l = data.pieces.length; i < l; i++) {
           await pieces.findOneAndUpdate(
-            { _id: new ObjectID(data.pieces[i]._id) },
+            { id: data.pieces[i].id },
             { $set: { groupId: data.id } }
           )
         }
@@ -47,7 +46,7 @@ var api = {
         const lastSaveDate = Date.now();
 
         const puzzleUpdateQuery = {
-          _id: new ObjectID(data.puzzleId),
+          id: data.puzzleId,
         };
 
         const puzzleUpdateOp = {
@@ -106,7 +105,8 @@ var api = {
 
           // console.log("update instruction", update);
 
-          await groups.findOneAndUpdate(query, update, { upsert: true });
+          const groupResult = await groups.findOneAndUpdate(query, update, { upsert: true });
+          console.log("groupResult", groupResult)
 
           for (let i = 0, l = data.pieces.length; i < l; i++) {
             await pieces.findOneAndUpdate(
@@ -116,7 +116,7 @@ var api = {
           }
 
           const puzzleUpdateQuery = {
-            _id: new ObjectID(data.puzzleId),
+            id: data.puzzleId,
           };
 
           const lastSaveDate = Date.now();
