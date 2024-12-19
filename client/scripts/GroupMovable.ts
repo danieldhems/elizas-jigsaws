@@ -35,11 +35,11 @@ export default class GroupMovable extends BaseMovable {
 
   constructor({
     pieces,
-    _id,
     id,
     position,
     zIndex,
     isSolved,
+    isNew
   }: {
     pieces: SingleMovable[];
     _id?: string;
@@ -48,12 +48,14 @@ export default class GroupMovable extends BaseMovable {
       top: number;
       left: number;
     };
-    zIndex?: number;
+    zIndex: number;
     isSolved?: boolean;
+    isNew?: boolean;
   }) {
     super(window.Puzzly);
 
     this.id = id;
+    this.zIndex = zIndex;
 
     if (position) {
       this.position = position;
@@ -79,13 +81,21 @@ export default class GroupMovable extends BaseMovable {
       this.isSolved = isSolved;
     }
 
-    if (!_id) {
-      this.initiateGroup(pieces);
-    } else {
-      this.element = window.window.Puzzly.GroupOperations.createGroupContainer(position, this._id);
+    this.initiateGroup(pieces)
+    this.addPieces(pieces);
+    this.addToStage(this.element);
 
-      this.addPieces(pieces);
-      this.addToStage(this.element);
+    if (isNew) {
+      // If isNew flag is true, make a group creation request 
+      fetch('api/puzzle/createGroup', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "Application/json",
+        },
+        body: JSON.stringify({
+          group: this.getDataForSave(),
+        }),
+      });
     }
 
     this.onMouseMove = this.onMouseMove.bind(this);
@@ -136,8 +146,6 @@ export default class GroupMovable extends BaseMovable {
     this.element = groupContainer;
 
     this.setLastPosition(groupInitialPosition);
-    this.addPieces(pieces)
-    this.addToStage(this.element);
   }
 
   connectWithPiece(piece: SingleMovable, connection: Connection) {
@@ -193,7 +201,6 @@ export default class GroupMovable extends BaseMovable {
       this.element.appendChild(piece.element)
     });
     this.render();
-    this.save();
   }
 
   addPiece(piece: SingleMovable) {

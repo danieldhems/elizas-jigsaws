@@ -555,7 +555,7 @@ export default class PuzzlyCreator {
       isIntegration: this.isIntegration,
     };
 
-    fetch("/api/puzzle", {
+    fetch("/api/puzzle/createPuzzle", {
       body: JSON.stringify(data),
       method: "POST",
       headers: {

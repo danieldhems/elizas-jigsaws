@@ -29,7 +29,6 @@ export default class SingleMovable extends BaseMovable {
   puzzleId: string;
   index: number;
   id: string;
-  _id: string;
   groupId: string;
   groupInstance: GroupMovable;
   piecesPerSideHorizontal: number;
@@ -58,7 +57,6 @@ export default class SingleMovable extends BaseMovable {
 
     this.puzzleId = window.Puzzly.puzzleId;
     this.id = pieceData.id;
-    this._id = pieceData._id;
     this.index = pieceData.index;
     this.totalNumberOfPieces = window.Puzzly.selectedNumPieces;
 
@@ -99,8 +97,8 @@ export default class SingleMovable extends BaseMovable {
 
   createElement() {
     const {
+      id,
       index,
-      _id,
       groupId,
       width,
       height,
@@ -128,8 +126,6 @@ export default class SingleMovable extends BaseMovable {
 
     // console.log("SingleMovable", this.pieceData)
 
-
-
     const el = document.createElement("div");
     el.classList.add("puzzle-piece");
     el.id = "piece-" + index;
@@ -146,6 +142,7 @@ export default class SingleMovable extends BaseMovable {
     el.style.zIndex = (zIndex || 1) + "";
 
     el.setAttribute("data-jigsaw-type", type.join(","));
+    el.setAttribute("data-id", id);
     el.setAttribute(
       "data-connector-distance-from-corner",
       connectorDistanceFromCorner + ""
@@ -155,7 +152,6 @@ export default class SingleMovable extends BaseMovable {
     el.setAttribute("data-base-piece-size", basePieceSize + "");
     el.setAttribute("data-shadow-offset", this.shadowOffset + "");
     el.setAttribute("data-piece-index", index + "");
-    el.setAttribute("data-piece-id-in-persistence", _id);
     el.setAttribute("data-puzzle-id", this.puzzleId);
     el.setAttribute("data-puzzle-x", puzzleX + "");
     el.setAttribute("data-puzzle-y", puzzleY + "");
@@ -340,10 +336,6 @@ export default class SingleMovable extends BaseMovable {
       right: anchorLeft + box.right,
       bottom: anchorTop + box.bottom,
     }))
-  }
-
-  isElementOwned(element: MovableElement) {
-    return element.dataset.pieceIdInPersistence === this.pieceData._id;
   }
 
   hasMouseDown(element: HTMLElement) {
@@ -585,10 +577,11 @@ export default class SingleMovable extends BaseMovable {
 
   connectWithPiece(piece: SingleMovable, connection: Connection) {
     if (connection.atDegrees && connection.adjacentDegrees) {
-
       const newGroup = new GroupMovable({
         id: `group-${nanoid()}`,
         pieces: [this, piece],
+        isNew: true,
+        zIndex: window.Puzzly.currentZIndex + 1,
       });
       window.Puzzly.groupInstances.push(newGroup);
       this.groupInstance = newGroup;
@@ -612,6 +605,8 @@ export default class SingleMovable extends BaseMovable {
       if (this.groupInstance) {
         console.log("This piece already belongs to a group")
         group.addPieces(this.groupInstance.piecesInGroup);
+        // Fix: Shouldn't need to call this from here
+        group.save();
       } else {
         console.log("This piece doesn't yet belong to a group")
         group.addPiece(this);
@@ -627,6 +622,7 @@ export default class SingleMovable extends BaseMovable {
 
   getDataForSave(): SingleMovableSaveState {
     return {
+      id: this.pieceData.id,
       index: this.pieceData.index,
       basePieceSize: this.pieceData.basePieceSize,
       connectorSize: this.pieceData.connectorSize,
@@ -648,7 +644,6 @@ export default class SingleMovable extends BaseMovable {
       isSolved: this.isSolved,
       groupId: this.groupInstance?.id,
       puzzleId: this.puzzleId,
-      _id: this.pieceData._id,
       pocketId: this.pocketId as number,
       instanceType: this.instanceType,
     };
@@ -667,13 +662,6 @@ export default class SingleMovable extends BaseMovable {
     }
 
     window.Puzzly.PersistenceOperations.saveSinglePiece(this.getDataForSave(), options);
-  }
-
-  setId(id: string) {
-    // console.log("Setting ID for piece", this.pieceData.index, id)
-    this.pieceData._id = id;
-    this.element.setAttribute("data-piece-id-in-persistence", id);
-    this._id = id;
   }
 
   stopListening() {

@@ -257,8 +257,23 @@ export default class Puzzly {
         // NOTE: Initial save once all pieces have been rendered
         // Only necessary when loading puzzle without disperal (for debug)
         // else the save would be called elsewhere
-        const dataForSave = this.pieceInstances.map((piece) => piece.getDataForSave());
-        this.PersistenceOperations.saveMultiplePieces(dataForSave)
+        const pieces = this.pieceInstances.map((piece) => piece.getDataForSave());
+
+        const requestPayload = {
+          pieces,
+          puzzleId: this.puzzleId,
+        };
+
+        fetch('/api/puzzle/createPieces', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "Application/json",
+          },
+          body: JSON.stringify(requestPayload),
+        }).then(res => res.json())
+          .then((response) => {
+            console.log('/api/puzzle/createPieces response', response);
+          });
       }
     }
 
@@ -301,13 +316,13 @@ export default class Puzzly {
 
   removeSingleInstance(singleInstance: SingleMovable) {
     this.pieceInstances = this.pieceInstances.filter(
-      (instance) => instance._id !== singleInstance._id
+      (instance) => instance.id !== singleInstance.id
     );
   }
 
   removeGroupInstance(groupInstance: GroupMovable) {
     this.groupInstances = this.groupInstances.filter(
-      (instance) => instance._id !== groupInstance._id
+      (instance) => instance.id !== groupInstance.id
     );
   }
 

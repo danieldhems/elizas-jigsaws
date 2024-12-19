@@ -143,3 +143,5 @@ export const SCREEN_MARGIN = 10;
 export const SVGNS = "http://www.w3.org/2000/svg";
 
 export const HTML_ATTRIBUTE_NAME_SVG_PATH_STRING = "data-svg-path-string";
+
+export const DEFAULT_ANIMATION_MS = 200;

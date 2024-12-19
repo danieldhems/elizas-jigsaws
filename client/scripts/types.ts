@@ -76,8 +76,6 @@ export type ConnectsTo = Record<string, number>;
 export interface JigsawPieceData {
   id: string;
   index: number;
-  // This is the true ID for the piece in the database
-  _id: string;
   puzzleId: string;
   groupId: string;
   pocketId: number;
@@ -317,6 +315,7 @@ export enum LocalStorageKeys {
 
 export interface SingleMovableSaveState {
   _id?: string;
+  id: string;
   index: number;
   width: number;
   height: number;

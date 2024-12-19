@@ -1,21 +1,18 @@
 import { EVENT_TYPES } from "./constants";
 import GroupMovable from "./GroupMovable";
 import Puzzly from "./Puzzly";
-import SingleMovable from "./SingleMovable";
 import {
-  GroupData,
   GroupMovableSaveState,
-  InstanceTypes,
-  JigsawPieceData,
   LocalStorageKeys,
   SavedProgress,
   SaveOptions,
-  SaveStates,
   SingleMovableSaveState,
 } from "./types";
 
-const PIECES_ENDPOINT = "/api/pieces";
-const GROUPS_ENDPOINT = "/api/groups";
+const UPDATE_PIECE_ENDPOINT = "/api/puzzle/updatePiece";
+const UPDATE_PIECES_ENDPOINT = "/api/puzzle/updatePieces";
+const UPDATE_GROUP_ENDPOINT = "/api/puzzle/updateGroup";
+const DELETE_GROUP_ENDPOINT = "/api/puzzle/deleteGroup";
 
 export default class PersistenceOperations {
   puzzleId;
@@ -142,17 +139,17 @@ export default class PersistenceOperations {
     const useLocalStorage = false;
 
     const data: {
-      payload?: SingleMovableSaveState,
+      piece?: SingleMovableSaveState,
       options?: {}
     } = {};
-    data.payload = piece;
+    data.piece = piece;
     data.options = options;
 
     if (useLocalStorage) {
       this.saveToLocalStorage(piece as SingleMovableSaveState);
     } else {
       // const isFirstSave = !payload[0]?._id;
-      return fetch(PIECES_ENDPOINT, {
+      return fetch(UPDATE_PIECE_ENDPOINT, {
         method: 'PUT',
         headers: {
           "Content-Type": "Application/json",
@@ -174,7 +171,7 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data.payload as SingleMovableSaveState);
+          this.saveToLocalStorage(data.piece as SingleMovableSaveState);
         });
     }
   }
@@ -195,8 +192,7 @@ export default class PersistenceOperations {
     if (useLocalStorage) {
       this.saveToLocalStorage(pieces);
     } else {
-      // const isFirstSave = !payload[0]?._id;
-      return fetch(PIECES_ENDPOINT, {
+      return fetch(UPDATE_PIECES_ENDPOINT, {
         method: requestMethod,
         headers: {
           "Content-Type": "Application/json",
@@ -227,20 +223,18 @@ export default class PersistenceOperations {
 
     const useLocalStorage = false;
 
-    const requestMethod = groupData.id ? "PUT" : "POST";
-
     const data: {
-      payload?: GroupMovableSaveState,
+      group: GroupMovableSaveState,
       options?: {}
-    } = {};
-
-    data.payload = groupData;
-    data.options = options;
+    } = {
+      group: groupData,
+      options,
+    };
 
     if (useLocalStorage) {
-      this.saveToLocalStorage(data.payload as GroupMovableSaveState);
+      this.saveToLocalStorage(data.group as GroupMovableSaveState);
     } else {
-      return fetch(GROUPS_ENDPOINT, {
+      return fetch(UPDATE_GROUP_ENDPOINT, {
         method: 'PUT',
         headers: {
           "Content-Type": "Application/json",
@@ -249,13 +243,14 @@ export default class PersistenceOperations {
       })
         .then((response) => response.json())
         .then((response) => {
-          if (Array.isArray(response.pieces)) {
-            response.pieces.forEach((piece: any) => {
-              window.dispatchEvent(
-                new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
-              );
-            })
-          }
+          // TODO: Do we still need this?
+          // if (Array.isArray(response.pieces)) {
+          //   response.pieces.forEach((piece: any) => {
+          //     window.dispatchEvent(
+          //       new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
+          //     );
+          //   })
+          // }
           window.dispatchEvent(
             new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response })
           );
@@ -264,13 +259,13 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data.payload as GroupMovableSaveState);
+          this.saveToLocalStorage(data.group as GroupMovableSaveState);
         })
     }
   }
 
   async deleteGroup(group: GroupMovable) {
-    return fetch(GROUPS_ENDPOINT, {
+    return fetch(DELETE_GROUP_ENDPOINT, {
       method: 'DELETE',
       headers: {
         "Content-Type": "Application/json",

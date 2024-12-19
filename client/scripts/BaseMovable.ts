@@ -80,7 +80,7 @@ export default class BaseMovable {
   ): SingleMovable {
     return window.Puzzly.pieceInstances.find(
       (instance: SingleMovable) =>
-        instance._id === element.dataset.pieceIdInPersistence
+        instance.id === element.dataset.id
     ) as SingleMovable;
   }
 
