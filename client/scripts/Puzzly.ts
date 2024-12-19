@@ -202,7 +202,7 @@ export default class Puzzly {
       storage.pieces.forEach((p) => {
         if (p.isSolved) {
           solvedPieces.push(p);
-        } else {
+        } else if (!p.groupId) {
           const pieceInstance = new SingleMovable({
             puzzleData: this,
             pieceData: p,
@@ -222,18 +222,7 @@ export default class Puzzly {
         for (let g in this.groups) {
           const group = this.groups[g];
           console.log('group data', group)
-          const pieceInstances = this.pieceInstances.filter((pieceInstance) => {
-            return pieceInstance.groupId === group._id;
-          });
-          console.log("piece instances found for group", pieceInstances);
-          const groupInstance = new GroupMovable({
-            _id: group._id,
-            id: group.id,
-            pieces: pieceInstances,
-            zIndex: group.zIndex,
-            position: group.position,
-            isSolved: group.isSolved,
-          });
+          const groupInstance = new GroupMovable(group);
           this.groupInstances.push(groupInstance);
           // console.log("group instances", this.groupInstances);
         }

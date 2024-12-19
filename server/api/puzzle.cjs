@@ -114,15 +114,15 @@ async function updatePiece(req, res) {
       { id: piece.puzzleId, "pieces.id": piece.id },
       {
         $set: {
-          "pieces.$[piece].pageX": piece.pageX,
-          "pieces.$[piece].pageY": piece.pageY,
+          "pieces.$[elem].pageX": piece.pageX,
+          "pieces.$[elem].pageY": piece.pageY,
           lastSaveDate: lastSaveDate,
           complete: options?.isComplete,
           zIndex: zIndex,
         },
       },
       {
-        arrayFilters: [{ "piece.id": piece.id }],
+        arrayFilters: [{ "elem.id": piece.id }],
       }
     );
 
@@ -161,6 +161,8 @@ async function createGroup(req, res) {
       { id: group.puzzleId },
       {
         $set: {
+          // Set group ID for the effected pieces
+          "pieces.$[elem].groupId": group.id,
           lastSaveDate: lastSaveDate,
           zIndex: zIndex,
         },
@@ -168,6 +170,9 @@ async function createGroup(req, res) {
           groups: group,
         }
       },
+      {
+        arrayFilters: [{ "elem.id": { "$in": group.pieces.map((piece) => piece.id) } }],
+      }
     );
 
     console.log("createGroup result", result.result)

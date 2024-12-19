@@ -579,7 +579,7 @@ export default class SingleMovable extends BaseMovable {
     if (connection.atDegrees && connection.adjacentDegrees) {
       const newGroup = new GroupMovable({
         id: `group-${nanoid()}`,
-        pieces: [this, piece],
+        pieceInstances: [this, piece],
         isNew: true,
         zIndex: window.Puzzly.currentZIndex + 1,
       });

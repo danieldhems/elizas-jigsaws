@@ -34,6 +34,7 @@ export default class GroupMovable extends BaseMovable {
   totalNumberOfPieces: number;
 
   constructor({
+    pieceInstances,
     pieces,
     id,
     position,
@@ -41,7 +42,8 @@ export default class GroupMovable extends BaseMovable {
     isSolved,
     isNew
   }: {
-    pieces: SingleMovable[];
+    pieceInstances?: SingleMovable[];
+    pieces?: JigsawPieceData[];
     _id?: string;
     id: string;
     position?: {
@@ -75,15 +77,25 @@ export default class GroupMovable extends BaseMovable {
 
     this.zoomLevel = window.Puzzly.zoomLevel;
 
-    // console.log("GroupMovable zIndex", zIndex);
-
     if (isSolved) {
       this.isSolved = isSolved;
     }
 
-    this.initiateGroup(pieces)
-    this.addPieces(pieces);
-    this.addToStage(this.element);
+    if (Array.isArray(pieceInstances)) {
+      this.initiateGroup(pieceInstances)
+      this.addPieces(pieceInstances);
+      this.addToStage(this.element);
+    } else if (Array.isArray(pieces)) {
+      this.element = window.window.Puzzly.GroupOperations.createGroupContainer(position);
+      this.element.id = `group-container-${this.id}`;
+
+      const pieceInstances = pieces.map((piece: JigsawPieceData) =>
+        new SingleMovable({ puzzleData: window.Puzzly, pieceData: piece })
+      );
+
+      this.addPieces(pieceInstances);
+      this.addToStage(this.element);
+    }
 
     if (isNew) {
       // If isNew flag is true, make a group creation request 
@@ -115,7 +127,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   initiateGroup(pieces: SingleMovable[]) {
-    // console.log("initiating group")
+    console.log("initiating group", pieces)
     const sourcePiece = pieces[0];
     const targetPiece = pieces[1];
 
