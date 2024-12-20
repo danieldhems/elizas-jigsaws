@@ -264,17 +264,16 @@ export default class PersistenceOperations {
     }
   }
 
-  async deleteGroup(group: GroupMovable) {
+  async deleteGroup(groupId: string, puzzleId: string) {
     return fetch(DELETE_GROUP_ENDPOINT, {
       method: 'DELETE',
       headers: {
         "Content-Type": "Application/json",
       },
-      body: JSON.stringify({ id: group._id }),
+      body: JSON.stringify({ groupId, puzzleId }),
     })
       .then((response) => response.json())
       .then((response) => {
-
         return response;
       })
       .catch((error) => {

@@ -26,17 +26,20 @@ export function checkConnections(
     if (piece.groupInstance && targetPiece.groupInstance && piece.groupInstance.id === targetPiece.groupInstance.id) continue;
 
     const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
-    // Utils.drawBox(boundingBoxForSourceConnector, null, 'green')
-    // Utils.drawBox(boundingBoxForTargetConnector, null, 'red')
 
     if (boundingBoxForTargetConnector) {
+      Utils.drawBox(boundingBoxForSourceConnector, null, 'green');
+      Utils.drawBox(boundingBoxForTargetConnector, null, 'red');
+
       if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
         connector.isConnected = true;
+
         for (const connector of targetPiece.connectors) {
           if (connector.atDegrees === adjacentDegrees) {
             connector.isConnected = true;
           }
         }
+
         return {
           sourcePiece: piece,
           targetPiece: targetPiece,
@@ -52,6 +55,7 @@ export function checkConnections(
         for (const connector of piece.connectors) {
           connector.isConnected = true;
         }
+
         return {
           sourcePiece: piece,
           isSolving: true,

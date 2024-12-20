@@ -76,7 +76,7 @@ export default class SingleMovable extends BaseMovable {
 
     this.setLastPosition({ top: pieceData.pageY, left: pieceData.pageX });
 
-    if (!window.Puzzly.complete) {
+    if (!window.Puzzly.complete && !pieceData.groupId) {
       this.render();
     }
 
@@ -295,17 +295,16 @@ export default class SingleMovable extends BaseMovable {
   getCurrentBoundingBoxForConnector(atDegrees: number): BoundingBox | undefined {
     const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
 
-    let position = {
-      top: 0,
-      left: 0,
-    };
+    let top, left;
 
     if (this.groupInstance) {
       const groupBoundingBox = Utils.getStyleBoundingBox(this.groupInstance.element);
-      position.top = groupBoundingBox.top + this.pieceData.puzzleY;
-      position.left = groupBoundingBox.left + this.pieceData.puzzleX;
+      top = groupBoundingBox.top + this.pieceData.puzzleY;
+      left = groupBoundingBox.left + this.pieceData.puzzleX;
     } else {
-      position = Utils.getStyleBoundingBox(this.element);
+      const boundingBox = Utils.getStyleBoundingBox(this.element);
+      top = boundingBox.top;
+      left = boundingBox.left;
     }
 
     const connector = this.connectors.find((connector) => {
@@ -314,10 +313,10 @@ export default class SingleMovable extends BaseMovable {
 
     if (connector && connector.boundingBox) {
       return {
-        top: connector.boundingBox.top + position.top + stagePosition.top,
-        left: connector.boundingBox.left + position.left + stagePosition.left,
-        right: connector.boundingBox.right + position.left + stagePosition.left,
-        bottom: connector.boundingBox.bottom + position.top + stagePosition.top,
+        top: connector.boundingBox.top + top + stagePosition.top,
+        left: connector.boundingBox.left + left + stagePosition.left,
+        right: connector.boundingBox.right + left + stagePosition.left,
+        bottom: connector.boundingBox.bottom + top + stagePosition.top,
       }
     }
   }
@@ -610,6 +609,7 @@ export default class SingleMovable extends BaseMovable {
       } else {
         console.log("This piece doesn't yet belong to a group")
         group.addPiece(this);
+        group.save();
         this.groupInstance = group;
         this.setGroupIdAcrossInstance(group.id);
         // TDOD: Encapsulate in single method on target instance?

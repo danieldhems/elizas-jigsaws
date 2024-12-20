@@ -191,74 +191,95 @@ async function createGroup(req, res) {
 }
 
 async function updateGroup(req, res) {
-  var data = req.body.payload;
-  console.log("update group request", req.body);
+  try {
+    const { group, integration } = req.body;
+    console.log('updateGroup', group)
 
-  dbClient.connect().then(async (client, err) => {
-    if (!err) {
-      db = client.db(dbName);
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
 
-      const { pieces, groups, puzzles } = getDatabaseCollections(
-        db,
-        req.body
-      );
-      let query, update;
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
 
-      try {
-        query = { id: data.id };
-        // console.log("updating group", data);
-        update = {
-          $set: {
-            pieces: data.pieces,
-            puzzleId: data.puzzleId,
-            zIndex: data.zIndex,
-            position: data.position,
-            isSolved: data.isSolved,
-          },
-        };
+    const lastSaveDate = new Date();
 
-        // console.log("update instruction", update);
-
-        const groupResult = await groups.findOneAndUpdate(query, update, { upsert: true });
-        console.log("groupResult", groupResult)
-
-        for (let i = 0, l = data.pieces.length; i < l; i++) {
-          await pieces.findOneAndUpdate(
-            { id: data.pieces[i].id },
-            { $set: { groupId: data.id, isSolved: data.isSolved } }
-          )
-        }
-
-        const puzzleUpdateQuery = {
-          id: data.puzzleId,
-        };
-
-        const lastSaveDate = Date.now();
-
-        const puzzleUpdateOp = {
-          $set: {
-            lastSaveDate,
-            complete: data.isPuzzleComplete,
-            zIndex: data.zIndex,
-          },
-        };
-
-        // console.log("Groups: Updating puzzle with query", puzzleUpdateOp);
-
-        await puzzles.updateOne(puzzleUpdateQuery, puzzleUpdateOp);
-
-        const response = {
-          status: "success",
-          data: { lastSaveDate },
-        };
-
-        res.status(200).send(response);
-      } catch (e) {
-        console.log("group update error", e);
-        res.status(500).send(e);
+    const result = await puzzlesCollection.updateOne(
+      { id: group.puzzleId },
+      {
+        $set: {
+          // Set group ID for the effected pieces
+          "pieces.$[piece].groupId": group.id,
+          "groups.$[group]": group,
+          lastSaveDate: lastSaveDate,
+          zIndex: group.zIndex,
+        },
+      },
+      {
+        arrayFilters: [
+          { "piece.id": { "$in": group.pieces.map((piece) => piece.id) } },
+          { "group.id": group.id }
+        ],
       }
-    }
-  });
+    );
+
+    console.log("updateGroup result", result.result)
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
+      },
+    };
+
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function deleteGroup(req, res) {
+  try {
+    const { groupId, puzzleId, integration } = req.body;
+    console.log('deleteGroup -> groupId', groupId)
+    console.log('deleteGroup -> puzzleId', puzzleId)
+
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
+
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
+
+    const lastSaveDate = new Date();
+
+    const result = await puzzlesCollection.updateOne(
+      { id: puzzleId },
+      {
+        $set: {
+          lastSaveDate: lastSaveDate,
+        },
+        $pull: {
+          groups: {
+            id: groupId,
+          },
+        }
+      },
+    );
+
+    console.log("deleteGroup result", result.result)
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
+      },
+    };
+
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function getPuzzle(req, res) {
@@ -300,10 +321,6 @@ async function getPuzzles(req, res) {
   };
 };
 
-
-
-
-
 async function updateTimePlayed(req, res) {
   dbClient.connect().then(async (client, err) => {
     assert.strictEqual(err, undefined);
@@ -328,6 +345,8 @@ router.post("/getPuzzle", getPuzzle);
 router.put("/updateTimePlayed/", updateTimePlayed);
 router.post("/createPieces", createPieces);
 router.post("/createGroup", createGroup);
+router.put("/updateGroup", updateGroup);
+router.delete("/deleteGroup", deleteGroup);
 router.put("/updatePiece", updatePiece);
 
 module.exports.router = router;

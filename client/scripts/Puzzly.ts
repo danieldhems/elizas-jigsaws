@@ -202,7 +202,7 @@ export default class Puzzly {
       storage.pieces.forEach((p) => {
         if (p.isSolved) {
           solvedPieces.push(p);
-        } else if (!p.groupId) {
+        } else {
           const pieceInstance = new SingleMovable({
             puzzleData: this,
             pieceData: p,
@@ -299,16 +299,20 @@ export default class Puzzly {
     index: number
   ): SingleMovable {
     return window.Puzzly.pieceInstances.find(
-      (instance: SingleMovable) => instance.index === index
+      (instance: SingleMovable) => {
+        return instance.index === index
+      }
     ) as SingleMovable;
   }
 
+  // Question: Do we need this?
   removeSingleInstance(singleInstance: SingleMovable) {
     this.pieceInstances = this.pieceInstances.filter(
       (instance) => instance.id !== singleInstance.id
     );
   }
 
+  // Question: Do we need this?`
   removeGroupInstance(groupInstance: GroupMovable) {
     this.groupInstances = this.groupInstances.filter(
       (instance) => instance.id !== groupInstance.id
