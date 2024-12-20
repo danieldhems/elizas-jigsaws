@@ -67,6 +67,7 @@ export default class SingleMovable extends BaseMovable {
 
     if (pieceData.groupId) {
       this.groupId = pieceData.groupId;
+
     }
 
     this.connectors = pieceData.connectors;
@@ -78,16 +79,16 @@ export default class SingleMovable extends BaseMovable {
 
     if (!window.Puzzly.complete && !pieceData.groupId) {
       this.render();
+
+      this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
+      this.element.addEventListener(
+        EVENT_TYPES.MOVE_FINISHED,
+        this.onMoveFinished.bind(this)
+      );
+
+      this.onMouseMove = this.onMouseMove.bind(this);
+      this.onMouseUp = this.onMouseUp.bind(this);
     }
-
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-
-    window.addEventListener("mousedown", this.onMouseDown.bind(this));
-    window.addEventListener(
-      EVENT_TYPES.MOVE_FINISHED,
-      this.onMoveFinished.bind(this)
-    );
   }
 
   setPiece(pieceData: JigsawPieceData) {
@@ -471,7 +472,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
-    console.log('SingleMovable mouseup', this)
+    // console.log('SingleMovable mouseup', this)
     this.element.removeEventListener('mousemove', this.onMouseMove);
     this.element.removeEventListener('mouseup', this.onMouseUp);
 
@@ -593,21 +594,16 @@ export default class SingleMovable extends BaseMovable {
   }
 
   connectWithGroup(group: GroupMovable, connection: Connection) {
-    console.log("SingleMovable connectWithGroup", group)
+    // console.log("SingleMovable connectWithGroup", group)
 
     const { atDegrees, adjacentDegrees, targetPiece } = connection;
 
     if (atDegrees && adjacentDegrees && targetPiece) {
-      // this.markConnectorUsed(atDegrees);
-      // targetPiece.markConnectorUsed(adjacentDegrees)
-
       if (this.groupInstance) {
-        console.log("This piece already belongs to a group")
         group.addPieces(this.groupInstance.piecesInGroup);
         // Fix: Shouldn't need to call this from here
         group.save();
       } else {
-        console.log("This piece doesn't yet belong to a group")
         group.addPiece(this);
         group.save();
         this.groupInstance = group;

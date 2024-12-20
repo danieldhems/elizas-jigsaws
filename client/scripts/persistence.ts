@@ -134,7 +134,7 @@ export default class PersistenceOperations {
   }
 
   async saveSinglePiece(piece: SingleMovableSaveState, options: SaveOptions) {
-    console.log("saveSinglePiece", piece);
+    // console.log("saveSinglePiece", piece);
 
     const useLocalStorage = false;
 
@@ -177,7 +177,7 @@ export default class PersistenceOperations {
   }
 
   async saveMultiplePieces(pieces: SingleMovableSaveState[], options?: SaveOptions) {
-    console.log('saveMultiplePieces', pieces)
+    // console.log('saveMultiplePieces', pieces)
     const useLocalStorage = false;
 
     const requestMethod = pieces[0]._id ? "PUT" : "POST";

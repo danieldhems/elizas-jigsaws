@@ -211,7 +211,7 @@ export default class Puzzly {
           this.pieceInstances.push(pieceInstance);
         }
       });
-      console.log('Single pieces', this.pieceInstances)
+      // console.log('Single pieces', this.pieceInstances)
 
       if (solvedPieces.length > 0) {
         this.SolvingArea.addSolvedPieces(solvedPieces);
@@ -221,14 +221,11 @@ export default class Puzzly {
       if (this.groups && Object.keys(this.groups).length) {
         for (let g in this.groups) {
           const group = this.groups[g];
-          console.log('group data', group)
           const groupInstance = new GroupMovable(group);
           this.groupInstances.push(groupInstance);
-          // console.log("group instances", this.groupInstances);
         }
       }
     } else {
-      console.log("pieces", this.pieces);
       this.pieces.forEach((piece, index) => {
         const pieceInstance = new SingleMovable({
           puzzleData: this,
@@ -248,20 +245,18 @@ export default class Puzzly {
         // else the save would be called elsewhere
         const pieces = this.pieceInstances.map((piece) => piece.getDataForSave());
 
-        const requestPayload = {
-          pieces,
-          puzzleId: this.puzzleId,
-        };
-
         fetch('/api/puzzle/createPieces', {
           method: 'POST',
           headers: {
             "Content-Type": "Application/json",
           },
-          body: JSON.stringify(requestPayload),
+          body: JSON.stringify({
+            pieces,
+            puzzleId: this.puzzleId,
+          }),
         }).then(res => res.json())
           .then((response) => {
-            console.log('/api/puzzle/createPieces response', response);
+            // console.log('/api/puzzle/createPieces response', response);
           });
       }
     }

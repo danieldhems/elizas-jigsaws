@@ -136,7 +136,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   initiateGroup(pieces: SingleMovable[]) {
-    console.log("initiating group", pieces)
+    // console.log("initiating group", pieces)
     const sourcePiece = pieces[0];
     const targetPiece = pieces[1];
 
@@ -170,7 +170,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   connectWithPiece(piece: SingleMovable, connection: Connection) {
-    console.log('GroupMovable connectWithPiece', piece)
+    // console.log('GroupMovable connectWithPiece', piece)
     const { atDegrees, adjacentDegrees, sourcePiece, targetPiece } = connection;
 
     if (atDegrees && adjacentDegrees && sourcePiece && targetPiece) {
@@ -343,7 +343,7 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseUp(event: MouseEvent) {
-    console.log('GroupMovable mouseup', this)
+    // console.log('GroupMovable mouseup', this)
     if (this.isOutOfBounds()) {
       this.resetPosition();
     } else {
