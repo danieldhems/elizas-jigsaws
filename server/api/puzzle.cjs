@@ -145,7 +145,7 @@ async function updatePiece(req, res) {
 
 async function solvePiece(req, res) {
   try {
-    const { pieceId, puzzleId, integration, options } = req.body;
+    const { pieceId, puzzleId, isComplete, integration } = req.body;
     console.log('solvePiece')
 
     const dbConnection = await dbClient.connect();
@@ -163,7 +163,7 @@ async function solvePiece(req, res) {
         $set: {
           "pieces.$[elem].isSolved": true,
           lastSaveDate: lastSaveDate,
-          complete: options?.isComplete,
+          complete: isComplete,
         },
       },
       {
@@ -189,7 +189,7 @@ async function solvePiece(req, res) {
 
 async function solveGroup(req, res) {
   try {
-    const { group, puzzleId, integration, options } = req.body;
+    const { group, puzzleId, isComplete, integration } = req.body;
     console.log('solveGroup -> group', group)
     console.log('solveGroup -> puzzleId', puzzleId)
 
@@ -209,6 +209,7 @@ async function solveGroup(req, res) {
           // Update pieces in group, marking them as solved
           "pieces.$[piece].isSolved": true,
           lastSaveDate: lastSaveDate,
+          complete: isComplete,
         },
         $pull: {
           groups: {
@@ -337,8 +338,7 @@ async function updateGroup(req, res) {
 async function mergeGroups(req, res) {
   try {
     const { sourceGroup, targetGroup, integration } = req.body;
-    console.log('mergeGroups->sourceGroup', sourceGroup)
-    console.log('mergeGroups->targetGroup', targetGroup)
+    console.log('mergeGroups', sourceGroup, targetGroup)
 
     const dbConnection = await dbClient.connect();
     const db = dbConnection.db(dbName);
@@ -396,8 +396,7 @@ async function mergeGroups(req, res) {
 async function deleteGroup(req, res) {
   try {
     const { groupId, puzzleId, integration } = req.body;
-    console.log('deleteGroup -> groupId', groupId)
-    console.log('deleteGroup -> puzzleId', puzzleId)
+    console.log('deleteGroup', groupId, puzzleId)
 
     const dbConnection = await dbClient.connect();
     const db = dbConnection.db(dbName);

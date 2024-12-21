@@ -29,8 +29,8 @@ export default class SingleMovable extends BaseMovable {
   puzzleId: string;
   index: number;
   id: string;
-  groupId: string;
-  groupInstance: GroupMovable;
+  groupId: string | null;
+  groupInstance: GroupMovable | null;
   piecesPerSideHorizontal: number;
   piecesPerSideVertical: number;
   totalNumberOfPieces: number;
@@ -59,6 +59,7 @@ export default class SingleMovable extends BaseMovable {
     this.id = pieceData.id;
     this.index = pieceData.index;
     this.totalNumberOfPieces = window.Puzzly.selectedNumPieces;
+    this.isSolved = pieceData.isSolved;
 
     this.piecesPerSideHorizontal = window.Puzzly.piecesPerSideHorizontal;
     this.shadowOffset = puzzleData.shadowOffset;
@@ -299,12 +300,16 @@ export default class SingleMovable extends BaseMovable {
 
     if (this.groupInstance) {
       const groupBoundingBox = Utils.getStyleBoundingBox(this.groupInstance.element);
-      top = groupBoundingBox.top + this.pieceData.puzzleY;
-      left = groupBoundingBox.left + this.pieceData.puzzleX;
+      top = stagePosition.top + groupBoundingBox.top + this.pieceData.puzzleY;
+      left = stagePosition.left + groupBoundingBox.left + this.pieceData.puzzleX;
+    } else if (this.isSolved) {
+      const solvingAreaPosition = Utils.getStyleBoundingBox(window.Puzzly.SolvingArea.element as HTMLDivElement);
+      top = stagePosition.top + solvingAreaPosition.top + this.pieceData.puzzleY;
+      left = stagePosition.left + solvingAreaPosition.left + this.pieceData.puzzleX;
     } else {
       const boundingBox = Utils.getStyleBoundingBox(this.element);
-      top = boundingBox.top;
-      left = boundingBox.left;
+      top = stagePosition.top + boundingBox.top;
+      left = stagePosition.left + boundingBox.left;
     }
 
     const connector = this.connectors.find((connector) => {
@@ -313,10 +318,10 @@ export default class SingleMovable extends BaseMovable {
 
     if (connector && connector.boundingBox) {
       return {
-        top: connector.boundingBox.top + top + stagePosition.top,
-        left: connector.boundingBox.left + left + stagePosition.left,
-        right: connector.boundingBox.right + left + stagePosition.left,
-        bottom: connector.boundingBox.bottom + top + stagePosition.top,
+        top: top + connector.boundingBox.top,
+        left: left + connector.boundingBox.left,
+        right: left + connector.boundingBox.right,
+        bottom: top + connector.boundingBox.bottom,
       }
     }
   }
@@ -497,6 +502,8 @@ export default class SingleMovable extends BaseMovable {
         } else {
           if (targetPiece.groupInstance) {
             this.connectWithGroup(targetPiece.groupInstance, connection);
+          } else if (targetPiece.isSolved) {
+            this.solve();
           } else {
             this.connectWithPiece(targetPiece, connection);
           }
@@ -533,13 +540,14 @@ export default class SingleMovable extends BaseMovable {
   solve() {
     // console.log("SingleInstance", this, "solve()");
     this.hide();
+    this.stopListening();
+    this.markAsSolved();
 
     // TODO: Should this be part of the hide() behaviour?
     this.element.style.pointerEvents = "none";
 
     window.Puzzly.SolvingArea.addPiece(this);
-
-    this.isSolved = true;
+    console.log('solved pieces', window.Puzzly.SolvingArea.pieces.length)
 
     fetch('/api/puzzle/solvePiece', {
       method: 'PUT',
@@ -549,6 +557,7 @@ export default class SingleMovable extends BaseMovable {
       body: JSON.stringify({
         pieceId: this.id,
         puzzleId: this.puzzleId,
+        isComplete: window.Puzzly.SolvingArea.pieces.length === window.Puzzly.selectedNumPieces,
       }),
     })
 
@@ -557,6 +566,8 @@ export default class SingleMovable extends BaseMovable {
 
   markAsSolved() {
     this.isSolved = true;
+    this.groupId = null;
+    this.groupInstance = null;
     this.element.dataset.isSolved = "true";
     this.element.classList.add("grouped");
   }

@@ -30,7 +30,7 @@ export function checkConnections(
     Utils.drawBox(boundingBoxForSourceConnector, null, 'green');
     Utils.drawBox(boundingBoxForTargetConnector, null, 'red');
 
-    if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
+    if (!targetPiece.isSolved && Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
       connector.isConnected = true;
 
       // TODO: Separation of concerns
@@ -51,6 +51,7 @@ export function checkConnections(
     }
 
     if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
+      Utils.drawBox(solvedBoundingBoxes[n], null, 'purple')
       for (const connector of piece.connectors) {
         connector.isConnected = true;
       }

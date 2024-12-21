@@ -437,8 +437,14 @@ export default class GroupMovable extends BaseMovable {
     // console.log('solving group', this)
     window.window.Puzzly.SolvingArea.addGroup(this);
 
+    console.log('solved pieces', window.Puzzly.SolvingArea.pieces.length)
+
     // Question: Do we need this?
     this.isSolved = true;
+
+    this.piecesInGroup.forEach((piece) => {
+      piece.markAsSolved();
+    });
 
     fetch('/api/puzzle/solveGroup', {
       method: 'PUT',
@@ -448,6 +454,7 @@ export default class GroupMovable extends BaseMovable {
       body: JSON.stringify({
         group: this.getDataForSave(),
         puzzleId: this.puzzleId,
+        isComplete: window.Puzzly.SolvingArea.pieces.length === window.Puzzly.selectedNumPieces,
       }),
     })
 
@@ -550,9 +557,8 @@ export default class GroupMovable extends BaseMovable {
       this.element.removeEventListener("mouseup", this.onMouseUp);
     }
 
-    // this.piecesInGroup.forEach((piece: SingleMovable) => piece.destroy());
-    // this.element.remove();
     this.hide();
+    this.element.remove();
     window.window.Puzzly.removeGroupInstance(this);
   }
 }
