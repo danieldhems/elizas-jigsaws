@@ -111,7 +111,7 @@ async function updatePiece(req, res) {
     const lastSaveDate = new Date();
 
     const result = await puzzlesCollection.updateOne(
-      { id: piece.puzzleId, "pieces.id": piece.id },
+      { id: piece.puzzleId },
       {
         $set: {
           "pieces.$[elem].pageX": piece.pageX,
@@ -133,6 +133,102 @@ async function updatePiece(req, res) {
       data: {
         lastSaveDate,
         piece,
+      }
+    };
+
+    res.status(200).send(response);
+  } catch (e) {
+    console.log(e)
+    res.status(500).send(e);
+  }
+}
+
+async function solvePiece(req, res) {
+  try {
+    const { pieceId, puzzleId, integration, options } = req.body;
+    console.log('solvePiece')
+
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
+
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
+
+    const lastSaveDate = new Date();
+
+    const result = await puzzlesCollection.updateOne(
+      { id: puzzleId },
+      {
+        $set: {
+          "pieces.$[elem].isSolved": true,
+          lastSaveDate: lastSaveDate,
+          complete: options?.isComplete,
+        },
+      },
+      {
+        arrayFilters: [{ "elem.id": pieceId }],
+      }
+    );
+
+    console.log("solvePiece -> result", result.result)
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
+      }
+    };
+
+    res.status(200).send(response);
+  } catch (e) {
+    console.log(e)
+    res.status(500).send(e);
+  }
+}
+
+async function solveGroup(req, res) {
+  try {
+    const { group, puzzleId, integration, options } = req.body;
+    console.log('solveGroup -> group', group)
+    console.log('solveGroup -> puzzleId', puzzleId)
+
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
+
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
+
+    const lastSaveDate = new Date();
+
+    const result = await puzzlesCollection.updateOne(
+      { id: group.puzzleId },
+      {
+        $set: {
+          // Update pieces in group, marking them as solved
+          "pieces.$[piece].isSolved": true,
+          lastSaveDate: lastSaveDate,
+        },
+        $pull: {
+          groups: {
+            id: group.id,
+          },
+        }
+      },
+      {
+        arrayFilters: [
+          { "piece.id": { "$in": group.pieces.map((piece) => piece.id) } },
+        ],
+      },
+    );
+
+    console.log("solveGroup -> result", result.result)
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
       }
     };
 
@@ -223,7 +319,66 @@ async function updateGroup(req, res) {
       }
     );
 
-    console.log("updateGroup result", result.result)
+    console.log("updateGroup result", result.result);
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
+      },
+    };
+
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function mergeGroups(req, res) {
+  try {
+    const { sourceGroup, targetGroup, integration } = req.body;
+    console.log('mergeGroups->sourceGroup', sourceGroup)
+    console.log('mergeGroups->targetGroup', targetGroup)
+
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
+
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
+
+    const lastSaveDate = new Date();
+
+    const deleteResult = await puzzlesCollection.updateOne(
+      { id: sourceGroup.puzzleId },
+      {
+        $pull: {
+          groups: {
+            id: sourceGroup.id,
+          },
+        }
+      },
+    );
+
+    console.log("deleteGroup result", deleteResult.result);
+
+    const updateResult = await puzzlesCollection.updateOne(
+      { id: sourceGroup.puzzleId },
+      {
+        $push: {
+          "groups.$[targetGroup].pieces": {
+            $each: sourceGroup.pieces,
+          }
+        },
+      },
+      {
+        arrayFilters: [
+          { "targetGroup.id": targetGroup.id }
+        ],
+      }
+    );
+
+    console.log("updateGroup result", updateResult.result);
 
     const response = {
       status: "success",
@@ -267,7 +422,7 @@ async function deleteGroup(req, res) {
       },
     );
 
-    console.log("deleteGroup result", result.result)
+    console.log("deleteGroup result", result.result);
 
     const response = {
       status: "success",
@@ -342,11 +497,14 @@ async function updateTimePlayed(req, res) {
 router.post("/createPuzzle", createPuzzle);
 router.post("/getPuzzles", getPuzzles);
 router.post("/getPuzzle", getPuzzle);
-router.put("/updateTimePlayed/", updateTimePlayed);
 router.post("/createPieces", createPieces);
+router.put("/updatePiece", updatePiece);
 router.post("/createGroup", createGroup);
 router.put("/updateGroup", updateGroup);
+router.put("/mergeGroups", mergeGroups);
 router.delete("/deleteGroup", deleteGroup);
-router.put("/updatePiece", updatePiece);
+router.put('/solvePiece', solvePiece);
+router.put('/solveGroup', solveGroup);
+router.put("/updateTimePlayed/", updateTimePlayed);
 
 module.exports.router = router;

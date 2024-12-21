@@ -43,8 +43,8 @@ export default class SolvingArea {
 
     addPiece(piece: SingleMovable) {
         this.pieces.push(piece.pieceData);
-        piece.destroy();
         this.render();
+        piece.destroy();
         window.Puzzly.solvedCount += 1;
     }
 
@@ -69,6 +69,8 @@ export default class SolvingArea {
      * This method allows us to avoid instantiating instances of SingleMovable when we don't need to. 
      * 
      * @param {JigsawPieceData} pieces Collection of pieces by data only i.e. not an instance of SingleMovable
+     * 
+     * Question: Do we need this?
      */
     addSolvedPieces(pieces: JigsawPieceData[]) {
         this.pieces.push(...pieces);

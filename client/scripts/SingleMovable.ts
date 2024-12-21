@@ -67,7 +67,6 @@ export default class SingleMovable extends BaseMovable {
 
     if (pieceData.groupId) {
       this.groupId = pieceData.groupId;
-
     }
 
     this.connectors = pieceData.connectors;
@@ -77,7 +76,7 @@ export default class SingleMovable extends BaseMovable {
 
     this.setLastPosition({ top: pieceData.pageY, left: pieceData.pageX });
 
-    if (!window.Puzzly.complete && !pieceData.groupId) {
+    if (!window.Puzzly.complete && !pieceData.groupId && !pieceData.isSolved) {
       this.render();
 
       this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -541,7 +540,18 @@ export default class SingleMovable extends BaseMovable {
     window.Puzzly.SolvingArea.addPiece(this);
 
     this.isSolved = true;
-    this.save();
+
+    fetch('/api/puzzle/solvePiece', {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        pieceId: this.id,
+        puzzleId: this.puzzleId,
+      }),
+    })
+
     this.destroy();
   }
 
@@ -665,7 +675,9 @@ export default class SingleMovable extends BaseMovable {
   }
 
   destroy() {
-    window.Puzzly.removeSingleInstance(this);
+    // Question: Do we need this?
+    // window.Puzzly.removeSingleInstance(this);
+
     this.element.remove();
   }
 }

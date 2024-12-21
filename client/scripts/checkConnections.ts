@@ -27,40 +27,38 @@ export function checkConnections(
 
     const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
 
-    if (boundingBoxForTargetConnector) {
-      Utils.drawBox(boundingBoxForSourceConnector, null, 'green');
-      Utils.drawBox(boundingBoxForTargetConnector, null, 'red');
+    Utils.drawBox(boundingBoxForSourceConnector, null, 'green');
+    Utils.drawBox(boundingBoxForTargetConnector, null, 'red');
 
-      if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
-        connector.isConnected = true;
+    if (Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
+      connector.isConnected = true;
 
-        for (const connector of targetPiece.connectors) {
-          if (connector.atDegrees === adjacentDegrees) {
-            connector.isConnected = true;
-          }
+      // TODO: Separation of concerns
+      // This seems to work but I don't think this function should be doing this 
+      for (const connector of targetPiece.connectors) {
+        if (connector.atDegrees === adjacentDegrees) {
+          connector.isConnected = true;
         }
+      }
 
-        return {
-          sourcePiece: piece,
-          targetPiece: targetPiece,
-          atDegrees: connector.atDegrees,
-          adjacentDegrees: adjacentDegrees,
-          isSolving: false,
-        }
+      return {
+        sourcePiece: piece,
+        targetPiece: targetPiece,
+        atDegrees: connector.atDegrees,
+        adjacentDegrees: adjacentDegrees,
+        isSolving: false,
       }
     }
 
-    if (connector.boundingBox) {
-      if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
-        for (const connector of piece.connectors) {
-          connector.isConnected = true;
-        }
-
-        return {
-          sourcePiece: piece,
-          isSolving: true,
-        };
+    if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
+      for (const connector of piece.connectors) {
+        connector.isConnected = true;
       }
+
+      return {
+        sourcePiece: piece,
+        isSolving: true,
+      };
     }
   }
 }

@@ -200,15 +200,15 @@ export default class Puzzly {
     if (storage && storage.pieces.length > 0) {
       // console.log("Getting pieces from storage", storage)
       storage.pieces.forEach((p) => {
+        const pieceInstance = new SingleMovable({
+          puzzleData: this,
+          pieceData: p,
+        });
+
+        this.pieceInstances.push(pieceInstance);
+
         if (p.isSolved) {
           solvedPieces.push(p);
-        } else {
-          const pieceInstance = new SingleMovable({
-            puzzleData: this,
-            pieceData: p,
-          });
-
-          this.pieceInstances.push(pieceInstance);
         }
       });
       // console.log('Single pieces', this.pieceInstances)

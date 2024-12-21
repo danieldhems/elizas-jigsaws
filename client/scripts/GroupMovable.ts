@@ -186,7 +186,19 @@ export default class GroupMovable extends BaseMovable {
 
   connectWithGroup(group: GroupMovable) {
     group.addPieces(this.piecesInGroup);
-    group.save();
+
+    fetch('/api/puzzle/mergeGroups', {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        sourceGroup: this.getDataForSave(),
+        targetGroup: group.getDataForSave(),
+        puzzleId: this.puzzleId,
+      }),
+    })
+
     this.destroy();
   }
 
@@ -425,9 +437,20 @@ export default class GroupMovable extends BaseMovable {
     // console.log('solving group', this)
     window.window.Puzzly.SolvingArea.addGroup(this);
 
+    // Question: Do we need this?
     this.isSolved = true;
 
-    this.save();
+    fetch('/api/puzzle/solveGroup', {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        group: this.getDataForSave(),
+        puzzleId: this.puzzleId,
+      }),
+    })
+
     this.destroy();
   }
 
@@ -496,10 +519,7 @@ export default class GroupMovable extends BaseMovable {
     };
   }
 
-  async save(force = false) {
-    // TODO: Still seeing duplicate saves
-    // console.log("group save called", this);
-
+  async save() {
     const { solvedCount, totalNumberOfPieces } = window.Puzzly;
     let isComplete;
     if (solvedCount === totalNumberOfPieces) {
@@ -533,7 +553,6 @@ export default class GroupMovable extends BaseMovable {
     // this.piecesInGroup.forEach((piece: SingleMovable) => piece.destroy());
     // this.element.remove();
     this.hide();
-    this.delete();
     window.window.Puzzly.removeGroupInstance(this);
   }
 }
