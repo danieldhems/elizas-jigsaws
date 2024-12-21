@@ -140,10 +140,8 @@ export default class PersistenceOperations {
 
     const data: {
       piece?: SingleMovableSaveState,
-      options?: {}
     } = {};
     data.piece = piece;
-    data.options = options;
 
     if (useLocalStorage) {
       this.saveToLocalStorage(piece as SingleMovableSaveState);
@@ -158,13 +156,6 @@ export default class PersistenceOperations {
       })
         .then((response) => response.json())
         .then((response) => {
-          if (Array.isArray(response.pieces)) {
-            response.pieces.forEach((piece: any) => {
-              window.dispatchEvent(
-                new CustomEvent(EVENT_TYPES.PIECE_UPDATED, { detail: piece })
-              );
-            })
-          }
           window.dispatchEvent(
             new CustomEvent(EVENT_TYPES.SAVE_SUCCESSFUL, { detail: response })
           );

@@ -382,6 +382,7 @@ export default class GroupMovable extends BaseMovable {
           })
         );
       } else {
+        this.setLastPosition();
         this.save();
       }
 

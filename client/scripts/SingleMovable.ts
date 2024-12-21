@@ -75,16 +75,11 @@ export default class SingleMovable extends BaseMovable {
     this.setPiece(pieceData);
     this.element = this.createElement();
 
-    this.setLastPosition({ top: pieceData.pageY, left: pieceData.pageX });
-
     if (!window.Puzzly.complete && !pieceData.groupId && !pieceData.isSolved) {
       this.render();
+      this.setLastPosition();
 
       this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
-      this.element.addEventListener(
-        EVENT_TYPES.MOVE_FINISHED,
-        this.onMoveFinished.bind(this)
-      );
 
       this.onMouseMove = this.onMouseMove.bind(this);
       this.onMouseUp = this.onMouseUp.bind(this);
@@ -516,25 +511,18 @@ export default class SingleMovable extends BaseMovable {
         );
 
       } else {
+        this.setLastPosition();
         this.save();
       }
     }
   }
 
-  setLastPosition(position?: TopLeftCoordinate) {
+  setLastPosition() {
+    const position = Utils.getStyleBoundingBox(this.element);
     this.lastPosition = {
-      top: position?.top || parseInt(this.element.style.top),
-      left: position?.left || parseInt(this.element.style.left),
+      top: position.top,
+      left: position.left,
     };
-  }
-
-  onMoveFinished() {
-    if (!BaseMovable.isGroupedPiece(this.element)) {
-      this.setLastPosition({
-        left: this.element.offsetLeft,
-        top: this.element.offsetTop,
-      });
-    }
   }
 
   solve() {
@@ -668,17 +656,12 @@ export default class SingleMovable extends BaseMovable {
 
   save() {
     // console.log("Save single piece", this.getDataForSave());
-    const { solvedCount, totalNumberOfPieces } = window.Puzzly;
-    let isComplete;
-    if (solvedCount === totalNumberOfPieces) {
-      isComplete = true;
-    }
+    window.Puzzly.PersistenceOperations.saveSinglePiece(this.getDataForSave());
+  }
 
-    const options = {
-      isComplete,
-    }
-
-    window.Puzzly.PersistenceOperations.saveSinglePiece(this.getDataForSave(), options);
+  resetPosition() {
+    this.element.style.top = this.lastPosition.top + "px";
+    this.element.style.left = this.lastPosition.left + "px";
   }
 
   stopListening() {

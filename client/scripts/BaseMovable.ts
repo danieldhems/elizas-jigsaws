@@ -254,11 +254,11 @@ export default class BaseMovable {
     };
   }
 
+
+
   resetPosition() {
     console.log('resetPosition', this)
-    if (this.active) {
-      this.element.style.top = this.lastPosition.top + "px";
-      this.element.style.left = this.lastPosition.left + "px";
-    }
+    this.element.style.top = this.lastPosition.top + "px";
+    this.element.style.left = this.lastPosition.left + "px";
   }
 }
