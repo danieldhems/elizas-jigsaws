@@ -291,7 +291,7 @@ export default class Pockets {
 
     const container = document.createElement("div");
     container.classList.add("active-pieces-container");
-    // container.style.border = "1px solid white";
+    container.style.border = "1px solid white";
     container.style.position = "absolute";
 
     this.activePiecesContainer = container;

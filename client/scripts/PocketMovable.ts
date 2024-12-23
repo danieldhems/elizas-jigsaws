@@ -10,6 +10,8 @@ export class PocketMovable extends BaseMovable {
   piecesInPocket: SingleMovable[];
   activePocket?: HTMLDivElement;
   activePocketInnerElement = null;
+  diffX: number;
+  diffY: number;
 
   constructor(puzzleData: Puzzly) {
     super(puzzleData);
@@ -18,28 +20,69 @@ export class PocketMovable extends BaseMovable {
       "mousedown",
       this.onMouseDown.bind(this)
     );
+
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
   }
 
   onMouseDown(event: MouseEvent) {
-    if (event.which === 1) {
+    if (event.button === 0) {
       const element = Utils.getPuzzlePieceElementFromEvent(event);
       if (element) {
         this.active = true;
         this.activePocket = this.getPocketByCollision(Utils.getEventBox(event));
+
+
+
+
         if (this.activePocket) {
           this.piecesInPocket =
             this.getPiecesInActivePocket();
           if (this.piecesInPocket.length > 0) {
             this.element = this.getMovingElementForActivePocket(event);
+
+            const mousePosition = {
+              top: event.clientY,
+              left: event.clientX,
+            };
+
+            // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
+            // TODO: Shouldn't be accessing the zoomLevel on a global like this.
+            this.diffX =
+              mousePosition.left -
+              parseInt(this.element.style.left) * window.Zoom.zoomLevel;
+            this.diffY =
+              mousePosition.top -
+              parseInt(this.element.style.top) * window.Zoom.zoomLevel;
+
+            window.Puzzly.keepOnTop(this.element);
+
             (
               this.activePocket.querySelector(".pocket-inner") as HTMLDivElement
             ).prepend(this.element);
+
+
           }
         }
 
-        super.onPickup(event);
+        this.element.addEventListener('mousemove', this.onMouseMove)
+        this.element.addEventListener('mouseup', this.onMouseUp)
       }
     }
+  }
+
+  onMouseMove(event: MouseEvent) {
+    let newPosTop, newPosLeft;
+
+    newPosTop =
+      event.clientY / window.Zoom.zoomLevel -
+      this.diffY / window.Zoom.zoomLevel;
+    newPosLeft =
+      event.clientX / window.Zoom.zoomLevel -
+      this.diffX / window.Zoom.zoomLevel;
+
+    this.element.style.top = newPosTop + "px";
+    this.element.style.left = newPosLeft + "px";
   }
 
   onMouseUp(event: MouseEvent) {
@@ -52,6 +95,9 @@ export class PocketMovable extends BaseMovable {
       } else if (!this.isInsidePlayArea() && !this.isOverPockets(event)) {
         window.Puzzly.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
       }
+
+      this.element.removeEventListener('mousemove', this.onMouseMove);
+      this.element.removeEventListener('mouseup', this.onMouseUp);
 
       this.save();
     }
@@ -84,7 +130,6 @@ export class PocketMovable extends BaseMovable {
     for (let i = 0, l = this.piecesInPocket.length; i < l; i++) {
       const el = this.piecesInPocket[i].element;
 
-      //   // move(el).x(currX * this.zoomLevel).y(currY * this.zoomLevel).duration(this.animationDuration).end();
       el.style.top = currY + "px";
       el.style.left = currX + "px";
 
@@ -181,6 +226,7 @@ export class PocketMovable extends BaseMovable {
       element.style.pointerEvents = "auto";
 
       instance.pocketId = -1;
+      instance.startListening();
 
       // Events.notify(EVENT_TYPES.RETURN_TO_CANVAS, element);
     });

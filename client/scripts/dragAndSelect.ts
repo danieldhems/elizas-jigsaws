@@ -193,9 +193,9 @@ class DragAndSelect extends BaseMovable {
 
   getCollidingPieces(): MovableElement[] {
     const dragBoxRect = this.drawBox.getBoundingClientRect();
-    return Utils.getIndividualPiecesOnCanvas().filter((el) =>
-      Utils.hasCollision(el.getBoundingClientRect(), dragBoxRect)
-    );
+    return Array.from(document.querySelectorAll(".puzzle-piece")).filter((el) => {
+      return Utils.hasCollision(Utils.getStyleBoundingBox(el as MovableElement), dragBoxRect)
+    }) as MovableElement[];
   }
 
   toggleHighlightPieces(pieces: MovableElement[]) {

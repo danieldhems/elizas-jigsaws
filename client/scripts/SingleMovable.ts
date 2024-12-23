@@ -341,11 +341,6 @@ export default class SingleMovable extends BaseMovable {
     return element.id === this.element.id;
   }
 
-  addToPocket(pocket: HTMLDivElement) {
-    const innerElement = pocket.querySelector(".pocket-inner");
-    innerElement?.prepend(this.element);
-  }
-
   isOutOfBounds(event: MouseEvent) {
     return !this.isInsidePlayArea() && !this.isOverPockets(event);
   }
@@ -421,7 +416,7 @@ export default class SingleMovable extends BaseMovable {
 
   onMouseDown(event: MouseEvent) {
     if (event.button === 0) {
-      if (this.groupId) {
+      if (this.groupId || this.pocketId !== undefined && this.pocketId > -1) {
         return;
       }
 
@@ -482,6 +477,7 @@ export default class SingleMovable extends BaseMovable {
       if (pocket) {
         window.Puzzly.Pockets.addSingleToPocket(pocket, this);
         this.pocketId = parseInt(pocket.id.split("-")[1]);
+        this.stopListening();
       }
     } else {
       // If this element is not in a group we can check for a connection with another piece
@@ -666,6 +662,10 @@ export default class SingleMovable extends BaseMovable {
 
   stopListening() {
     this.element.removeEventListener('mousedown', this.onMouseDown);
+  }
+
+  startListening() {
+    this.element.addEventListener('mousedown', this.onMouseDown);
   }
 
   destroy() {

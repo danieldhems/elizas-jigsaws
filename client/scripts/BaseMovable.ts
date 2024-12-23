@@ -148,8 +148,8 @@ export default class BaseMovable {
 
   getPocketByCollision(box: BoundingBox) {
     let i = 0;
-    while (i <= window.Puzzly.pockets.length) {
-      const pocket = window.Puzzly.pockets[i];
+    while (i <= window.Puzzly.Pockets.pockets.length) {
+      const pocket = window.Puzzly.Pockets.pockets[i];
       if (this.hasCollision(pocket, box)) {
         return pocket;
       }
