@@ -223,8 +223,12 @@ export default class SingleMovable extends BaseMovable {
   }
 
   render() {
-    // console.log("rendering piece", this.pieceData);
+    console.log("rendering piece", this.pocketId);
     const { isSolved, pocketId } = this.pieceData;
+
+    if (!isSolved) {
+      this.setConnectorBoundingBoxes()
+    }
 
     if (Number.isInteger(pocketId) && pocketId !== -1) {
       const pocketElement = window.Puzzly.Pockets.container.querySelector(
@@ -232,12 +236,8 @@ export default class SingleMovable extends BaseMovable {
       );
 
       window.Puzzly.Pockets.addSingleToPocket(pocketElement as HTMLDivElement, this);
-      return;
-    }
-
-    if (!isSolved) {
+    } else {
       this.addToStage(this.element);
-      this.setConnectorBoundingBoxes()
     }
   }
 
@@ -477,6 +477,7 @@ export default class SingleMovable extends BaseMovable {
       if (pocket) {
         window.Puzzly.Pockets.addSingleToPocket(pocket, this);
         this.pocketId = parseInt(pocket.id.split("-")[1]);
+        this.save();
         this.stopListening();
       }
     } else {

@@ -148,7 +148,7 @@ export default class BaseMovable {
 
   getPocketByCollision(box: BoundingBox) {
     let i = 0;
-    while (i <= window.Puzzly.Pockets.pockets.length) {
+    while (i < window.Puzzly.Pockets.pockets.length) {
       const pocket = window.Puzzly.Pockets.pockets[i];
       if (this.hasCollision(pocket, box)) {
         return pocket;
@@ -161,8 +161,9 @@ export default class BaseMovable {
     targetElement: HTMLDivElement,
     source?: BoundingBox
   ) {
-    const targetBoundingBox = Utils.getStyleBoundingBox(targetElement);
+    const targetBoundingBox = targetElement.getBoundingClientRect();
     const thisBoundingBox = source || Utils.getStyleBoundingBox(this.element);
+
     return Utils.hasCollision(thisBoundingBox, targetBoundingBox);
   }
 

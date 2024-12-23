@@ -16,6 +16,8 @@ export class PocketMovable extends BaseMovable {
   constructor(puzzleData: Puzzly) {
     super(puzzleData);
 
+    this.puzzleId = puzzleData.puzzleId;
+
     window.Puzzly.Pockets.container.addEventListener(
       "mousedown",
       this.onMouseDown.bind(this)
@@ -31,9 +33,6 @@ export class PocketMovable extends BaseMovable {
       if (element) {
         this.active = true;
         this.activePocket = this.getPocketByCollision(Utils.getEventBox(event));
-
-
-
 
         if (this.activePocket) {
           this.piecesInPocket =
@@ -60,8 +59,6 @@ export class PocketMovable extends BaseMovable {
             (
               this.activePocket.querySelector(".pocket-inner") as HTMLDivElement
             ).prepend(this.element);
-
-
           }
         }
 
@@ -92,6 +89,20 @@ export class PocketMovable extends BaseMovable {
       } else if (this.isOverPockets(event)) {
         const pocket = this.getPocketByCollision(Utils.getEventBox(event));
         window.Puzzly.Pockets.addManyToPocket(pocket as HTMLDivElement, this);
+
+        fetch('/api/puzzle/updatePieces', {
+          method: 'PUT',
+          headers: {
+            "Content-Type": "Application/json",
+          },
+          body: JSON.stringify({
+            pieces: this.piecesInPocket.map((piece) => piece.getDataForSave()),
+            puzzleId: this.puzzleId,
+          }),
+        }).then(res => res.json())
+          .then((response) => {
+            // console.log('/api/puzzle/createPieces response', response);
+          });
       } else if (!this.isInsidePlayArea() && !this.isOverPockets(event)) {
         window.Puzzly.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
       }
@@ -231,7 +242,19 @@ export class PocketMovable extends BaseMovable {
       // Events.notify(EVENT_TYPES.RETURN_TO_CANVAS, element);
     });
 
-    this.save();
+    fetch('/api/puzzle/updatePieces', {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        pieces: this.piecesInPocket.map((piece) => piece.getDataForSave()),
+        puzzleId: this.puzzleId,
+      }),
+    }).then(res => res.json())
+      .then((response) => {
+        // console.log('/api/puzzle/createPieces response', response);
+      });
   }
 
   getDataForSave() {

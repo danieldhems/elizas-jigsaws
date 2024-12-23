@@ -477,16 +477,15 @@ export default class Pockets {
       pocketId = this.getIdForPocket(pocket as HTMLDivElement);
     }
 
-    const element = pieceInstance.element;
-
-    element.setAttribute("data-pocket-id", pocketId as string);
-    pieceInstance.pocketId = parseInt(pocketId as string);
-    element.classList.add("in-pocket");
-
     if (pocketEl) {
-      const el = pocketEl as HTMLDivElement;
-      el.querySelector(".pocket-inner")?.appendChild(element);
-      this.setElementPositionInPocket(element, el);
+      const pocketElement = pocketEl as HTMLDivElement;
+
+      pocketElement.querySelector(".pocket-inner")?.appendChild(pieceInstance.element);
+      this.setElementPositionInPocket(pieceInstance.element, pocketElement);
+
+      pieceInstance.element.setAttribute("data-pocket-id", pocketId as string);
+      pieceInstance.element.classList.add("in-pocket");
+      pieceInstance.pocketId = parseInt(pocketId as string);
     }
   }
 

@@ -1,11 +1,8 @@
 var router = require("express").Router();
 const assert = require("assert");
 const {
-  UPLOADS_DIR_INTEGRATION,
-  UPLOADS_DIR_PROD,
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
-  PIECES_PROD_COLLECTION,
 } = require("../constants.cjs");
 const dbClient = require('../database.cjs').default;
 
@@ -116,8 +113,8 @@ async function updatePiece(req, res) {
         $set: {
           "pieces.$[elem].pageX": piece.pageX,
           "pieces.$[elem].pageY": piece.pageY,
+          "pieces.$[elem].pocketId": piece.pocketId,
           lastSaveDate: lastSaveDate,
-          complete: options?.isComplete,
           zIndex: zIndex,
         },
       },
@@ -133,6 +130,61 @@ async function updatePiece(req, res) {
       data: {
         lastSaveDate,
         piece,
+      }
+    };
+
+    res.status(200).send(response);
+  } catch (e) {
+    console.log(e)
+    res.status(500).send(e);
+  }
+}
+
+async function updatePieces(req, res) {
+  try {
+    const { pieces, puzzleId, zIndex, integration } = req.body;
+    console.log('updatePieces -> puzzleId', puzzleId)
+    console.log('updatePieces -> pieces', pieces)
+
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
+
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
+
+    const lastSaveDate = new Date();
+
+    const updateResults = pieces.map((piece) => {
+      return puzzlesCollection.updateOne(
+        { id: puzzleId, "pieces.id": piece.id },
+        {
+          $set: {
+            "pieces.$.pageX": piece.pageX,
+            "pieces.$.pageY": piece.pageY,
+            "pieces.$.pocketId": piece.pocketId,
+          },
+        },
+      );
+    });
+
+    const result = await Promise.all(updateResults);
+    console.log("update result", result)
+
+    await puzzlesCollection.updateOne(
+      { id: puzzleId },
+      {
+        $set: {
+          lastSaveDate: lastSaveDate,
+          zIndex,
+        },
+      },
+    );
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
       }
     };
 
@@ -498,6 +550,7 @@ router.post("/getPuzzles", getPuzzles);
 router.post("/getPuzzle", getPuzzle);
 router.post("/createPieces", createPieces);
 router.put("/updatePiece", updatePiece);
+router.put("/updatePieces", updatePieces);
 router.post("/createGroup", createGroup);
 router.put("/updateGroup", updateGroup);
 router.put("/mergeGroups", mergeGroups);
