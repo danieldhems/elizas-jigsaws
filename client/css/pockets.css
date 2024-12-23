@@ -26,10 +26,6 @@
   left: 15%;
 }
 
-.pocket-inner > .puzzle-piece {
-  transform: scale(.6);
-}
-
 /* .active-pieces-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

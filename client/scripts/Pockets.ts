@@ -1,5 +1,5 @@
 import BaseMovable from "./BaseMovable";
-import { ELEMENT_IDS, EVENT_TYPES } from "./constants";
+import { ELEMENT_IDS, EVENT_TYPES, PIECE_SCALE_INSIDE_POCKETS } from "./constants";
 import { PocketMovable } from "./PocketMovable";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
@@ -482,6 +482,8 @@ export default class Pockets {
 
       pocketElement.querySelector(".pocket-inner")?.appendChild(pieceInstance.element);
       this.setElementPositionInPocket(pieceInstance.element, pocketElement);
+      // pieceInstance.element.style.scale = window.Puzzly.basePieceSize / 100 * (PIECE_SCALE_INSIDE_POCKETS * 10) + "";
+      pieceInstance.element.style.scale = PIECE_SCALE_INSIDE_POCKETS + '';
 
       pieceInstance.element.setAttribute("data-pocket-id", pocketId as string);
       pieceInstance.element.classList.add("in-pocket");

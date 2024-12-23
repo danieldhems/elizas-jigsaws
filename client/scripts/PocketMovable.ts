@@ -40,6 +40,8 @@ export class PocketMovable extends BaseMovable {
           if (this.piecesInPocket.length > 0) {
             this.element = this.getMovingElementForActivePocket(event);
 
+            this.piecesInPocket.forEach((piece) => piece.element.style.scale = "1")
+
             const mousePosition = {
               top: event.clientY,
               left: event.clientX,
@@ -137,7 +139,6 @@ export class PocketMovable extends BaseMovable {
 
     let firstPieceOnRow = this.piecesInPocket[0].element;
 
-    console.log("pieces in active pocket", this.piecesInPocket)
     for (let i = 0, l = this.piecesInPocket.length; i < l; i++) {
       const el = this.piecesInPocket[i].element;
 
