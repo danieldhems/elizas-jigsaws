@@ -3,7 +3,7 @@ import { EVENT_TYPES } from "./constants";
 import Pockets from "./Pockets";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
-import { MovableElement } from "./types";
+import { MovableElement, SingleMovableSaveState } from "./types";
 import Utils from "./utils";
 
 class DragAndSelect extends BaseMovable {
@@ -46,6 +46,7 @@ class DragAndSelect extends BaseMovable {
   constructor(opts: Puzzly) {
     super(opts);
     this.Puzzly = opts;
+    this.puzzleId = opts.puzzleId;
     this.Pockets = opts.Pockets;
     this.playBoundary = opts.playBoundary;
     this.piecesContainer = opts.piecesContainer;
@@ -468,6 +469,33 @@ class DragAndSelect extends BaseMovable {
         this.addPiecesToPocket(pocket);
       } else {
         this.dropPieces(this.selectedPieces);
+
+        const pieces = Array.from(this.selectedPieces).map((element: MovableElement) => {
+          return this.getMovableInstanceFromElement(element);
+        });
+
+        const pieceDataForSave: SingleMovableSaveState[] = [];
+
+        pieces.forEach((piece: SingleMovable) => {
+          pieceDataForSave.push(piece.getDataForSave());
+          this.setLastPosition();
+        })
+
+        if (pieces) {
+          fetch('/api/puzzle/updatePieces', {
+            method: 'PUT',
+            headers: {
+              "Content-Type": "Application/json",
+            },
+            body: JSON.stringify({
+              pieces: pieceDataForSave,
+              puzzleId: this.puzzleId,
+            }),
+          }).then(res => res.json())
+            .then((response) => {
+              // console.log('/api/puzzle/createPieces response', response);
+            });
+        }
       }
       this.save();
     }

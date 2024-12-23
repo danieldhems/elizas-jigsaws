@@ -169,7 +169,7 @@ async function updatePieces(req, res) {
     });
 
     const result = await Promise.all(updateResults);
-    console.log("update result", result)
+    console.log("update result", result.result)
 
     await puzzlesCollection.updateOne(
       { id: puzzleId },
@@ -490,7 +490,7 @@ async function deleteGroup(req, res) {
 
 async function getPuzzle(req, res) {
   try {
-    console.log('getPuzzle', req.body)
+    // console.log('getPuzzle', req.body)
     const { puzzleId, integration } = req.body;
 
     const dbConnection = await dbClient.connect();
@@ -528,21 +528,45 @@ async function getPuzzles(req, res) {
 };
 
 async function updateTimePlayed(req, res) {
-  dbClient.connect().then(async (client, err) => {
-    assert.strictEqual(err, undefined);
-    db = client.db(dbName);
+  try {
+    const { timePlayed, puzzleId, integration } = req.body;
+    console.log('updateTimePlayed', timePlayed, puzzleId)
 
-    const { puzzles } = getDatabaseCollections(db, req.body);
+    const dbConnection = await dbClient.connect();
+    const db = dbConnection.db(dbName);
 
-    const { puzzleId, timePlayed } = req.body;
+    const puzzlesCollection = integration
+      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
+      : db.collection(PUZZLES_PROD_COLLECTION);
 
-    const query = { id: puzzleId };
-    const update = { $inc: { elapsedTime: timePlayed } };
+    const lastSaveDate = new Date();
 
-    const result = await puzzles.updateOne(query, update);
-    res.status(200).send("ok");
-  });
-};
+    const result = await puzzlesCollection.updateOne(
+      { id: puzzleId },
+      {
+        $set: {
+          elapsedTime: {
+            $inc: { timePlayed },
+          },
+          lastSaveDate: lastSaveDate,
+        },
+      },
+    );
+
+    console.log("updateTimePlayed result", result.result);
+
+    const response = {
+      status: "success",
+      data: {
+        lastSaveDate,
+      },
+    };
+
+    res.status(200).send(response);
+  } catch (e) {
+    res.status(500).send(e);
+  };
+}
 
 // Set API CRUD endpoints
 router.post("/createPuzzle", createPuzzle);
@@ -557,6 +581,6 @@ router.put("/mergeGroups", mergeGroups);
 router.delete("/deleteGroup", deleteGroup);
 router.put('/solvePiece', solvePiece);
 router.put('/solveGroup', solveGroup);
-router.put("/updateTimePlayed/", updateTimePlayed);
+router.put("/updateTimePlayed", updateTimePlayed);
 
 module.exports.router = router;

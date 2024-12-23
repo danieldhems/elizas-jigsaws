@@ -24,6 +24,7 @@ import loadAssets from "./assetLoader";
 import Sounds from "./Sounds";
 import SolvingArea from "./SolvingArea";
 import GroupOperations from "./GroupOperations";
+import Utils from "./utils";
 /**
  * Puzzly
  *
@@ -95,6 +96,7 @@ export default class Puzzly {
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
   GroupOperations: GroupOperations;
+  showConnectorBoxes: boolean;
   cropData: {
     top: number,
     left: number,
@@ -179,6 +181,11 @@ export default class Puzzly {
     this.PieceLayouts = new PieceLayouts(this);
     this.PersistenceOperations = new PersistenceOperations(this);
     this.Sounds = new Sounds();
+
+    const showConnectorBoxes = Utils.getQueryStringValue('showConnectorBoxes');
+    if (!!showConnectorBoxes) {
+      this.showConnectorBoxes = true;
+    }
 
     this.solvedCount = 0;
 
@@ -319,7 +326,7 @@ export default class Puzzly {
     const elapsedTime = now - this.timeStarted;
 
     return fetch(`/api/puzzle/updateTimePlayed`, {
-      method: "put",
+      method: "PUT",
       headers: {
         "Content-Type": "Application/json",
       },

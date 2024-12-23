@@ -35,7 +35,7 @@ export default class SingleMovable extends BaseMovable {
   piecesPerSideVertical: number;
   totalNumberOfPieces: number;
   isSolved: boolean;
-  pocketId?: number;
+  pocketId?: number | null;
   // Currently using piece index to minimise changes, for now
   connectsTo: number[];
   // Currently using piece index to minimise changes, for now
@@ -223,7 +223,6 @@ export default class SingleMovable extends BaseMovable {
   }
 
   render() {
-    console.log("rendering piece", this.pocketId);
     const { isSolved, pocketId } = this.pieceData;
 
     if (!isSolved) {
@@ -416,11 +415,14 @@ export default class SingleMovable extends BaseMovable {
 
   onMouseDown(event: MouseEvent) {
     if (event.button === 0) {
-      if (this.groupId || this.pocketId !== undefined && this.pocketId > -1) {
+      console.log(this)
+      if (this.groupId || this.pocketId) {
         return;
       }
 
-      Utils.removeAllBoundingBoxIndicators();
+      if (window.Puzzly.showConnectorBoxes) {
+        Utils.removeAllBoundingBoxIndicators();
+      }
 
       const element = Utils.getPuzzlePieceElementFromEvent(event) as MovableElement;
       if (
@@ -445,6 +447,7 @@ export default class SingleMovable extends BaseMovable {
           mousePosition.top -
           parseInt(this.element.style.top) * window.Zoom.zoomLevel;
       }
+
 
       this.element.addEventListener('mousemove', this.onMouseMove)
       this.element.addEventListener('mouseup', this.onMouseUp)
@@ -507,7 +510,7 @@ export default class SingleMovable extends BaseMovable {
           })
         );
 
-      } else {
+      } else if (!this.isDragAndSelectActive) {
         this.setLastPosition();
         this.save();
       }
