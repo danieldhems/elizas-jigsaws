@@ -465,7 +465,6 @@ export default class Pockets {
     pieceInstance: SingleMovable
   ) {
     if (!pieceInstance) return;
-    console.log("adding to pocket", pocket, pieceInstance);
 
     let pocketId, pocketEl;
 
@@ -495,7 +494,6 @@ export default class Pockets {
     pocket: HTMLDivElement | number,
     movableOrArrayOfElements: PocketMovable | NodeListOf<HTMLDivElement>
   ) {
-    console.log("addManyToPocket", pocket, movableOrArrayOfElements)
     if (!movableOrArrayOfElements) return;
 
     let pocketId, pocketEl;

@@ -84,7 +84,7 @@ export default class GroupMovable extends BaseMovable {
     if (Array.isArray(pieceInstances)) {
       this.initiateGroup(pieceInstances)
       this.addPieces(pieceInstances);
-      this.addToStage(this.element);
+      this.addToStage();
     } else if (Array.isArray(pieces)) {
       const pieceInstances = pieces.map((piece: JigsawPieceData) => {
         const instance = window.Puzzly.getSingleInstanceByIndex(piece.index);
@@ -103,7 +103,7 @@ export default class GroupMovable extends BaseMovable {
       }
 
       this.addPieces(pieceInstances);
-      this.addToStage(this.element);
+      this.addToStage();
     }
 
     if (isNew) {
@@ -283,6 +283,10 @@ export default class GroupMovable extends BaseMovable {
     svgContainer.classList.add("group-svg-container");
     svgContainer.innerHTML = svgElementTemplate;
     this.element.appendChild(svgContainer);
+  }
+
+  addToStage() {
+    (window.Puzzly.piecesContainer as HTMLDivElement).prepend(this.element);
   }
 
   isPuzzlePieceInThisGroup(element: MovableElement) {

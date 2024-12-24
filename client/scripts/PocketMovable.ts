@@ -232,15 +232,13 @@ export class PocketMovable extends BaseMovable {
       element.style.top = pos.y + "px";
       element.style.left = pos.x + "px";
 
-      (window.Puzzly.piecesContainer as HTMLDivElement).appendChild(element);
       element.classList.remove("in-pocket");
-      element.setAttribute("data-pocket-id", "");
       element.style.pointerEvents = "auto";
 
       instance.pocketId = null;
+      instance.addToStage();
+      instance.setLastPosition();
       instance.startListening();
-
-      // Events.notify(EVENT_TYPES.RETURN_TO_CANVAS, element);
     });
 
     fetch('/api/puzzle/updatePieces', {

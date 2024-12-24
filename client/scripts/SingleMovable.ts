@@ -236,8 +236,12 @@ export default class SingleMovable extends BaseMovable {
 
       window.Puzzly.Pockets.addSingleToPocket(pocketElement as HTMLDivElement, this);
     } else {
-      this.addToStage(this.element);
+      this.addToStage();
     }
+  }
+
+  addToStage() {
+    (window.Puzzly.piecesContainer as HTMLDivElement).prepend(this.element);
   }
 
   /**
@@ -415,8 +419,7 @@ export default class SingleMovable extends BaseMovable {
 
   onMouseDown(event: MouseEvent) {
     if (event.button === 0) {
-      console.log(this)
-      if (this.groupId || this.pocketId) {
+      if (!this.element || this.isSolved || this.groupId || this.isDragAndSelectActive || this.pocketId !== undefined && this.pocketId !== null && !Number.isNaN(this.pocketId)) {
         return;
       }
 
@@ -424,30 +427,21 @@ export default class SingleMovable extends BaseMovable {
         Utils.removeAllBoundingBoxIndicators();
       }
 
-      const element = Utils.getPuzzlePieceElementFromEvent(event) as MovableElement;
-      if (
-        element?.id === this.element.id &&
-        !this.isPocketPiece(element) &&
-        !this.isDragAndSelectActive &&
-        !this.isSolved
-      ) {
-        window.Puzzly.keepOnTop(this.element);
+      window.Puzzly.keepOnTop(this.element);
 
-        const mousePosition = {
-          top: event.clientY,
-          left: event.clientX,
-        };
+      const mousePosition = {
+        top: event.clientY,
+        left: event.clientX,
+      };
 
-        // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
-        // TODO: Shouldn't be accessing the zoomLevel on a global like this.
-        this.diffX =
-          mousePosition.left -
-          parseInt(this.element.style.left) * window.Zoom.zoomLevel;
-        this.diffY =
-          mousePosition.top -
-          parseInt(this.element.style.top) * window.Zoom.zoomLevel;
-      }
-
+      // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
+      // TODO: Shouldn't be accessing the zoomLevel on a global like this.
+      this.diffX =
+        mousePosition.left -
+        parseInt(this.element.style.left) * window.Zoom.zoomLevel;
+      this.diffY =
+        mousePosition.top -
+        parseInt(this.element.style.top) * window.Zoom.zoomLevel;
 
       this.element.addEventListener('mousemove', this.onMouseMove)
       this.element.addEventListener('mouseup', this.onMouseUp)
