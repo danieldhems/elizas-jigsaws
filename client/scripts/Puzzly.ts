@@ -324,6 +324,16 @@ export default class Puzzly {
     ) as SingleMovable;
   }
 
+  getGroupInstanceById(
+    id: string
+  ): GroupMovable {
+    return window.Puzzly.groupInstances.find(
+      (instance: GroupMovable) => {
+        return instance.id === id
+      }
+    ) as GroupMovable;
+  }
+
   // Question: Do we need this?
   removeSingleInstance(singleInstance: SingleMovable) {
     this.pieceInstances = this.pieceInstances.filter(

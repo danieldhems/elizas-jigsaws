@@ -152,6 +152,7 @@ export default class GroupMovable extends BaseMovable {
 
     const groupContainer = window.window.Puzzly.GroupOperations.createGroupContainer(groupInitialPosition);
     groupContainer.id = `group-container-${this.id}`;
+    groupContainer.setAttribute("data-id", this.id);
 
     sourcePiece.setPositionAsGrouped();
     targetPiece.setPositionAsGrouped();
