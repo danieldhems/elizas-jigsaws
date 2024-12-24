@@ -61,10 +61,9 @@ export const CONNECTOR_SIZE_PERC = 30;
 // How far in from the corner the connector should be.
 export const SHOULDER_SIZE_PERC = 35;
 
-export const SHADOW_COLOR = "#353836";
-export const STROKE_COLOR = "#000";
-export const STROKE_WIDTH = 3;
-export const SHADOW_OFFSET = 2;
+export const SVG_SHADOW_COLOR = "#252525";
+export const SVG_STROKE_WIDTH = 1;
+export const SVG_STROKE_COLOR = "#252525";
 
 export const CONNECTOR_TOLERANCE_AMOUNT = 50;
 
@@ -137,7 +136,7 @@ export const SHAPE_TYPES = {
   NATURAL: 2,
 };
 
-export const SHADOW_OFFSET_RATIO = 1.5;
+export const SHADOW_OFFSET_RATIO = 3;
 export const FLOAT_TOLERANCE_AMOUNT = 20;
 
 export const SCREEN_MARGIN = 10;

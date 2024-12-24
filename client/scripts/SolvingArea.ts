@@ -1,6 +1,6 @@
 import GroupMovable from "./GroupMovable";
 import SingleMovable from "./SingleMovable";
-import { ELEMENT_IDS, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
+import { ELEMENT_IDS } from "./constants";
 import { getSvg } from "./svg";
 import { JigsawPieceData } from "./types";
 import Utils from "./utils";
@@ -78,10 +78,10 @@ export default class SolvingArea {
     }
 
     render() {
-        const svgWidth = this.width + SHADOW_OFFSET;
-        const svgHeight = this.height + SHADOW_OFFSET;
+        const shadowOffset = window.Puzzly.shadowOffset;
 
-        const shadowOffset = this.pieces[0]?.width / 100 * SHADOW_OFFSET_RATIO || 0;
+        const svgWidth = this.width + shadowOffset;
+        const svgHeight = this.height + shadowOffset;
 
         const svgOptions = {
             svgWidth: svgWidth,

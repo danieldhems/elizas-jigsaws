@@ -1,4 +1,4 @@
-import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHADOW_COLOR, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, STROKE_COLOR, STROKE_WIDTH, SVG_NAMESPACE } from "./constants";
+import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHADOW_OFFSET_RATIO, SHOULDER_SIZE_PERC, SVG_NAMESPACE } from "./constants";
 import { getJigsawShapeSvgString } from "./svg";
 import { ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SkeletonPiece, PuzzleImpression, Connector } from "./types";
 import Utils from "./utils";
@@ -18,10 +18,6 @@ const puzzleGenerator = async function (
   Generator.piecesPerSideHorizontal = Math.sqrt(puzzleConfig.numberOfPiecesHorizontal);
   Generator.piecesPerSideVertical = Math.sqrt(puzzleConfig.numberOfPiecesVertical);
   // Generator.selectedNumberOfPieces = puzzleConfig.totalNumberOfPieces;
-
-  Generator.strokeWidth = STROKE_WIDTH;
-  Generator.strokeColor = STROKE_COLOR;
-  Generator.shadowColor = SHADOW_COLOR;
 
   // TODO: Deprecated?
   Generator.connectorDistanceFromCorner =
@@ -406,7 +402,6 @@ export const addPuzzleDataToPieces = (
     connectorSize,
     connectorDistanceFromCorner,
     connectorTolerance,
-    shadowOffset,
     puzzleWidth,
     puzzleHeight,
   } = puzzleConfig;
@@ -449,7 +444,6 @@ export const addPuzzleDataToPieces = (
       puzzleY: yPos,
       puzzleWidth,
       puzzleHeight,
-      shadowOffset,
       pageX,
       pageY,
       width,
@@ -595,8 +589,6 @@ const createPuzzlePiece = async (
   const tmpCtx = tmpCnv.getContext("2d");
 
   if (tmpCtx) {
-    tmpCtx.strokeStyle = STROKE_COLOR;
-    tmpCtx.lineWidth = STROKE_WIDTH;
     tmpCnv.width = pieceWidth;
     tmpCnv.height = pieceHeight;
 
@@ -874,7 +866,6 @@ export function getPuzzleConfigs(
     if (divisionResult < minimumPieceSize) break;
 
     const connectorTolerance = (divisionResult / 100 * CONNECTOR_TOLERANCE_AMOUNT);
-    const shadowOffset = (divisionResult / 100 * SHADOW_OFFSET_RATIO);
 
     const connectorSize = getConnectorSize(divisionResult);
     const connectorDistanceFromCorner = getConnectorDistanceFromCorner(divisionResult);
@@ -887,7 +878,6 @@ export function getPuzzleConfigs(
       puzzleConfig.pieceSize = pieceSize;
       puzzleConfig.connectorSize = connectorSize;
       puzzleConfig.connectorTolerance = connectorTolerance;
-      puzzleConfig.shadowOffset = shadowOffset;
       puzzleConfig.connectorDistanceFromCorner = connectorDistanceFromCorner;
 
       let numberOfPiecesOnLongSide: number;
@@ -940,7 +930,6 @@ export function getPuzzleConfigs(
       pieceSize,
       connectorSize,
       connectorTolerance,
-      shadowOffset,
       connectorDistanceFromCorner,
       availableWidth,
       availableHeight,

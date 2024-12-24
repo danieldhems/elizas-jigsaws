@@ -1,6 +1,6 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
+import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES, SHADOW_OFFSET_RATIO } from "./constants";
 import GroupMovable from "./GroupMovable";
 import { getJigsawShapeSvgString, getSvg } from "./svg";
 import Puzzly from "./Puzzly";
@@ -122,13 +122,15 @@ export default class SingleMovable extends BaseMovable {
 
     // console.log("SingleMovable", this.pieceData)
 
+    const shadowOffset = window.Puzzly.shadowOffset;
+
     const el = document.createElement("div");
     el.classList.add("puzzle-piece");
     el.id = "piece-" + index;
 
     el.style.position = "absolute";
-    el.style.width = width + SHADOW_OFFSET + "px";
-    el.style.height = height + SHADOW_OFFSET + "px";
+    el.style.width = width + shadowOffset + "px";
+    el.style.height = height + shadowOffset + "px";
 
     if (pocketId === undefined || pocketId === null || pocketId === -1) {
       el.style.top = (!!groupId ? solvedY : pageY) + "px";
@@ -195,8 +197,8 @@ export default class SingleMovable extends BaseMovable {
     const pathString = getJigsawShapeSvgString(this.pieceData);
     el.setAttribute(HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, pathString);
 
-    const svgWidth = width + SHADOW_OFFSET;
-    const svgHeight = height + SHADOW_OFFSET;
+    const svgWidth = width + shadowOffset;
+    const svgHeight = height + shadowOffset;
 
     const svgOptions = {
       svgWidth,
@@ -207,8 +209,8 @@ export default class SingleMovable extends BaseMovable {
         x: puzzleX,
         y: puzzleY,
       },
-      shadowOffset: width / 100 * SHADOW_OFFSET_RATIO,
-      viewbox: `0 0 ${width + SHADOW_OFFSET} ${height + SHADOW_OFFSET}`,
+      shadowOffset: window.Puzzly.shadowOffset,
+      viewbox: `0 0 ${width + shadowOffset} ${height + shadowOffset}`,
     }
 
     el.innerHTML = getSvg(

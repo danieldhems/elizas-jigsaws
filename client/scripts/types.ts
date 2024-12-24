@@ -231,7 +231,6 @@ export interface PuzzleConfig {
   connectorDistanceFromCorner: number;
   connectorSize: number;
   connectorTolerance: number;
-  shadowOffset: number;
   /** 
    * Width and height of the puzzle based on how much of the image it includes
    * (This will almost never match the image's dimensions exactly unless the user

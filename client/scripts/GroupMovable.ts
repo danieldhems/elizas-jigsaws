@@ -1,5 +1,5 @@
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, SHADOW_OFFSET, SHADOW_OFFSET_RATIO } from "./constants";
+import { EVENT_TYPES, SHADOW_OFFSET_RATIO } from "./constants";
 import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
 import SingleMovable from "./SingleMovable";
@@ -244,13 +244,13 @@ export default class GroupMovable extends BaseMovable {
   render() {
     const pieces = this.piecesInGroup.map(piece => piece.pieceData);
 
-    const puzzleWidth = window.window.Puzzly.boardWidth;
-    const puzzleHeight = window.window.Puzzly.boardHeight;
+    const shadowOffset = window.Puzzly.shadowOffset;
 
-    const svgWidth = puzzleWidth + SHADOW_OFFSET;
-    const svgHeight = puzzleHeight + SHADOW_OFFSET;
+    const puzzleWidth = window.Puzzly.boardWidth;
+    const puzzleHeight = window.Puzzly.boardHeight;
 
-    const shadowOffset = this.piecesInGroup[0].pieceData.width / 100 * SHADOW_OFFSET_RATIO;
+    const svgWidth = puzzleWidth + shadowOffset;
+    const svgHeight = puzzleHeight + shadowOffset;
 
     const svgOptions = {
       svgWidth: svgWidth,

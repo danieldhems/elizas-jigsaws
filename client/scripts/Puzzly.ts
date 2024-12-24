@@ -75,6 +75,8 @@ export default class Puzzly {
   stage: HTMLDivElement | null;
   playBoundary: HTMLDivElement | null;
   piecesContainer: HTMLDivElement | null;
+  controlsHandle: HTMLDivElement;
+  controlsPanel: HTMLDivElement;
   isPreviewActive: boolean;
   largestPieceSpan: number;
   noDispersal?: boolean;
@@ -127,6 +129,9 @@ export default class Puzzly {
 
     this.pieces = config.pieces as JigsawPieceData[];
 
+    this.pieceSize = config.pieceSize;
+    this.shadowOffset = this.pieceSize / 100 * SHADOW_OFFSET_RATIO;
+
     this.complete = config.complete;
 
     this.puzzleId = puzzleId;
@@ -160,7 +165,7 @@ export default class Puzzly {
   init() {
     this.zoomLevel = 1;
 
-    this.shadowOffset = this.pieceSize * SHADOW_OFFSET_RATIO;
+    this.shadowOffset = this.pieceSize / 100 * SHADOW_OFFSET_RATIO;
 
     this.connectorTolerance =
       (this.connectorSize / 100) * ((100 - CONNECTOR_TOLERANCE_AMOUNT) / 2);
@@ -181,6 +186,18 @@ export default class Puzzly {
     this.PieceLayouts = new PieceLayouts(this);
     this.PersistenceOperations = new PersistenceOperations(this);
     this.Sounds = new Sounds();
+
+    this.controlsHandle = document.querySelector("#controls-handle") as HTMLDivElement;
+    this.controlsPanel = document.querySelector("#controls-panel") as HTMLDivElement;
+    if (this.controlsHandle && this.controlsPanel) {
+      this.controlsHandle.addEventListener("click", () => {
+        if (this.controlsPanel.classList.contains("js-hidden")) {
+          this.controlsPanel.classList.remove("js-hidden");
+        } else {
+          this.controlsPanel.classList.add("js-hidden");
+        }
+      })
+    }
 
     const showConnectorBoxes = Utils.getQueryStringValue('showConnectorBoxes');
     if (!!showConnectorBoxes) {

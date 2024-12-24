@@ -355,7 +355,6 @@ label, input[type=checkbox] {
     left: 70px;
     font-size: 100%;
     z-index: 100;
-    display: none;
 }
 
 #controls-handle {
@@ -365,10 +364,10 @@ label, input[type=checkbox] {
     position: absolute;
     color: #000;
     background-color: rgb(255, 255, 255);
-    padding: 15px;
+    padding: 5px;
     opacity: .8;
-    width: 66px;
 }
+
 #controls-handle:hover {
     background: #fefefe;
 }
