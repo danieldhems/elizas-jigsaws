@@ -297,11 +297,9 @@ export default class GroupMovable extends BaseMovable {
   onMouseDown(event: MouseEvent) {
     if (event.button === 0) {
       Utils.removeAllBoundingBoxIndicators();
-      const element = event.currentTarget as MovableElement;
       if (
-        element.id === `group-container-${this.id}` &&
         !this.isSolved &&
-        !this.dragAndSelectActive
+        !window.Puzzly.DragAndSelect.dragAndSelectActive
       ) {
         // console.log("group movable: element", this.element);
         this.active = true;

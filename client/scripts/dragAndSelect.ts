@@ -78,13 +78,16 @@ class DragAndSelect extends BaseMovable {
     this.initiateDrawBox();
 
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
+
+
+
     window.addEventListener("mousemove", this.onMouseMove.bind(this));
     window.addEventListener("mouseup", this.onMouseUp.bind(this));
     window.addEventListener(EVENT_TYPES.CHANGE_SCALE, this.setScale.bind(this));
     window.addEventListener("puzzly_pockets_pieces_added", (e) => {
       this.toggleDrawCursor();
-      this.toggleHighlightPieces(this.selectedPieces);
-      this.toggleHighlightGroups(this.selectedGroups);
+      // this.toggleHighlightPieces(this.selectedPieces);
+      // this.toggleHighlightGroups(this.selectedGroups);
       this.selectedPieces = [];
       this.selectedPiecesContainer?.remove();
       this.selectedPiecesContainer = null;
@@ -198,7 +201,7 @@ class DragAndSelect extends BaseMovable {
 
   getCollidingPieces(): MovableElement[] {
     const dragBoxRect = this.drawBox.getBoundingClientRect();
-    return Array.from(document.querySelectorAll(".puzzle-piece")).filter((el) => {
+    return Array.from(document.querySelectorAll(".puzzle-piece:not(.grouped)")).filter((el) => {
       return Utils.hasCollision(Utils.getStyleBoundingBox(el as MovableElement), dragBoxRect)
     }) as MovableElement[];
   }
@@ -213,12 +216,10 @@ class DragAndSelect extends BaseMovable {
       const groupInstance = window.Puzzly.getGroupInstanceById(groupContainer.dataset.id)
 
       for (const piece of groupInstance.piecesInGroup) {
-
-        if (Utils.hasCollision(Utils.getStyleBoundingBox(piece.element), dragBoxRect)) {
+        if (Utils.hasCollision(piece.element.getBoundingClientRect(), dragBoxRect)) {
           groups.push(groupInstance);
           break;
         }
-
       }
     });
 
@@ -240,7 +241,7 @@ class DragAndSelect extends BaseMovable {
     });
   }
 
-  getBoundingBoxForDragContainer(pieces: MovableElement[]) {
+  getBoundingBoxForDragContainer(pieces: MovableElement[], groups: GroupMovable[]) {
     let minX = 0,
       minY = 0,
       maxX = 0,
@@ -277,6 +278,33 @@ class DragAndSelect extends BaseMovable {
       }
     }
 
+    for (let i = 0, l = groups.length; i < l; i++) {
+      const group = groups[i];
+      const groupPosition = Utils.getStyleBoundingBox(group.element);
+
+      group.piecesInGroup.forEach((piece) => {
+        const piecePositionOnStageY = groupPosition.top + piece.pieceData.puzzleY;
+        if (minY === 0 || piecePositionOnStageY < minY) {
+          minY = piecePositionOnStageY;
+        }
+
+        const pieceHeight = piecePositionOnStageY + piece.pieceData.height;
+        if (maxY === 0 || pieceHeight > maxY) {
+          maxY = pieceHeight;
+        }
+
+        const piecePositionOnStageX = groupPosition.left + piece.pieceData.puzzleX;
+        if (minX === 0 || piecePositionOnStageX < minX) {
+          minX = piecePositionOnStageX;
+        }
+
+        const pieceWidth = piecePositionOnStageX + piece.pieceData.width;
+        if (maxX === 0 || pieceWidth > maxX) {
+          maxX = pieceWidth;
+        }
+      })
+    }
+
     return {
       top: minY,
       right: maxX,
@@ -287,8 +315,8 @@ class DragAndSelect extends BaseMovable {
     };
   }
 
-  getContainerForMove(pieces: MovableElement[]) {
-    const box = this.getBoundingBoxForDragContainer(pieces);
+  getContainerForMove(pieces: MovableElement[], selectedGroups: GroupMovable[]) {
+    const box = this.getBoundingBoxForDragContainer(pieces, selectedGroups);
 
     const b = document.createElement("div");
     b.id = "selected-pieces-container";
@@ -302,8 +330,13 @@ class DragAndSelect extends BaseMovable {
     pieces.forEach((p) => {
       p.style.left = p.offsetLeft - box.left + "px";
       p.style.top = p.offsetTop - box.top + "px";
-      p.classList.add("selected");
       b.appendChild(p);
+    });
+
+    selectedGroups.forEach((group: GroupMovable) => {
+      group.element.style.left = group.element.offsetLeft - box.left + "px";
+      group.element.style.top = group.element.offsetTop - box.top + "px";
+      b.appendChild(group.element);
     });
 
     return b;
@@ -320,8 +353,22 @@ class DragAndSelect extends BaseMovable {
         p.offsetTop +
         parseInt((this.selectedPiecesContainer as HTMLDivElement).style.top) +
         "px";
-      p.classList.remove("selected");
       (this.piecesContainer as HTMLDivElement).appendChild(p);
+    });
+  }
+
+  dropGroups(groups: GroupMovable[]) {
+    // Put pieces back in play area
+    groups.forEach((group: GroupMovable) => {
+      group.element.style.left =
+        parseInt(group.element.style.left) +
+        parseInt((this.selectedPiecesContainer as HTMLDivElement).style.left) +
+        "px";
+      group.element.style.top =
+        parseInt(group.element.style.top) +
+        parseInt((this.selectedPiecesContainer as HTMLDivElement).style.top) +
+        "px";
+      (this.piecesContainer as HTMLDivElement).appendChild(group.element);
     });
   }
 
@@ -339,9 +386,11 @@ class DragAndSelect extends BaseMovable {
 
     const pieceEl = Utils.getPuzzlePieceElementFromEvent(e);
 
-    !pieceEl &&
+    if (
+      !pieceEl &&
       !this.isRightClick &&
-      this.selectedPieces.length === 0 &&
+      !this.selectedPiecesContainer
+    ) {
       this.isMouseHoldInitiated()
         .then(() => {
           this.isMouseDownHeld = true;
@@ -356,10 +405,13 @@ class DragAndSelect extends BaseMovable {
         .catch((e) => {
           this.isMouseDownHeld = false;
 
-          if (this.selectedPieces.length > 0) {
+          if (this.selectedPieces.length > 0 || this.selectedGroups.length > 0) {
             this.dropPieces(this.selectedPieces);
+            this.dropGroups(this.selectedGroups);
 
             this.selectedPieces = [];
+            this.selectedGroups = [];
+
             this.drawBoxActive = false;
             (this.selectedPiecesContainer as HTMLDivElement).remove();
             this.selectedPiecesContainer = null;
@@ -373,22 +425,19 @@ class DragAndSelect extends BaseMovable {
             new CustomEvent(EVENT_TYPES.DRAGANDSELECT_ACTIVE, { detail: false })
           );
         });
+    }
+  }
 
-    if (pieceEl && this.selectedPieces.length > 0) {
-      if (
-        pieceEl.classList.contains("puzzle-piece") &&
-        pieceEl.classList.contains("selected") &&
-        this.selectedPiecesContainer
-      ) {
-        this.diffX =
-          e.clientX - parseInt(this.selectedPiecesContainer.style.left) * this.zoomLevel;
-        this.diffY =
-          e.clientY - parseInt(this.selectedPiecesContainer.style.top) * this.zoomLevel;
+  onSelectedPiecesContainerMouseDown(event: MouseEvent) {
+    if (this.selectedPiecesContainer) {
+      this.diffX =
+        event.clientX - parseInt(this.selectedPiecesContainer.style.left) * this.zoomLevel;
+      this.diffY =
+        event.clientY - parseInt(this.selectedPiecesContainer.style.top) * this.zoomLevel;
 
-        this.selectedPiecesAreMoving = true;
+      this.selectedPiecesAreMoving = true;
 
-        this.Puzzly.keepOnTop(this.selectedPiecesContainer);
-      }
+      this.Puzzly.keepOnTop(this.selectedPiecesContainer);
     }
   }
 
@@ -442,18 +491,27 @@ class DragAndSelect extends BaseMovable {
       this.selectedPieces = this.getCollidingPieces();
       this.selectedGroups = this.getCollidingGroups();
 
+      console.log('selected pieces', this.selectedPieces)
+      console.log('selected groups', this.selectedGroups)
+
       if (this.selectedPieces.length === 0 && this.selectedGroups.length === 0) {
         this.endDrag(event);
         return;
       }
 
       this.selectedPiecesContainer = this.getContainerForMove(
-        this.selectedPieces
+        this.selectedPieces, this.selectedGroups
       );
 
       (this.piecesContainer as HTMLDivElement).appendChild(
         this.selectedPiecesContainer
       );
+
+      if (this.selectedPiecesContainer) {
+        this.selectedPiecesContainer.addEventListener("mousedown", this.onSelectedPiecesContainerMouseDown.bind(this));
+      }
+
+      this.dragAndSelectActive = true;
 
       // Question: Are we using this?
       this.setLastPosition();
@@ -493,10 +551,9 @@ class DragAndSelect extends BaseMovable {
     this.deactivateDrawBox();
     this.setDrawCursor(0);
 
-    if (this.selectedPieces.length > 0) {
-      this.toggleHighlightPieces(this.selectedPieces);
-      this.toggleHighlightGroups(this.selectedGroups);
-      console.log("endDrag", this.selectedPieces)
+    if (this.selectedPieces.length > 0 || this.selectedGroups.length > 0) {
+      // this.toggleHighlightPieces(this.selectedPieces);
+      // this.toggleHighlightGroups(this.selectedGroups);
 
       const eventBox = Utils.getEventBox(event);
       const pocket = Utils.getPocketByCollision(eventBox);
@@ -504,6 +561,7 @@ class DragAndSelect extends BaseMovable {
         this.addPiecesToPocket(pocket);
       } else {
         this.dropPieces(this.selectedPieces);
+        this.dropGroups(this.selectedGroups);
 
         const pieces = Array.from(this.selectedPieces).map((element: MovableElement) => {
           return this.getMovableInstanceFromElement(element);
@@ -538,6 +596,8 @@ class DragAndSelect extends BaseMovable {
           })
         }
       }
+
+      this.dragAndSelectActive = false;
       this.save();
     }
 
@@ -550,6 +610,8 @@ class DragAndSelect extends BaseMovable {
     this.selectedPiecesContainer = null;
 
     this.selectedPieces = [];
+    this.selectedGroups = [];
+
     this.drawBoxActive = false;
   }
 
