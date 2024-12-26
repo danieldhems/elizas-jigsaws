@@ -4,7 +4,7 @@ import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
-import { GroupMovableElement, MovableElement, SingleMovableSaveState } from "./types";
+import { BoundingBox, DomBox, GroupMovableElement, MovableElement, SingleMovableSaveState } from "./types";
 import Utils from "./utils";
 
 class DragAndSelect extends BaseMovable {
@@ -79,15 +79,11 @@ class DragAndSelect extends BaseMovable {
 
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
 
-
-
     window.addEventListener("mousemove", this.onMouseMove.bind(this));
     window.addEventListener("mouseup", this.onMouseUp.bind(this));
     window.addEventListener(EVENT_TYPES.CHANGE_SCALE, this.setScale.bind(this));
     window.addEventListener("puzzly_pockets_pieces_added", (e) => {
       this.toggleDrawCursor();
-      // this.toggleHighlightPieces(this.selectedPieces);
-      // this.toggleHighlightGroups(this.selectedGroups);
       this.selectedPieces = [];
       this.selectedPiecesContainer?.remove();
       this.selectedPiecesContainer = null;
@@ -199,24 +195,49 @@ class DragAndSelect extends BaseMovable {
     document.body.style.cursor = state === 1 ? "crosshair" : "default";
   }
 
-  getCollidingPieces(): MovableElement[] {
-    const dragBoxRect = this.drawBox.getBoundingClientRect();
+  getCollidingPieces(rect: BoundingBox): MovableElement[] {
+    const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
+
     return Array.from(document.querySelectorAll(".puzzle-piece:not(.grouped)")).filter((el) => {
-      return Utils.hasCollision(Utils.getStyleBoundingBox(el as MovableElement), dragBoxRect)
+      const pieceBox = Utils.getStyleBoundingBox(el as MovableElement);
+
+      pieceBox.top += stagePosition.top;
+      pieceBox.right += stagePosition.left;
+      pieceBox.bottom += stagePosition.top;
+      pieceBox.left += stagePosition.left;
+
+      Utils.drawBox(pieceBox, null, 'red');
+      return Utils.hasCollision(pieceBox, rect)
     }) as MovableElement[];
   }
 
-  getCollidingGroups(): GroupMovable[] {
-    const dragBoxRect = this.drawBox.getBoundingClientRect();
+  getCollidingGroups(rect: BoundingBox): GroupMovable[] {
+    const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
+
     const groupContainers = Array.from(document.querySelectorAll(".group-container"));
 
     const groups: GroupMovable[] = [];
 
     groupContainers.forEach((groupContainer: GroupMovableElement) => {
       const groupInstance = window.Puzzly.getGroupInstanceById(groupContainer.dataset.id)
+      const groupPosition = Utils.getStyleBoundingBox(groupInstance.element);
+
+      groupPosition.top += stagePosition.top;
+      groupPosition.right += stagePosition.left;
+      groupPosition.bottom += stagePosition.top;
+      groupPosition.left += stagePosition.left;
 
       for (const piece of groupInstance.piecesInGroup) {
-        if (Utils.hasCollision(piece.element.getBoundingClientRect(), dragBoxRect)) {
+        const pieceRect = {
+          top: groupPosition.top + piece.pieceData.puzzleY,
+          left: groupPosition.left + piece.pieceData.puzzleX,
+          right: groupPosition.left + piece.pieceData.puzzleX + piece.pieceData.width,
+          bottom: groupPosition.top + piece.pieceData.puzzleY + piece.pieceData.height,
+        };
+
+        Utils.drawBox(pieceRect, null, 'blue');
+
+        if (Utils.hasCollision(pieceRect, rect)) {
           groups.push(groupInstance);
           break;
         }
@@ -429,6 +450,8 @@ class DragAndSelect extends BaseMovable {
   }
 
   onSelectedPiecesContainerMouseDown(event: MouseEvent) {
+    console.log('onSelectedPiecesContainerMouseDown -> event target', event.target)
+    console.log('onSelectedPiecesContainerMouseDown -> event currentTarget', event.currentTarget)
     if (this.selectedPiecesContainer) {
       this.diffX =
         event.clientX - parseInt(this.selectedPiecesContainer.style.left) * this.zoomLevel;
@@ -488,8 +511,11 @@ class DragAndSelect extends BaseMovable {
 
     if (this.drawBoxActive) {
       // Selection box has been drawn
-      this.selectedPieces = this.getCollidingPieces();
-      this.selectedGroups = this.getCollidingGroups();
+      const dragBoxRect = Utils.getStyleBoundingBox(this.drawBox);
+      Utils.drawBox(dragBoxRect);
+
+      this.selectedPieces = this.getCollidingPieces(dragBoxRect);
+      this.selectedGroups = this.getCollidingGroups(dragBoxRect);
 
       console.log('selected pieces', this.selectedPieces)
       console.log('selected groups', this.selectedGroups)
@@ -548,13 +574,12 @@ class DragAndSelect extends BaseMovable {
   }
 
   endDrag(event: MouseEvent) {
+    Utils.removeAllBoundingBoxIndicators();
+
     this.deactivateDrawBox();
     this.setDrawCursor(0);
 
     if (this.selectedPieces.length > 0 || this.selectedGroups.length > 0) {
-      // this.toggleHighlightPieces(this.selectedPieces);
-      // this.toggleHighlightGroups(this.selectedGroups);
-
       const eventBox = Utils.getEventBox(event);
       const pocket = Utils.getPocketByCollision(eventBox);
       if (pocket) {
