@@ -89,14 +89,14 @@ function getPositionForFirstPieceOnNextSide(
   }
 }
 
-export default function arrangePiecesAroundEdge() {
-
+export default async function arrangePiecesAroundEdge() {
   const sides = [
     SideNames.Top,
     SideNames.Right,
     SideNames.Bottom,
     SideNames.Left,
   ];
+
   let i = 0;
   let sideIndex = 0;
 
@@ -133,6 +133,9 @@ export default function arrangePiecesAroundEdge() {
       .y(currentY)
       .duration(200)
       .end();
+
+    const pieceInstance = window.Puzzly.getSingleInstanceByIndex(i);
+    pieceInstance.setLastPosition();
 
     if (i === 0) {
       firstPiecesOnEachSide[currentSide] = currentPiece;
@@ -189,13 +192,7 @@ export default function arrangePiecesAroundEdge() {
     }
 
     i++;
+
   }
 
-  const payloadForPersistence = window.Puzzly.pieceInstances.map(
-    (instance: SingleMovable) => instance.getDataForSave()
-  );
-
-  window.dispatchEvent(
-    new CustomEvent(EVENT_TYPES.SAVE, { detail: payloadForPersistence })
-  );
 }

@@ -2,6 +2,7 @@ import wrapPiecesAroundEdge from "./pieceLayoutsNeaten";
 import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 import randomisePiecePositions from "./pieceLayoutsShuffle";
 import Pockets from "./Pockets";
+import SingleMovable from "./SingleMovable";
 import SolvingArea from "./SolvingArea";
 import { MovableElement, PieceSectors } from "./types";
 import Utils from "./utils";
@@ -17,13 +18,14 @@ export interface PieceLayoutsProperties {
 export default interface PieceLayouts extends PieceLayoutsProperties { }
 
 export default class PieceLayouts {
+  menuIsOpen: boolean;
   playBoundary: HTMLDivElement | null;
   solvingArea: SolvingArea;
   selectedNumberOfPieces: number;
   pieceSectors: PieceSectors;
   sendToEdgeNeatenBtn: HTMLSpanElement | null;
   controlsHandle: HTMLElement | null;
-  controlsPanel: HTMLElement | null;
+  controlsPanel: HTMLElement;
   sendToEdgeShuffleBtn: HTMLElement | null;
   gatherPiecesBtn: HTMLSpanElement | null;
   controlsPanelIsOpen: boolean;
@@ -37,7 +39,6 @@ export default class PieceLayouts {
     top: number;
     left: number;
   };
-  arrangePiecesAroundEdge: typeof arrangePiecesAroundEdge;
 
   constructor({
     largestPieceSpan,
@@ -46,6 +47,8 @@ export default class PieceLayouts {
     playBoundary,
     Pockets,
   }: PieceLayoutsProperties) {
+    this.menuIsOpen = false;
+
     this.largestPieceSpan = largestPieceSpan;
     this.SolvingArea = SolvingArea;
     this.playBoundary = playBoundary;
@@ -53,7 +56,7 @@ export default class PieceLayouts {
 
     this.sendToEdgeNeatenBtn = document.getElementById("wrap-pieces-around-edge");
     this.controlsHandle = document.getElementById("controls-handle");
-    this.controlsPanel = document.getElementById("controls-panel");
+    this.controlsPanel = document.getElementById("controls-panel") as HTMLElement;
     this.gatherPiecesBtn = document.getElementById("gather-pieces");
     this.filterBtn = document.getElementById("filter-pieces");
     this.filterBtnOffLabel = document.getElementById("inner-pieces-on");
@@ -61,42 +64,57 @@ export default class PieceLayouts {
 
     this.Pockets = Pockets;
 
-    this.controlsPanelIsOpen = false;
-
-    this.arrangePiecesAroundEdge = arrangePiecesAroundEdge;
-
     if (this.sendToEdgeNeatenBtn) {
       this.sendToEdgeNeatenBtn.addEventListener(
         "mousedown",
-        this.onArrangePiecesAroundEdge.bind(this)
-      );
-    }
+        () => {
+          wrapPiecesAroundEdge();
 
-    if (this.controlsHandle) {
-      this.controlsHandle.addEventListener(
-        "mousedown",
-        this.onControlsHandleClick.bind(this)
+          this.controlsPanel.classList.add("js-hidden");
+
+          // Fix: Very bad - this'll work for now, as long as I match the timeout to the animation duration.
+          setTimeout(() => {
+            const pieces = window.Puzzly.pieceInstances.filter((piece: SingleMovable) =>
+              !piece.isSolved && !piece.groupInstance
+            );
+
+            fetch('/api/puzzle/updatePieces', {
+              method: 'PUT',
+              headers: {
+                "Content-Type": "Application/json",
+              },
+              body: JSON.stringify({
+                pieces: pieces.map((piece: SingleMovable) => piece.getDataForSave()),
+                puzzleId: window.Puzzly.puzzleId,
+              }),
+            })
+          }, 200);
+        }
       );
     }
 
     if (this.sendToEdgeShuffleBtn) {
       this.sendToEdgeShuffleBtn.addEventListener("mousedown", () => {
         randomisePiecePositions(this.pieceSectors);
-        this.onControlsHandleClick();
+        this.controlsPanel.classList.add("js-hidden");
       });
     }
 
     if (this.gatherPiecesBtn) {
       this.gatherPiecesBtn.addEventListener(
-        "mousedown",
-        this.gatherPieces.bind(this)
+        "mousedown", () => {
+          this.gatherPieces();
+          this.controlsPanel.classList.add("js-hidden");
+        }
       );
     }
 
     if (this.filterBtn) {
       this.filterBtn.addEventListener(
-        "mousedown",
-        this.toggleInnerPieces.bind(this)
+        "mousedown", () => {
+          this.toggleInnerPieces.bind(this);
+          this.controlsPanel.classList.add("js-hidden");
+        }
       );
     }
   }
@@ -142,25 +160,23 @@ export default class PieceLayouts {
     }
   }
 
-  onArrangePiecesAroundEdge() {
-    wrapPiecesAroundEdge();
-    this.onControlsHandleClick();
-  }
-
   gatherPieces() {
-    const pieces = Utils.getAllPieces();
+    const pieces = window.Puzzly.pieceInstances.filter((piece: SingleMovable) =>
+      !piece.isSolved && !piece.groupInstance
+    );
     const pocket = document.querySelector("#pocket-0") as HTMLDivElement;
-    this.Pockets.addManyToPocket(pocket, pieces);
-  }
+    window.Puzzly.Pockets.addPiecesToPocket(pieces, pocket);
 
-  onControlsHandleClick() {
-    if (this.controlsPanelIsOpen) {
-      (this.controlsPanel as HTMLElement).classList.add("is-hidden");
-      this.controlsPanelIsOpen = false;
-    } else {
-      (this.controlsPanel as HTMLElement).classList.remove("is-hidden");
-      this.controlsPanelIsOpen = true;
-    }
+    fetch('/api/puzzle/updatePieces', {
+      method: 'PUT',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        pieces: pieces.map((piece: SingleMovable) => piece.getDataForSave()),
+        puzzleId: window.Puzzly.puzzleId,
+      }),
+    })
   }
 
   // Generate map of sectors that can be used for even dispersal of pieces around outside of puzzle board

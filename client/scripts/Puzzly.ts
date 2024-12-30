@@ -25,6 +25,7 @@ import Sounds from "./Sounds";
 import SolvingArea from "./SolvingArea";
 import GroupOperations from "./GroupOperations";
 import Utils from "./utils";
+import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 /**
  * Puzzly
  *
@@ -262,7 +263,7 @@ export default class Puzzly {
       });
 
       if (!this.noDispersal) {
-        this.PieceLayouts.arrangePiecesAroundEdge();
+        arrangePiecesAroundEdge();
       } else {
         // NOTE: Initial save once all pieces have been rendered
         // Only necessary when loading puzzle without disperal (for debug)

@@ -490,6 +490,12 @@ export default class Pockets {
     }
   }
 
+  addPiecesToPocket(pieces: SingleMovable[], pocket: HTMLDivElement) {
+    pieces.forEach((instance) => {
+      this.addSingleToPocket(pocket, instance);
+    });
+  }
+
   addManyToPocket(
     pocket: HTMLDivElement | number,
     movableOrArrayOfElements: PocketMovable | NodeListOf<HTMLDivElement>
