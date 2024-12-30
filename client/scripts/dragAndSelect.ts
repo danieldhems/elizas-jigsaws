@@ -199,6 +199,7 @@ class DragAndSelect extends BaseMovable {
     const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
 
     return Array.from(document.querySelectorAll(".puzzle-piece:not(.grouped)")).filter((el) => {
+      // Utils.drawBox(el.getBoundingClientRect(), 'red')
       const pieceBox = Utils.getStyleBoundingBox(el as MovableElement);
 
       pieceBox.top += stagePosition.top;
@@ -206,7 +207,7 @@ class DragAndSelect extends BaseMovable {
       pieceBox.bottom += stagePosition.top;
       pieceBox.left += stagePosition.left;
 
-      Utils.drawBox(pieceBox, null, 'red');
+      // Utils.drawBox(pieceBox, 'red');
       return Utils.hasCollision(pieceBox, rect)
     }) as MovableElement[];
   }
@@ -235,7 +236,7 @@ class DragAndSelect extends BaseMovable {
           bottom: groupPosition.top + piece.pieceData.puzzleY + piece.pieceData.height,
         };
 
-        Utils.drawBox(pieceRect, null, 'blue');
+        // Utils.drawBox(pieceRect, 'blue');
 
         if (Utils.hasCollision(pieceRect, rect)) {
           groups.push(groupInstance);
@@ -511,11 +512,13 @@ class DragAndSelect extends BaseMovable {
 
     if (this.drawBoxActive) {
       // Selection box has been drawn
-      const dragBoxRect = Utils.getStyleBoundingBox(this.drawBox);
-      Utils.drawBox(dragBoxRect);
+      const dragBox1 = Utils.getStyleBoundingBox(this.drawBox);
+      const dragBox2 = this.drawBox.getBoundingClientRect();
+      // Utils.drawBox(dragBox1);
+      Utils.drawBox(dragBox2);
 
-      this.selectedPieces = this.getCollidingPieces(dragBoxRect);
-      this.selectedGroups = this.getCollidingGroups(dragBoxRect);
+      this.selectedPieces = this.getCollidingPieces(dragBox1);
+      this.selectedGroups = this.getCollidingGroups(dragBox1);
 
       console.log('selected pieces', this.selectedPieces)
       console.log('selected groups', this.selectedGroups)

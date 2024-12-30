@@ -28,8 +28,8 @@ export function checkConnections(
     const boundingBoxForTargetConnector = targetPiece.getCurrentBoundingBoxForConnector(adjacentDegrees) as BoundingBox;
 
     if (window.Puzzly.showConnectorBoxes) {
-      Utils.drawBox(boundingBoxForSourceConnector, null, 'green');
-      Utils.drawBox(boundingBoxForTargetConnector, null, 'red');
+      Utils.drawBox(boundingBoxForSourceConnector, 'green');
+      Utils.drawBox(boundingBoxForTargetConnector, 'red');
     }
 
     if (!targetPiece.isSolved && Utils.hasCollision(boundingBoxForSourceConnector, boundingBoxForTargetConnector)) {
@@ -54,7 +54,7 @@ export function checkConnections(
 
     if (Utils.hasCollision(boundingBoxForSourceConnector, solvedBoundingBoxes[n])) {
       if (window.Puzzly.showConnectorBoxes) {
-        Utils.drawBox(solvedBoundingBoxes[n], null, 'purple');
+        // Utils.drawBox(solvedBoundingBoxes[n], 'purple');
       }
       for (const connector of piece.connectors) {
         connector.isConnected = true;

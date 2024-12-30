@@ -684,8 +684,8 @@ const Utils = {
       right?: number;
       bottom?: number;
     },
+    borderColor?: string,
     container?: HTMLDivElement | null,
-    borderColor?: string
   ) {
     let width: number, height: number;
 

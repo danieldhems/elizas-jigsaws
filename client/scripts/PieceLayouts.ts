@@ -1,3 +1,4 @@
+import wrapPiecesAroundEdge from "./pieceLayoutsNeaten";
 import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 import randomisePiecePositions from "./pieceLayoutsShuffle";
 import Pockets from "./Pockets";
@@ -50,7 +51,7 @@ export default class PieceLayouts {
     this.playBoundary = playBoundary;
     this.selectedNumberOfPieces = selectedNumPieces;
 
-    this.sendToEdgeNeatenBtn = document.getElementById("shuffle-pieces");
+    this.sendToEdgeNeatenBtn = document.getElementById("wrap-pieces-around-edge");
     this.controlsHandle = document.getElementById("controls-handle");
     this.controlsPanel = document.getElementById("controls-panel");
     this.gatherPiecesBtn = document.getElementById("gather-pieces");
@@ -63,43 +64,7 @@ export default class PieceLayouts {
     this.controlsPanelIsOpen = false;
 
     this.arrangePiecesAroundEdge = arrangePiecesAroundEdge;
-  }
 
-  getSolvingAreaBoundingBox() {
-    if (this.solvingArea) {
-      return {
-        top: parseInt(this.solvingArea.element.style.top),
-        left: parseInt(this.solvingArea.element.style.left),
-        right:
-          parseInt(this.solvingArea.element.style.left) +
-          parseInt(this.solvingArea.element.style.width),
-        bottom:
-          parseInt(this.solvingArea.element.style.top) +
-          parseInt(this.solvingArea.element.style.height),
-        width: parseInt(this.solvingArea.element.style.width),
-        height: parseInt(this.solvingArea.element.style.height),
-      };
-    }
-  }
-
-  getPlayBoundaryBoundingBox() {
-    if (this.playBoundary) {
-      return {
-        top: parseInt(this.playBoundary.style.top),
-        left: parseInt(this.playBoundary.style.left),
-        right:
-          parseInt(this.playBoundary.style.left) +
-          parseInt(this.playBoundary.style.width),
-        bottom:
-          parseInt(this.playBoundary.style.top) +
-          parseInt(this.playBoundary.style.height),
-        width: parseInt(this.playBoundary.style.width),
-        height: parseInt(this.playBoundary.style.height),
-      };
-    }
-  }
-
-  attachEventListeners() {
     if (this.sendToEdgeNeatenBtn) {
       this.sendToEdgeNeatenBtn.addEventListener(
         "mousedown",
@@ -136,6 +101,23 @@ export default class PieceLayouts {
     }
   }
 
+  getPlayBoundaryBoundingBox() {
+    if (this.playBoundary) {
+      return {
+        top: parseInt(this.playBoundary.style.top),
+        left: parseInt(this.playBoundary.style.left),
+        right:
+          parseInt(this.playBoundary.style.left) +
+          parseInt(this.playBoundary.style.width),
+        bottom:
+          parseInt(this.playBoundary.style.top) +
+          parseInt(this.playBoundary.style.height),
+        width: parseInt(this.playBoundary.style.width),
+        height: parseInt(this.playBoundary.style.height),
+      };
+    }
+  }
+
   toggleInnerPieces(piecesVisible: boolean) {
     if (piecesVisible) {
       Utils.getAllPieces().forEach((piece: MovableElement) => {
@@ -161,7 +143,7 @@ export default class PieceLayouts {
   }
 
   onArrangePiecesAroundEdge() {
-    arrangePiecesAroundEdge();
+    wrapPiecesAroundEdge();
     this.onControlsHandleClick();
   }
 
@@ -232,7 +214,7 @@ export default class PieceLayouts {
       "top-left",
     ];
     const chosen = sectors[sectorIndex];
-    const solvingAreaBoundingBox = this.getSolvingAreaBoundingBox() as DOMRect;
+    const solvingAreaBoundingBox = Utils.getStyleBoundingBox(window.Puzzly.SolvingArea) as DOMRect;
     const playBoundaryBoundingBox =
       this.getPlayBoundaryBoundingBox() as DOMRect;
     switch (chosen) {

@@ -348,6 +348,10 @@ export default class Puzzly {
     );
   }
 
+  getPiecesInPlay() {
+    return this.pieceInstances.filter((piece) => !piece.isSolved && !piece.groupInstance);
+  }
+
   updateElapsedTime() {
     const now = new Date().getTime();
     const elapsedTime = now - this.timeStarted;
