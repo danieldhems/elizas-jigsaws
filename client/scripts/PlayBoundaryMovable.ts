@@ -35,7 +35,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
       const height = window.innerHeight - (SCREEN_MARGIN * 2);
       const width = window.innerWidth < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED
         ? window.innerWidth - (SCREEN_MARGIN * 2)
-        : window.innerWidth - MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
+        : MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
       this.element.style.height = height + "px";
       this.element.style.width = width + "px";
     } else if (window.innerWidth < window.innerHeight) {
@@ -43,7 +43,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
       const width = window.innerWidth - (SCREEN_MARGIN * 2);
       const height = window.innerHeight < MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED
         ? window.innerHeight - (SCREEN_MARGIN * 2)
-        : window.innerHeight - MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
+        : MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED;
       this.element.style.width = width + "px";
       this.element.style.height = height + "px";
     }
@@ -61,6 +61,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
 
       // TODO: Abstract / clean up
       if (window.innerHeight < window.innerWidth) {
+        // Landscape viewport
         playBoundary.style.top = Utils.getPxString(
           SCREEN_MARGIN
         );
@@ -74,6 +75,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
           );
         }
       } else if (window.innerWidth < window.innerHeight) {
+        // Portrait viewport
         playBoundary.style.left = Utils.getPxString(
           SCREEN_MARGIN
         );
