@@ -84,36 +84,31 @@
     </div>
     <!-- The root container for the puzzle page -->
     <div id="stage">
-      <!--
-        The main play area where the pieces can be moved around and connected.
-        Pieces can not be placed outside of this area
-      -->
       <div id="play-boundary">
-        <!--
-          The area in which the puzzle is solved.
-          This is also where the full puzzle image preview lives.
-        -->
-        <div id="solved-puzzle-area">
-          <div id="solved-preview" class="fill-container"></div>
+        <div id="pieces-container" class="fill-container">
+          <!-- <div id="board-background"></div> -->
+          <div id="solved-puzzle-area">
+            <div id="solved-preview" class="fill-container"></div>
+          </div>
+          <div id="pockets">
+            <div id="pockets-inner">
+              <div id="pocket-0" class="pocket">
+                <div class="pocket-inner"></div>
+              </div>
+              <div id="pocket-1" class="pocket">
+                <div class="pocket-inner"></div>
+              </div>
+              <div id="pocket-2" class="pocket">
+                <div class="pocket-inner"></div>
+              </div>
+              <div id="pocket-3" class="pocket">
+                <div class="pocket-inner"></div>
+              </div>
+            </div>
+            <div id="pockets-handle"></div>
         </div>
-        <div id="pieces-container" class="fill-container"></div>
-      </div>
-      <div id="pockets">
-        <div id="pockets-inner">
-          <div id="pocket-0" class="pocket">
-            <div class="pocket-inner"></div>
-          </div>
-          <div id="pocket-1" class="pocket">
-            <div class="pocket-inner"></div>
-          </div>
-          <div id="pocket-2" class="pocket">
-            <div class="pocket-inner"></div>
-          </div>
-          <div id="pocket-3" class="pocket">
-            <div class="pocket-inner"></div>
-          </div>
         </div>
-        <div id="pockets-handle"></div>
+        
       </div>
     </div>
     <div id="integration-test-drag-helper" class="js-hidden"></div>

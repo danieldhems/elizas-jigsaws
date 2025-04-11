@@ -398,7 +398,6 @@ export default class Pockets {
 
   onMouseUp() {
     window.dispatchEvent(new CustomEvent(EVENT_TYPES.POCKET_PUTDOWN));
-    this.enablePointerEvents();
 
     if (this.isMovingSinglePiece) {
       this.isMovingSinglePiece = false;

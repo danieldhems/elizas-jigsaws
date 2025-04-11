@@ -159,7 +159,7 @@ label {
     margin-top: -25%; */
 }
 
-#play-boundary:before {
+#board-background {
     content: "";
     display: block;
     background: #ddd;

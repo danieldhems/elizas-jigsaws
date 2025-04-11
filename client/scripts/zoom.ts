@@ -1,4 +1,4 @@
-import { EVENT_TYPES, SCREEN_MARGIN, ZOOM_INTERVALS } from "./constants";
+import { EVENT_TYPES, SCREEN_MARGIN, ZOOM_AMOUNT, ZOOM_INTERVALS } from "./constants";
 import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
 import Puzzly from "./Puzzly";
@@ -11,7 +11,6 @@ export enum ZoomTypes {
 export default class Zoom extends BaseMovable {
   stage: HTMLDivElement;
   isPreviewActive: boolean;
-  currentZoomInterval: number;
   zoomLevel: BaseMovable["zoomLevel"];
   prevZoomLevel: number;
   zoomType: ZoomTypes;
@@ -23,34 +22,35 @@ export default class Zoom extends BaseMovable {
     super(puzzly);
     this.isPreviewActive = puzzly.isPreviewActive;
     this.stage = puzzly.stage as HTMLDivElement;
-    this.currentZoomInterval = 0;
-    this.zoomLevel = ZOOM_INTERVALS[this.currentZoomInterval];
+    this.zoomLevel = 1;
 
     window.Zoom = this;
     window.Puzzly.PlayBoundaryMovable.reCenter();
 
-    window.addEventListener("keydown", this.handleNormalZoom.bind(this));
+    window.addEventListener("keydown", this.handleKeyboardZoom.bind(this));
     window.addEventListener("dblclick", this.handlePointerZoom.bind(this));
   }
 
-  handleNormalZoom(event: KeyboardEvent) {
+  handleKeyboardZoom(event: KeyboardEvent) {
+    event.preventDefault();
+
     this.prevZoomLevel = this.zoomLevel;
     this.zoomType = ZoomTypes.Normal;
 
     if (this.keys.includes(event.which)) {
-      this.setTransformOrigin(event);
+      // this.setTransformOrigin(event);
     }
 
     // Plus key
     if (event.which === 187) {
       this.zoomType = ZoomTypes.Normal;
-      this.increaseZoomLevel();
+      this.increaseZoomLevel(ZOOM_AMOUNT);
     }
 
     // Minus key
     if (event.which === 189) {
       this.zoomType = ZoomTypes.Normal;
-      this.decreaseZoomLevel();
+      this.decreaseZoomLevel(ZOOM_AMOUNT);
     }
 
     // "0" Number key
@@ -63,13 +63,13 @@ export default class Zoom extends BaseMovable {
   handlePointerZoom(event: MouseEvent) {
     this.zoomType = ZoomTypes.Pointer;
 
-    this.setTransformOrigin(event);
+    // this.setTransformOrigin(event);
 
-    if (this.currentZoomInterval < ZOOM_INTERVALS.length - 1) {
-      this.increaseZoomLevel();
-    } else if (this.currentZoomInterval === ZOOM_INTERVALS.length - 1) {
-      this.resetZoomLevel();
-    }
+    // if (this.currentZoomInterval < ZOOM_INTERVALS.length - 1) {
+    //   this.increaseZoomLevel();
+    // } else if (this.currentZoomInterval === ZOOM_INTERVALS.length - 1) {
+    //   this.resetZoomLevel();
+    // }
   }
 
   getTransformOrigin(
@@ -106,44 +106,35 @@ export default class Zoom extends BaseMovable {
 
   // Might want an observer of some kind for the scalePlayBoundary method calls here, instead of manually calling it in all of these helper methods.
   resetZoomLevel() {
-    this.currentZoomInterval = 0;
-    this.zoomLevel = ZOOM_INTERVALS[this.currentZoomInterval];
+    this.zoomLevel = 1;
     this.scalePlayBoundary(this.zoomLevel);
     window.Puzzly.PlayBoundaryMovable.reCenter();
     this.isZoomed = false;
   }
 
   setZoomLevel() {
-    this.zoomLevel = ZOOM_INTERVALS[this.currentZoomInterval];
+    this.zoomLevel = 1;
     this.scalePlayBoundary(this.zoomLevel);
   }
 
-  increaseZoomLevel() {
-    const newLevel = this.currentZoomInterval + 1;
-    if (ZOOM_INTERVALS[newLevel]) {
-      this.currentZoomInterval = newLevel;
-      this.zoomLevel = ZOOM_INTERVALS[newLevel];
-      this.scalePlayBoundary(this.zoomLevel);
-      this.isZoomed = true;
-    }
+  increaseZoomLevel(amount: number) {
+    this.zoomLevel += amount;
+    this.scalePlayBoundary(this.zoomLevel);
+    this.isZoomed = true;
   }
 
-  decreaseZoomLevel() {
-    const newLevel = this.currentZoomInterval - 1;
-    if (ZOOM_INTERVALS[newLevel]) {
-      this.currentZoomInterval = newLevel;
-      this.zoomLevel = ZOOM_INTERVALS[newLevel];
-      this.scalePlayBoundary(this.zoomLevel);
+  decreaseZoomLevel(amount: number) {
+    this.zoomLevel -= amount;
+    this.scalePlayBoundary(this.zoomLevel);
 
-      if (ZOOM_INTERVALS[newLevel] === ZOOM_INTERVALS[0]) {
-        this.isZoomed = false;
-        window.Puzzly.PlayBoundaryMovable.reCenter();
-      }
+    if (this.zoomLevel === 1) {
+      this.isZoomed = false;
+      window.Puzzly.PlayBoundaryMovable.reCenter();
     }
   }
 
   scalePlayBoundary(scale: number) {
-    (window.Puzzly.playBoundary as HTMLDivElement).style.transform = `scale(${scale})`;
+    (window.Puzzly.piecesContainer as HTMLDivElement).style.transform = `scale(${scale})`;
 
     if (this.zoomLevel !== this.prevZoomLevel) {
       window.dispatchEvent(
