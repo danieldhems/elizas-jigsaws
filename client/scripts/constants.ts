@@ -82,6 +82,7 @@ export const LOCAL_STORAGE_PUZZLY_LAST_SAVE_KEY =
 export const PUZZLE_PIECE_CLASSES = ["puzzle-piece"];
 
 export const ZOOM_INTERVALS = [1, 1.5, 2.5];
+export const ZOOM_AMOUNT = .1;
 
 /**
  * HTML Elements

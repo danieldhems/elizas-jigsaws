@@ -158,6 +158,10 @@ export default class Puzzly {
       `#${ELEMENT_IDS.PIECES_CONTAINER}`
     );
 
+    if (this.piecesContainer) {
+      this.piecesContainer.style.zIndex = this.currentZIndex + '';
+    }
+
     loadAssets([this.puzzleImage]).then(() => {
       this.init();
     });
