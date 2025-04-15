@@ -121,6 +121,7 @@ export default class GroupMovable extends BaseMovable {
 
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
+    this.onMouseOut = this.onMouseOut.bind(this);
 
     this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
     this.element.addEventListener(
@@ -319,10 +320,28 @@ export default class GroupMovable extends BaseMovable {
           mousePosition.top -
           parseInt(this.element.style.top) * window.Zoom.zoomLevel;
 
-        this.element.addEventListener('mousemove', this.onMouseMove)
-        this.element.addEventListener('mouseup', this.onMouseUp)
+        this.element.addEventListener('mousemove', this.onMouseMove);
+        this.element.addEventListener('mouseup', this.onMouseUp);
+        this.element.addEventListener('mouseout', this.onMouseOut);
       }
     }
+  }
+
+  onMouseOut(event: MouseEvent) {
+    this.element.removeEventListener('mousemove', this.onMouseMove);
+    this.element.removeEventListener('mouseup', this.onMouseUp);
+    this.element.removeEventListener('mouseout', this.onMouseOut);
+
+    if (this.isOutOfBounds()) {
+      this.resetPosition();
+    } else {
+      this.setLastPosition();
+      this.save();
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
+    );
   }
 
   onMouseMove(event: MouseEvent) {

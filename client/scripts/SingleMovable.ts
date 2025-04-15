@@ -1,11 +1,12 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES, SHADOW_OFFSET_RATIO } from "./constants";
+import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES } from "./constants";
 import GroupMovable from "./GroupMovable";
-import { getJigsawShapeSvgString, getSvg } from "./svg";
-import Puzzly from "./Puzzly";
 import PathOperations from "./pathOperations";
+import Puzzly from "./Puzzly";
+import { getJigsawShapeSvgString, getSvg } from "./svg";
 
+import { nanoid } from "nanoid";
 import {
   BoundingBox,
   Connection,
@@ -13,13 +14,10 @@ import {
   ConnectorType,
   InstanceTypes,
   JigsawPieceData,
-  MovableElement,
   SingleMovableSaveState,
-  TopLeftCoordinate,
-  XYCoordinate,
+  XYCoordinate
 } from "./types";
 import Utils from "./utils";
-import { nanoid } from "nanoid";
 
 export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
@@ -83,6 +81,7 @@ export default class SingleMovable extends BaseMovable {
 
       this.onMouseMove = this.onMouseMove.bind(this);
       this.onMouseUp = this.onMouseUp.bind(this);
+      this.onMouseOut = this.onMouseOut.bind(this);
     }
   }
 
@@ -445,9 +444,27 @@ export default class SingleMovable extends BaseMovable {
         mousePosition.top -
         parseInt(this.element.style.top) * window.Zoom.zoomLevel;
 
-      this.element.addEventListener('mousemove', this.onMouseMove)
-      this.element.addEventListener('mouseup', this.onMouseUp)
+      this.element.addEventListener('mousemove', this.onMouseMove);
+      this.element.addEventListener('mouseup', this.onMouseUp);
+      this.element.addEventListener('mouseout', this.onMouseOut);
     }
+  }
+
+  onMouseOut(event: MouseEvent) {
+    this.element.removeEventListener('mousemove', this.onMouseMove);
+    this.element.removeEventListener('mouseup', this.onMouseUp);
+    this.element.removeEventListener('mouseout', this.onMouseOut);
+
+    if (this.isOutOfBounds(event)) {
+      this.resetPosition();
+    } else {
+      this.setLastPosition();
+      this.save();
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
+    );
   }
 
   onMouseMove(event: MouseEvent) {
