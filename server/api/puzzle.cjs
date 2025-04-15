@@ -33,24 +33,18 @@ async function createPuzzle(req, res) {
     const db = dbConnection.db(dbName);
 
     const data = req.body;
-    console.log("Puzzles->Create", req.body)
 
     const { puzzles } = getDatabaseCollections(db, data);
 
-    // console.log("create puzzle with data", data);
     data.numberOfSolvedPieces = 0;
     data.dateCreated = new Date();
     data.elapsedTime = 0;
 
     const puzzleDBResponse = await puzzles.insertOne(data);
-    // console.log("puzzleDBResponse", puzzleDBResponse.ops[0]);
-    // console.log("piecesDBResponse", piecesDBResponse.ops);
 
-    res.status(200).send({
-      ...puzzleDBResponse.ops[0],
-      ...data,
-    });
+    res.status(200).send({ message: "ok" });
   } catch (e) {
+    console.error("createPuzzle error", e)
     res.status(500).send(e);
   }
 }

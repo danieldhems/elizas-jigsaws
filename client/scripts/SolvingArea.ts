@@ -38,6 +38,8 @@ export default class SolvingArea {
             this.playBoundary.offsetWidth / 2 - this.width / 2
         );
 
+        this.element.style.pointerEvents = "none";
+
         this.render()
     }
 

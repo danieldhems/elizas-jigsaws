@@ -565,15 +565,12 @@ export default class PuzzlyCreator {
       .then((response) => response.json())
       .then(
         function (response: any) {
-          const puzzleId = response.id;
-
-          Utils.insertUrlParam("puzzleId", puzzleId);
+          Utils.insertUrlParam("puzzleId", data.id);
 
           this.newPuzzleForm.style.display = "none";
 
-          window.Puzzly = new Puzzly(puzzleId, {
+          window.Puzzly = new Puzzly(data.id, {
             ...data,
-            id: response.id,
             pieces: mappedPieces,
             previewPath: response.previewPath,
             puzzleImagePath,

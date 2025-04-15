@@ -1,6 +1,6 @@
 import BaseMovable from "./BaseMovable";
 import Puzzly from "./Puzzly";
-import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN, PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE } from "./constants";
+import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN } from "./constants";
 import { InstanceTypes } from "./types";
 import Utils from "./utils";
 
@@ -15,15 +15,28 @@ export default class PlayBoundaryMovable extends BaseMovable {
     super(puzzly);
 
     this.element = window.Puzzly.playBoundary as HTMLDivElement;
-    this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
     this.stage = puzzly.stage as HTMLDivElement;
     this.puzzleWidth = puzzly.boardWidth;
     this.puzzleHeight = puzzly.boardHeight;
     window.Puzzly.PlayBoundaryMovable = this;
+    
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+
+    this.element.addEventListener("mousedown", this.onMouseDown);
+    this.element.addEventListener("mousemove", this.onMouseMove);
 
     this.init();
-  }
 
+    window.addEventListener(
+      EVENT_TYPES.DRAGANDSELECT_ACTIVE,
+      (event: CustomEvent) => {
+        this.isDragAndSelectActive = event.detail;
+      }
+    );
+  }
+  
   init() {
     this.setSize();
     window.addEventListener("resize", this.reCenter.bind(this));
@@ -102,11 +115,14 @@ export default class PlayBoundaryMovable extends BaseMovable {
       // TODO: Is this needed?
       this.active = true;
       super.onPickup(event);
+
+      this.element.addEventListener("mousemove", this.onMouseMove);
+      this.element.addEventListener("mouseup", this.onMouseUp);
     }
   }
 
   onMouseMove(event: MouseEvent) {
-    if (this.active && !this.dragAndSelectActive) {
+    if (this.active && !this.isDragAndSelectActive) {
       let newPosTop, newPosLeft;
 
       // this.shouldConstrainViewport()
@@ -114,9 +130,15 @@ export default class PlayBoundaryMovable extends BaseMovable {
       newPosTop = event.clientY - this.diffY;
       newPosLeft = event.clientX - this.diffX;
 
-
       this.element.style.top = newPosTop + "px";
       this.element.style.left = newPosLeft + "px";
+    }
+  }
+
+  onMouseUp() {
+    if(this.active) {
+      this.element.removeEventListener('mousemove', this.onMouseMove);
+      this.active = false;
     }
   }
 

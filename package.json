@@ -28,7 +28,7 @@
     "gm": "^1.21.1",
     "method-override": "^2.3.7",
     "mongod": "^2.0.0",
-    "mongodb": "^3.7.3",
+    "mongodb": "^6.13.0",
     "multer": "^1.1.0",
     "nanoid": "^5.0.9",
     "nodemon": "^2.0.7",

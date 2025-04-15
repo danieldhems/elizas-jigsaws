@@ -4,7 +4,7 @@ import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
 import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
-import { BoundingBox, GroupMovableElement, MovableElement, SingleMovableSaveState } from "./types";
+import { BoundingBox, MovableElement, SingleMovableSaveState } from "./types";
 import Utils from "./utils";
 
 class DragAndSelect extends BaseMovable {
@@ -15,7 +15,7 @@ class DragAndSelect extends BaseMovable {
   selectedPiecesContainer: HTMLDivElement | null;
   zoomLevel: number;
   // TODO: This should be an array of SingleMovable instances, not HTML elements.
-  selectedPieces: HTMLDivElement[];
+  selectedPieces: SingleMovable[];
   selectedGroups: GroupMovable[];
   lastPosition: {
     top: number;
@@ -195,40 +195,30 @@ class DragAndSelect extends BaseMovable {
     document.body.style.cursor = state === 1 ? "crosshair" : "default";
   }
 
-  getCollidingPieces(rect: BoundingBox): MovableElement[] {
-    return Array.from(document.querySelectorAll(".puzzle-piece:not(.grouped)")).filter((el) => {
-      return Utils.hasCollision(el.getBoundingClientRect(), rect);
-    }) as MovableElement[];
+  getCollidingPieces(rect: BoundingBox): SingleMovable[] {
+    // Utils.drawBox(rect)
+
+    console.log("zoom level", window.Zoom.zoomLevel)
+
+    return window.Puzzly.getSingleInstances().filter((piece: SingleMovable) => {
+      // Utils.drawBox(piece.element.getBoundingClientRect(), "red");
+      return Utils.hasCollision(piece.element.getBoundingClientRect(), rect);
+    });
   }
 
   getCollidingGroups(rect: BoundingBox): GroupMovable[] {
-    const stagePosition = Utils.getStyleBoundingBox(window.Puzzly.playBoundary as HTMLDivElement);
-
-    const groupContainers = Array.from(document.querySelectorAll(".group-container"));
-
     const groups: GroupMovable[] = [];
 
-    groupContainers.forEach((groupContainer: GroupMovableElement) => {
-      const groupInstance = window.Puzzly.getGroupInstanceById(groupContainer.dataset.id)
-      const groupPosition = Utils.getStyleBoundingBox(groupInstance.element);
+    // Utils.drawBox(rect);
 
-      groupPosition.top += stagePosition.top;
-      groupPosition.right += stagePosition.left;
-      groupPosition.bottom += stagePosition.top;
-      groupPosition.left += stagePosition.left;
-
-      for (const piece of groupInstance.piecesInGroup) {
-        const pieceRect = {
-          top: groupPosition.top + piece.pieceData.puzzleY,
-          left: groupPosition.left + piece.pieceData.puzzleX,
-          right: groupPosition.left + piece.pieceData.puzzleX + piece.pieceData.width,
-          bottom: groupPosition.top + piece.pieceData.puzzleY + piece.pieceData.height,
-        };
-
-        // Utils.drawBox(pieceRect, 'blue');
-
+    window.Puzzly.getGroupInstances().forEach((group: GroupMovable) => {
+      console.log("checking group for colliding piece", group)
+      for (const piece of group.piecesInGroup) {
+        const pieceRect = piece.element.getBoundingClientRect();
+        Utils.drawBox(pieceRect, "red");
+        
         if (Utils.hasCollision(pieceRect, rect)) {
-          groups.push(groupInstance);
+          groups.push(group);
           break;
         }
       }
@@ -252,7 +242,7 @@ class DragAndSelect extends BaseMovable {
     });
   }
 
-  getBoundingBoxForDragContainer(pieces: MovableElement[], groups: GroupMovable[]) {
+  getBoundingBoxForDragContainer(pieces: SingleMovable[], groups: GroupMovable[]) {
     let minX = 0,
       minY = 0,
       maxX = 0,
@@ -261,7 +251,7 @@ class DragAndSelect extends BaseMovable {
     for (let i = 0, l = pieces.length; i < l; i++) {
       const piece = pieces[i];
 
-      const box = Utils.getStyleBoundingBox(piece);
+      const box = Utils.getStyleBoundingBox(piece.element);
 
       const left = box.left;
       const top = box.top;
@@ -326,7 +316,7 @@ class DragAndSelect extends BaseMovable {
     };
   }
 
-  getContainerForMove(pieces: MovableElement[], selectedGroups: GroupMovable[]) {
+  getContainerForMove(pieces: SingleMovable[], selectedGroups: GroupMovable[]) {
     const box = this.getBoundingBoxForDragContainer(pieces, selectedGroups);
 
     const b = document.createElement("div");
@@ -339,9 +329,10 @@ class DragAndSelect extends BaseMovable {
     b.style.opacity = ".5";
 
     pieces.forEach((p) => {
-      p.style.left = p.offsetLeft - box.left + "px";
-      p.style.top = p.offsetTop - box.top + "px";
-      b.appendChild(p);
+      const element = p.element;
+      element.style.left = element.offsetLeft - box.left + "px";
+      element.style.top = element.offsetTop - box.top + "px";
+      b.appendChild(element);
     });
 
     selectedGroups.forEach((group: GroupMovable) => {
@@ -353,18 +344,18 @@ class DragAndSelect extends BaseMovable {
     return b;
   }
 
-  dropPieces(pieces: MovableElement[]) {
+  dropPieces(pieces: SingleMovable[]) {
     // Put pieces back in play area
     pieces.forEach((p) => {
-      p.style.left =
-        p.offsetLeft +
+      p.element.style.left =
+        p.element.offsetLeft +
         parseInt((this.selectedPiecesContainer as HTMLDivElement).style.left) +
         "px";
-      p.style.top =
-        p.offsetTop +
+      p.element.style.top =
+        p.element.offsetTop +
         parseInt((this.selectedPiecesContainer as HTMLDivElement).style.top) +
         "px";
-      (this.piecesContainer as HTMLDivElement).appendChild(p);
+      (this.piecesContainer as HTMLDivElement).appendChild(p.element);
     });
   }
 
@@ -386,6 +377,8 @@ class DragAndSelect extends BaseMovable {
   onMouseDown(e: MouseEvent) {
     e.preventDefault();
 
+    Utils.removeAllBoundingBoxIndicators();
+
     this.hasMouseReleased = false;
     this.isMouseDown = true;
     this.isRightClick = e.which === 3;
@@ -395,15 +388,17 @@ class DragAndSelect extends BaseMovable {
 
     this.touchStartTime = Date.now();
 
-    const pieceEl = Utils.getPuzzlePieceElementFromEvent(e);
-    console.log("pieceEl", pieceEl)
+    const tagName = (e.target as HTMLElement).tagName;
 
-    if(!pieceEl) {
-      this.stopDrag()
+    if((this.selectedPieces.length || this.selectedGroups.length) && tagName !== "use") {
+      // If one or more pieces or groups have been selected and empty space has been clicked,
+      // stop the drag
+      this.stopDrag();
+      return;
     };
 
     if (
-      !pieceEl &&
+      tagName !== "use" &&
       !this.isRightClick &&
       !this.selectedPiecesContainer
     ) {
@@ -444,14 +439,14 @@ class DragAndSelect extends BaseMovable {
       );
     }
 
+    this.dragAndSelectActive = false;
+
     window.dispatchEvent(
       new CustomEvent(EVENT_TYPES.DRAGANDSELECT_ACTIVE, { detail: false })
     );
   }
 
   onSelectedPiecesContainerMouseDown(event: MouseEvent) {
-    console.log('onSelectedPiecesContainerMouseDown -> event target', event.target)
-    console.log('onSelectedPiecesContainerMouseDown -> event currentTarget', event.currentTarget)
     if (this.selectedPiecesContainer) {
       this.diffX =
         event.clientX - parseInt(this.selectedPiecesContainer.style.left) * this.zoomLevel;
@@ -511,7 +506,8 @@ class DragAndSelect extends BaseMovable {
 
     if (this.drawBoxActive) {
       // Selection box has been drawn
-      const dragBox1 = Utils.getStyleBoundingBox(this.drawBox);
+      // const dragBox1 = Utils.getStyleBoundingBox(this.drawBox);
+      const dragBox1 = this.drawBox.getBoundingClientRect();
 
       this.selectedPieces = this.getCollidingPieces(dragBox1);
       this.selectedGroups = this.getCollidingGroups(dragBox1);
@@ -566,7 +562,7 @@ class DragAndSelect extends BaseMovable {
   addPiecesToPocket(pocket: HTMLDivElement) {
     for (let i = 0, l = this.selectedPieces.length; i < l; i++) {
       const pieceInstance = this.getMovableInstanceFromElement(
-        this.selectedPieces[i]
+        this.selectedPieces[i].element
       );
       this.Pockets.addSingleToPocket(pocket, pieceInstance as SingleMovable);
     }
@@ -587,8 +583,8 @@ class DragAndSelect extends BaseMovable {
         this.dropPieces(this.selectedPieces);
         this.dropGroups(this.selectedGroups);
 
-        const pieces = Array.from(this.selectedPieces).map((element: MovableElement) => {
-          return this.getMovableInstanceFromElement(element);
+        const pieces = Array.from(this.selectedPieces).map((piece: SingleMovable) => {
+          return this.getMovableInstanceFromElement(piece.element);
         });
 
         const pieceDataForSave: SingleMovableSaveState[] = [];
@@ -667,12 +663,7 @@ class DragAndSelect extends BaseMovable {
 
   save() {
     // TODO: Still would prefer to handle saving in a cleaner way
-    const data = this.selectedPieces.map((element) => {
-      const pieceInstance = this.getMovableInstanceFromElement(
-        element
-      ) as SingleMovable;
-      return pieceInstance.getDataForSave();
-    });
+    const data = this.selectedPieces.map((piece) => piece.getDataForSave());
     window.dispatchEvent(new CustomEvent(EVENT_TYPES.SAVE, { detail: data }));
   }
 }

@@ -1,6 +1,5 @@
-import { EVENT_TYPES, SCREEN_MARGIN, ZOOM_INTERVALS } from "./constants";
-import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
+import { EVENT_TYPES, ZOOM_INTERVALS } from "./constants";
 import Puzzly from "./Puzzly";
 
 export enum ZoomTypes {
@@ -29,11 +28,11 @@ export default class Zoom extends BaseMovable {
     window.Zoom = this;
     window.Puzzly.PlayBoundaryMovable.reCenter();
 
-    window.addEventListener("keydown", this.handleNormalZoom.bind(this));
+    window.addEventListener("keydown", this.handleKeyboardZoom.bind(this));
     window.addEventListener("dblclick", this.handlePointerZoom.bind(this));
   }
 
-  handleNormalZoom(event: KeyboardEvent) {
+  handleKeyboardZoom(event: KeyboardEvent) {
     this.prevZoomLevel = this.zoomLevel;
     this.zoomType = ZoomTypes.Normal;
 

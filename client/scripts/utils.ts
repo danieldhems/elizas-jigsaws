@@ -6,11 +6,10 @@ import {
 import {
   BoundingBox,
   ConnectorType,
-  DomBox,
   DomBoxWithoutDimensions,
   JigsawPieceData,
   MovableElement,
-  SideNames,
+  SideNames
 } from "./types";
 
 const Utils = {
@@ -724,6 +723,7 @@ const Utils = {
   },
 
   removeAllBoundingBoxIndicators() {
+    
     const elements = document.querySelectorAll(".bounding-box-indicator");
     if (elements.length > 0) {
       elements.forEach((el) => el.remove());
@@ -842,25 +842,25 @@ const Utils = {
     }
   },
 
-  getGroupContainerFromElement(element: Element, groupId: string): MovableElement | undefined {
+  getGroupContainerFromElement(element: Element): MovableElement | undefined {
     if (!element) {
       return;
     }
 
-    if (element.tagName.toLowerCase() === 'div' && element.classList.contains('group-container') && element.id === `group-container-${groupId}`) {
+    if (element.tagName.toLowerCase() === 'div' && element.classList.contains('group-container')) {
       return element as MovableElement;
     } else if (element.tagName.toLowerCase() === "body") {
       return;
     } else {
-      return Utils.getGroupContainerFromElement(element.parentNode as Element, groupId);
+      return Utils.getGroupContainerFromElement(element.parentNode as Element);
     }
   },
 
-  getGroupContainerElementFromEvent(e: MouseEvent, groupId: string): MovableElement | undefined {
+  getGroupContainerElementFromEvent(e: MouseEvent): MovableElement | undefined {
     const eventTarget = e.target;
 
     if (eventTarget instanceof Element) {
-      return Utils.getGroupContainerFromElement(eventTarget, groupId);
+      return Utils.getGroupContainerFromElement(eventTarget);
     }
   },
 

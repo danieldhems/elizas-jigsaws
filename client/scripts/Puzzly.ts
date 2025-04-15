@@ -1,31 +1,31 @@
-import SingleMovable from "./SingleMovable";
 import GroupMovable from "./GroupMovable";
+import GroupOperations from "./GroupOperations";
+import PieceLayouts from "./PieceLayouts";
+import PlayBoundaryMovable from "./PlayBoundaryMovable";
+import { PocketMovable } from "./PocketMovable";
 import Pockets from "./Pockets";
-import DragAndSelect from "./dragAndSelect";
+import SingleMovable from "./SingleMovable";
+import SolvedPuzzlePreview from "./SolvedPuzzlePreview";
+import SolvingArea from "./SolvingArea";
+import Sounds from "./Sounds";
+import loadAssets from "./assetLoader";
 import {
   CONNECTOR_TOLERANCE_AMOUNT,
   ELEMENT_IDS,
   FLOAT_TOLERANCE_AMOUNT,
   SHADOW_OFFSET_RATIO,
 } from "./constants";
-import { PocketMovable } from "./PocketMovable";
+import DragAndSelect from "./dragAndSelect";
 import PersistenceOperations from "./persistence";
-import Zoom from "./zoom";
-import PlayBoundaryMovable from "./PlayBoundaryMovable";
-import SolvedPuzzlePreview from "./SolvedPuzzlePreview";
+import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 import {
   GroupData,
   JigsawPieceData,
   MovableElement,
   SolvedPuzzlePreviewType,
 } from "./types";
-import PieceLayouts from "./PieceLayouts";
-import loadAssets from "./assetLoader";
-import Sounds from "./Sounds";
-import SolvingArea from "./SolvingArea";
-import GroupOperations from "./GroupOperations";
 import Utils from "./utils";
-import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
+import Zoom from "./zoom";
 /**
  * Puzzly
  *
@@ -181,7 +181,7 @@ export default class Puzzly {
     this.SolvingArea = new SolvingArea(this.boardWidth, this.boardHeight, this.puzzleImage.src)
     this.Zoom = new Zoom(this);
     this.Pockets = new Pockets(this);
-    this.DragAndSelect = new DragAndSelect(this);
+    // this.DragAndSelect = new DragAndSelect(this);
     this.SolvedPuzzlePreview = new SolvedPuzzlePreview(this);
     this.PocketMovable = new PocketMovable(this);
     this.PieceLayouts = new PieceLayouts(this);
@@ -333,6 +333,14 @@ export default class Puzzly {
         return instance.id === id
       }
     ) as GroupMovable;
+  }
+
+  getSingleInstances(): SingleMovable[] {
+    return this.pieceInstances;
+  }
+
+  getGroupInstances(): GroupMovable[] {
+    return this.groupInstances;
   }
 
   // Question: Do we need this?

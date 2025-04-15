@@ -29,7 +29,6 @@ app.use(bodyParser.json({ limit: "50mb" }));
 
 // Configure API endpoints
 app.use("/api/puzzle", puzzleApi.router);
-
 app.use("/api/upload", upload);
 app.use("/api/uploadPuzzleSprite", uploadPuzzleSprite);
 app.use("/api/makePuzzleImage", makePuzzleImage);

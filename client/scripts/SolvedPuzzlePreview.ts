@@ -3,6 +3,7 @@ import { SolvedPuzzlePreviewType } from "./types";
 
 export default class SolvedPuzzlePreview {
   fullImageViewerEl: HTMLDivElement | null;
+  backgroundElement: HTMLDivElement | null;
   controlElement: HTMLSpanElement | null;
   showBtn: HTMLSpanElement | null;
   hideBtn: HTMLSpanElement | null;
@@ -21,6 +22,9 @@ export default class SolvedPuzzlePreview {
 
     this.puzzleImagePath = puzzleImagePath;
 
+    this.backgroundElement = document.getElementById(
+      "solved-background"
+    ) as HTMLDivElement;
     this.fullImageViewerEl = document.getElementById(
       "solved-preview"
     ) as HTMLDivElement;
@@ -31,12 +35,12 @@ export default class SolvedPuzzlePreview {
   setupFullImagePreviewer() {
     if (this.fullImageViewerEl) {
       this.fullImageViewerEl.style.background = `url(${this.puzzleImagePath}) no-repeat`;
+      (this.fullImageViewerEl as HTMLDivElement).classList.add("js-hidden");
     }
 
-    if (!this.isControlAvailable) {
-      (this.fullImageViewerEl as HTMLDivElement).style.opacity = 0.2 + "";
-    } else {
-      (this.fullImageViewerEl as HTMLDivElement).style.display = "none";
+    if (this.backgroundElement) {
+      this.backgroundElement.style.background = `url(${this.puzzleImagePath}) no-repeat`;
+      (this.backgroundElement as HTMLDivElement).style.opacity = 0.2 + "";
     }
 
     if (this.controlElement) {
@@ -53,12 +57,14 @@ export default class SolvedPuzzlePreview {
 
   togglePreviewer() {
     if (this.isPreviewActive) {
-      (this.fullImageViewerEl as HTMLDivElement).style.display = "none";
+      // Hide preview image
+      (this.fullImageViewerEl as HTMLDivElement).classList.add("js-hidden");
       (this.showBtn as HTMLSpanElement).style.display = "block";
-      (this.hideBtn as HTMLSpanElement).style.display = "none";
+      (this.hideBtn as HTMLSpanElement).style.opacity = "none";
       this.isPreviewActive = false;
     } else {
-      (this.fullImageViewerEl as HTMLDivElement).style.display = "block";
+      // Show preview image
+      (this.fullImageViewerEl as HTMLDivElement).classList.remove("js-hidden");
       (this.showBtn as HTMLSpanElement).style.display = "none";
       (this.hideBtn as HTMLSpanElement).style.display = "block";
       this.isPreviewActive = true;

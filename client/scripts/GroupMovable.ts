@@ -1,17 +1,17 @@
-import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, SHADOW_OFFSET_RATIO } from "./constants";
-import Utils from "./utils";
 import BaseMovable from "./BaseMovable";
+import { checkConnections } from "./checkConnections";
+import { EVENT_TYPES } from "./constants";
 import SingleMovable from "./SingleMovable";
+import { getSvg } from "./svg";
 import {
+  Connection,
+  GroupMovableSaveState,
   InstanceTypes,
   JigsawPieceData,
   MovableElement,
-  GroupMovableSaveState,
   TopLeftCoordinate,
-  Connection,
 } from "./types";
-import { getSvg } from "./svg";
+import Utils from "./utils";
 
 export default class GroupMovable extends BaseMovable {
   instanceType = InstanceTypes.GroupMovable;
@@ -299,7 +299,7 @@ export default class GroupMovable extends BaseMovable {
       Utils.removeAllBoundingBoxIndicators();
       if (
         !this.isSolved &&
-        !window.Puzzly.DragAndSelect.dragAndSelectActive
+        !window.Puzzly.DragAndSelect?.dragAndSelectActive
       ) {
         // console.log("group movable: element", this.element);
         this.active = true;
