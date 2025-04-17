@@ -448,6 +448,8 @@ export default class SingleMovable extends BaseMovable {
       this.element.addEventListener('mousemove', this.onMouseMove);
       this.element.addEventListener('mouseup', this.onMouseUp);
       this.element.addEventListener('mouseout', this.onMouseOut);
+
+      this.active = true;
     }
   }
 
@@ -456,16 +458,16 @@ export default class SingleMovable extends BaseMovable {
     this.element.removeEventListener('mouseup', this.onMouseUp);
     this.element.removeEventListener('mouseout', this.onMouseOut);
 
-    if (this.isOutOfBounds(event)) {
-      this.resetPosition();
-    } else {
-      this.setLastPosition();
-      this.save();
-    }
+    if(this.active) {
+      if (this.isOutOfBounds(event)) {
+        this.resetPosition();
+      } else {
+        this.setLastPosition();
+        this.save();
+      }
 
-    window.dispatchEvent(
-      new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
-    );
+      this.active = false;
+    }
   }
 
   onMouseMove(event: MouseEvent) {
@@ -529,6 +531,8 @@ export default class SingleMovable extends BaseMovable {
         this.save();
       }
     }
+
+    this.active = false;
   }
 
   setLastPosition() {

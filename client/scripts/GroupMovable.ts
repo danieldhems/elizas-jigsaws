@@ -124,10 +124,6 @@ export default class GroupMovable extends BaseMovable {
     this.onMouseOut = this.onMouseOut.bind(this);
 
     this.element.addEventListener("mousedown", this.onMouseDown.bind(this));
-    this.element.addEventListener(
-      EVENT_TYPES.MOVE_FINISHED,
-      this.onMoveFinished.bind(this)
-    );
   }
 
   isElementOwned(element: MovableElement) {
@@ -331,11 +327,16 @@ export default class GroupMovable extends BaseMovable {
   onMouseOut(event: MouseEvent) {
     const relatedTarget = (event.relatedTarget as HTMLElement);
     if(
-      relatedTarget.id === ELEMENT_IDS.PLAY_BOUNDARY
-      || relatedTarget.id === ELEMENT_IDS.POCKETS
-      || relatedTarget.id === ELEMENT_IDS.SOLVED_PUZZLE_AREA
-    )
-    this.dropGroup();
+      this.active &&
+      (
+        relatedTarget.id === ELEMENT_IDS.PLAY_BOUNDARY
+        || relatedTarget.id === ELEMENT_IDS.POCKETS
+        || relatedTarget.id === ELEMENT_IDS.SOLVED_PUZZLE_AREA
+      )
+    ) {
+      this.dropGroup();
+      this.active = false;
+    }
   }
 
   dropGroup() {
@@ -349,15 +350,11 @@ export default class GroupMovable extends BaseMovable {
       this.setLastPosition();
       this.save();
     }
-
-    window.dispatchEvent(
-      new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
-    );
   }
 
   onMouseMove(event: MouseEvent) {
     let newPosTop, newPosLeft;
-
+    
     newPosTop =
       event.clientY / window.Zoom.zoomLevel -
       this.diffY / window.Zoom.zoomLevel;
@@ -418,23 +415,12 @@ export default class GroupMovable extends BaseMovable {
         this.setLastPosition();
         this.save();
       }
-
-      window.dispatchEvent(
-        new CustomEvent(EVENT_TYPES.MOVE_FINISHED, { detail: event })
-      );
     }
+
+    this.active = false;
 
     this.element.removeEventListener('mousemove', this.onMouseMove);
     this.element.removeEventListener('mouseup', this.onMouseUp);
-  }
-
-  onMoveFinished() {
-    // console.log("GroupMovable onMoveFinished", this);
-    if (this.active && !this.connection) {
-      this.setLastPosition();
-      this.save();
-      this.active = false;
-    }
   }
 
   getCollisionCandidatesInGroup(): SingleMovable[] {
