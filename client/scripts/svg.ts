@@ -4,6 +4,7 @@ import { JigsawPieceData, SkeletonPiece } from "./types";
 
 export function getSvg(
     id: string,
+    groupId: string,
     pieces: JigsawPieceData[],
     imagePath: string,
     options: {
@@ -58,7 +59,7 @@ export function getSvg(
         pathElementsForDefs += `<path id="path-${info.shapeId}" d="${info.pathString}"></path>`;
         useElementsForClip += `<use href="#path-${info.shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
         useElementsForShadow += `<use id="shadow-${info.shapeId}" href="#path-${info.shapeId}" x="${xPosition + shadowOffset}" y="${yPosition + shadowOffset}" fill="${SVG_SHADOW_COLOR}"></use>`
-        useElementsForStroke += `<use id="path-${info.shapeId}" href="#path-${info.shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${info.index}"></use>`
+        useElementsForStroke += `<use id="path-${info.shapeId}"   href="#path-${info.shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${info.index}"></use>`
 
     }).join("");
 

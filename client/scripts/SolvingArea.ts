@@ -97,6 +97,7 @@ export default class SolvingArea {
 
         const svgElementTemplate = getSvg(
             `svg-${Date.now()}`,
+            "",
             this.pieces,
             this.imagePath,
             svgOptions,

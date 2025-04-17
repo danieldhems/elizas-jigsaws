@@ -1,6 +1,6 @@
-import { ConnectorType, MovableElement } from "./types";
-import Utils from "./utils";
 import SingleMovable from "./SingleMovable";
+import { MovableElement } from "./types";
+import Utils from "./utils";
 
 export interface GroupOperationsProperties {
   width: number;
@@ -158,14 +158,9 @@ export default class GroupOperations {
 
   createGroupContainer(
     position: { top: number; left: number },
-    groupId?: string
   ): MovableElement {
     const container = document.createElement("div");
     container.classList.add("group-container");
-
-    if (groupId) {
-      container.id = `group-container-${groupId}`;
-    }
 
     container.style.top = position?.top + "px";
     container.style.left = position?.left + "px";

@@ -214,6 +214,7 @@ export default class SingleMovable extends BaseMovable {
 
     el.innerHTML = getSvg(
       `piece-${this.pieceData.index}`,
+      "",
       [this.pieceData],
       puzzleImagePath,
       svgOptions,

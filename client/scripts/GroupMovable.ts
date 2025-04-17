@@ -1,6 +1,6 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES } from "./constants";
+import { ELEMENT_IDS, EVENT_TYPES } from "./constants";
 import SingleMovable from "./SingleMovable";
 import { getSvg } from "./svg";
 import {
@@ -271,6 +271,7 @@ export default class GroupMovable extends BaseMovable {
 
     const svgElementTemplate = getSvg(
       `${Date.now()}`,
+      this.id,
       orderedPieces,
       this.puzzleImage.src,
       svgOptions,
@@ -328,6 +329,16 @@ export default class GroupMovable extends BaseMovable {
   }
 
   onMouseOut(event: MouseEvent) {
+    const relatedTarget = (event.relatedTarget as HTMLElement);
+    if(
+      relatedTarget.id === ELEMENT_IDS.PLAY_BOUNDARY
+      || relatedTarget.id === ELEMENT_IDS.POCKETS
+      || relatedTarget.id === ELEMENT_IDS.SOLVED_PUZZLE_AREA
+    )
+    this.dropGroup();
+  }
+
+  dropGroup() {
     this.element.removeEventListener('mousemove', this.onMouseMove);
     this.element.removeEventListener('mouseup', this.onMouseUp);
     this.element.removeEventListener('mouseout', this.onMouseOut);
@@ -422,6 +433,7 @@ export default class GroupMovable extends BaseMovable {
     if (this.active && !this.connection) {
       this.setLastPosition();
       this.save();
+      this.active = false;
     }
   }
 
