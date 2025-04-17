@@ -163,6 +163,7 @@ export default class GroupMovable extends BaseMovable {
     targetPiece.setGroupIdAcrossInstance(this.id);
 
     this.element = groupContainer;
+    window.Puzzly.keepOnTop(this.element);
 
     this.setLastPosition(groupInitialPosition);
   }
