@@ -13,6 +13,7 @@ import {
   CONNECTOR_TOLERANCE_AMOUNT,
   ELEMENT_IDS,
   FLOAT_TOLERANCE_AMOUNT,
+  INITIAL_ZINDEX_FOR_PIECES,
   SHADOW_OFFSET_RATIO,
 } from "./constants";
 import DragAndSelect from "./dragAndSelect";
@@ -139,7 +140,7 @@ export default class Puzzly {
 
     this.noDispersal = config?.debugOptions?.noDispersal;
 
-    this.currentZIndex = config.zIndex || 3;
+    this.currentZIndex = config.zIndex || INITIAL_ZINDEX_FOR_PIECES;
 
     this.solvedGroupId = 1111;
 

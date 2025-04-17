@@ -43,6 +43,8 @@ export const PUZZLE_SIZE_SQUARE_IMAGE = 40;
  * LAYOUT
  */
 
+export const INITIAL_ZINDEX_FOR_PIECES = 3;
+
 // How much of the viewport a given element occupies, expressed as a percentage of the shorter side
 // (Depending on the viewport size, this value will be a percentage of either window.innerWidth or window.innerHeight)
 export const PLAY_BOUNDARY_SIZE_IN_VIEWPORT_PERCENTAGE = 60;

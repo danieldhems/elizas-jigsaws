@@ -1,8 +1,9 @@
+import { INITIAL_ZINDEX_FOR_PIECES } from './constants';
 import Puzzly from "./Puzzly";
 import { SolvedPuzzlePreviewType } from "./types";
 
 export default class SolvedPuzzlePreview {
-  fullImageViewerEl: HTMLDivElement | null;
+  fullImageViewerEl: HTMLDivElement;
   backgroundElement: HTMLDivElement | null;
   controlElement: HTMLSpanElement | null;
   showBtn: HTMLSpanElement | null;
@@ -61,12 +62,14 @@ export default class SolvedPuzzlePreview {
       (this.fullImageViewerEl as HTMLDivElement).classList.add("js-hidden");
       (this.showBtn as HTMLSpanElement).classList.remove("js-hidden");
       (this.hideBtn as HTMLSpanElement).classList.add("js-hidden");
+      this.fullImageViewerEl.style.zIndex = INITIAL_ZINDEX_FOR_PIECES + "";
       this.isPreviewActive = false;
     } else {
       // Show preview image
       (this.fullImageViewerEl as HTMLDivElement).classList.remove("js-hidden");
       (this.showBtn as HTMLSpanElement).classList.add("js-hidden");
       (this.hideBtn as HTMLSpanElement).classList.remove("js-hidden");
+      this.fullImageViewerEl.style.zIndex = window.Puzzly.currentZIndex + 1 + "";
       this.isPreviewActive = true;
     }
   }
