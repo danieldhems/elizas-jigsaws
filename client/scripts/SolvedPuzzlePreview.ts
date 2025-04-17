@@ -59,14 +59,14 @@ export default class SolvedPuzzlePreview {
     if (this.isPreviewActive) {
       // Hide preview image
       (this.fullImageViewerEl as HTMLDivElement).classList.add("js-hidden");
-      (this.showBtn as HTMLSpanElement).style.display = "block";
-      (this.hideBtn as HTMLSpanElement).style.opacity = "none";
+      (this.showBtn as HTMLSpanElement).classList.remove("js-hidden");
+      (this.hideBtn as HTMLSpanElement).classList.add("js-hidden");
       this.isPreviewActive = false;
     } else {
       // Show preview image
       (this.fullImageViewerEl as HTMLDivElement).classList.remove("js-hidden");
-      (this.showBtn as HTMLSpanElement).style.display = "none";
-      (this.hideBtn as HTMLSpanElement).style.display = "block";
+      (this.showBtn as HTMLSpanElement).classList.add("js-hidden");
+      (this.hideBtn as HTMLSpanElement).classList.remove("js-hidden");
       this.isPreviewActive = true;
     }
   }

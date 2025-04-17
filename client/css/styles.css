@@ -389,10 +389,6 @@ label, input[type=checkbox] {
     left: -9999px;
 }
 
-#preview-hide {
-    display: none;
-}
-
 #inner-pieces-on {
     display: none;
 }
