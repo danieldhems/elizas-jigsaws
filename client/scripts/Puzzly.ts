@@ -14,6 +14,7 @@ import {
   ELEMENT_IDS,
   FLOAT_TOLERANCE_AMOUNT,
   INITIAL_ZINDEX_FOR_PIECES,
+  QUERY_STRING_PARAM_SHOW_CONNECTOR_BOXES,
   SHADOW_OFFSET_RATIO,
 } from "./constants";
 import DragAndSelect from "./dragAndSelect";
@@ -115,7 +116,6 @@ export default class Puzzly {
       showDebugInfo: false,
       piecesPerSideHorizontal: config.numberOfPiecesHorizontal,
       piecesPerSideVertical: config.numberOfPiecesVertical,
-      drawSquares: false,
     });
 
     window.Puzzly = this;
@@ -205,7 +205,8 @@ export default class Puzzly {
       })
     }
 
-    const showConnectorBoxes = Utils.getQueryStringValue('showConnectorBoxes');
+    const showConnectorBoxes = Utils.getQueryStringValue(QUERY_STRING_PARAM_SHOW_CONNECTOR_BOXES);
+    console.log("showConnectorBoxes", showConnectorBoxes)
     if (!!showConnectorBoxes) {
       this.showConnectorBoxes = true;
     }

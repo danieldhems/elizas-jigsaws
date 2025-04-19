@@ -79,6 +79,12 @@ export const LOCAL_STORAGE_PUZZLY_PROGRESS_KEY =
 export const LOCAL_STORAGE_PUZZLY_LAST_SAVE_KEY =
   "LOCAL_STORAGE_PUZZLY_LAST_SAVE_KEY";
 
+/**
+ * Query string params
+ */
+
+export const QUERY_STRING_PARAM_SHOW_CONNECTOR_BOXES = "showConnectorBoxes";
+
 // HTML classes
 // TODO: Check whether array is still necessary for this
 export const PUZZLE_PIECE_CLASSES = ["puzzle-piece"];

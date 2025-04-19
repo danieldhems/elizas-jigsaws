@@ -1,7 +1,6 @@
-import { SHAPE_TYPES } from "./constants.js";
 import { PathParts } from "./types.js";
-import Utils from "./utils.js";
 
+// TODO: No need for this to be a class
 export default class PathOperations {
   // Example path
   // M 37 37
