@@ -21,7 +21,10 @@ function createAccount(req, res) {
                 const users = db.collection("users");
 
                 const result = await users.insertOne({ email, password });
-                console.log("user result", result)
+                // console.log("user result", result.ops)
+                res.status(200).send({
+                    message: "ok"
+                })
             }
         });
     } catch (e) {

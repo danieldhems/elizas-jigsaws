@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliza's Jigsaws - Create your account</title>
+    <title>Eliza's Jigsaws - Log in</title>
     <style>
         .js-hidden { 
             display: none;
@@ -11,7 +11,7 @@
     </style>
 </head>
 <body>
-    <h1>Create your account</h1>
+    <h1>Log in</h1>
     <form>
         <div class="form-input-row">
             <label for="name">Email address</label>
@@ -24,12 +24,11 @@
         <div class="form-input-row">
             <input id="submit-btn" type="submit" />
         </div>
-        <a href="/login" id="login-link" class="js-hidden">Log in</a>
+        <a href="/create-account" id="create-account-link">Create an account</a>
     </form>
 
     <script>
         const submitBtn = document.getElementById("submit-btn");
-        const loginLink = document.getElementById("login-link");
 
         submitBtn.addEventListener("click", async (e) => {
             e.preventDefault();
@@ -42,7 +41,7 @@
                 password: passwordInput.value,
             };
 
-            const request = await fetch("/api/create-account", {
+            const request = await fetch("/api/login", {
                 body: JSON.stringify(data),
                 method: "POST",
                 headers: {
@@ -52,8 +51,7 @@
 
             const result = await request.json();
 
-            console.log("fetch result", result)
-            loginLink.classList.remove("js-hidden");
+            console.log("login result", result);
         })
     </script>
 </body>

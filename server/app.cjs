@@ -1,13 +1,21 @@
 var path = require("path");
 var express = require("express");
+var session = require("express-session");
 var bodyParser = require("body-parser");
 var puzzleApi = require("./api/puzzle.cjs");
 var upload = require("./api/upload.cjs");
 var createAccount = require("./api/create-account.cjs");
+var login = require("./api/login.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
 var app = express();
+
+app.use(session({
+  secret: 'secret',
+  resave: true,
+  saveUninitialized: true,
+}));
 
 app.use(
   "/",
@@ -32,6 +40,7 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use("/api/puzzle", puzzleApi.router);
 app.use("/api/upload", upload);
 app.use("/api/create-account", createAccount);
+app.use("/api/login", login);
 app.use("/api/uploadPuzzleSprite", uploadPuzzleSprite);
 app.use("/api/makePuzzleImage", makePuzzleImage);
 app.use("/api/generator-test", generatorTest);
@@ -44,6 +53,10 @@ app.get("/", function (req, res) {
 
 app.get("/create-account", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));
+});
+
+app.get("/login", function (req, res) {
+  res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
 });
 
 app.get("/gallery", function (req, res) {
