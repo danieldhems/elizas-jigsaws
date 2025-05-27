@@ -1,5 +1,4 @@
 var router = require("express").Router();
-var bcrypt = require("bcrypt");
 
 const assert = require("assert");
 const getDatabaseCollections = require("./getDatabaseCollections.cjs").default;
@@ -10,26 +9,17 @@ const dbName = "puzzly";
 
 let db, collection;
 
-async function createAccount(req, res) {
+async function get(req, res) {
     try {
         dbClient.connect().then(async (client, err) => {
             console.log("conn result", assert.strictEqual(err, undefined))
             if (!err) {
-                const { email, password } = req.body;
-                console.log("form data", email, password)
-
-                var salt = await bcrypt.genSalt();
-                var hashedPassword = await bcrypt.hash(password, salt);
-                console.log("secure password", hashedPassword)
-
                 const db = client.db(dbName);
                 const users = db.collection("users");
 
-                const result = await users.insertOne({ email, password: hashedPassword });
-                console.log("user result", result)
-                res.status(200).send({
-                    message: "ok"
-                })
+                const result = await users.find().toArray();
+                console.log("users found", result.ops)
+                res.status(200).send({ users: result })
             }
         });
     } catch (e) {
@@ -37,6 +27,6 @@ async function createAccount(req, res) {
     }
 }
 
-router.post("/", createAccount);
+router.get("/", get);
 
 module.exports = router;
