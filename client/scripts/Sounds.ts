@@ -17,7 +17,7 @@ export default class Sounds {
     }
 
     this.pieceConnectionSound = new Audio(
-      "./mixkit-plastic-bubble-click-1124.wav"
+      "./assets/mixkit-plastic-bubble-click-1124.wav"
     );
 
     this.soundsEnabled = true;

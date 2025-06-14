@@ -3,7 +3,7 @@ body {
     background-color: #000;
     height: 100%;
     font-size: 1em;
-    background: url('../bg-wood.jpg') no-repeat;
+    background: url('../assets/bg-wood.jpg') no-repeat;
     background-attachment: fixed;
     width: 100%;
     height: 100%;
