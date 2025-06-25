@@ -10,12 +10,20 @@ var login = require("./api/login.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
+const { url } = require("./database.cjs");
 var app = express();
+var MongoDBStore = require('connect-mongodb-session')(session);
+
+const store = new MongoDBStore({
+  uri: url,
+  collection: 'sessions',
+});
 
 app.use(session({
-  secret: 'secret',
-  resave: true,
-  saveUninitialized: true,
+  secret: 'elizas secret',
+  resave: false,
+  saveUninitialized: false,
+  store,
 }));
 
 app.use(

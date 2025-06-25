@@ -18,4 +18,5 @@ const dbConfig = {
 
 const url = `${dbConfig.protocol}${dbConfig.username}:${dbConfig.password}@${dbConfig.url}/?${dbConfig.queryParams}`;
 
+module.exports.url = url;
 module.exports.default = new MongoClient(url);
