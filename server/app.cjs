@@ -10,13 +10,14 @@ var login = require("./api/login.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
-const { url } = require("./database.cjs");
+const { connUrl, dbName } = require("./database.cjs");
 var app = express();
 var MongoDBStore = require('connect-mongodb-session')(session);
 
 const store = new MongoDBStore({
-  uri: url,
-  collection: 'sessions',
+  uri: connUrl,
+  databaseName: dbName,
+  collection: "sessions"
 });
 
 app.use(session({
@@ -26,10 +27,6 @@ app.use(session({
   store,
 }));
 
-app.use(
-  "/",
-  express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
-);
 app.use("/uploads", express.static("./uploads"));
 app.use("/uploads_integration", express.static("./uploads_integration"));
 app.use("/common", express.static("./common"));
@@ -58,7 +55,12 @@ app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
 // Configure base URL for home page
 app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/index.html"));
+  console.info("Client request: '/'");
+  if (req.session) {
+    res.sendFile(path.join(__dirname, "../client/index.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
+  }
 });
 
 app.get("/create-account", function (req, res) {
@@ -66,7 +68,31 @@ app.get("/create-account", function (req, res) {
 });
 
 app.get("/login", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
+  console.info("Client request: '/login'");
+  console.log("session data", req.session);
+  if (req.session) {
+    res.redirect("/");
+  } else {
+    res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
+  }
+});
+
+app.get("/logout", function (req, res) {
+  console.info("Client request: '/logout'");
+  req.session.destroy(function (err) {
+    if (err) {
+      console.log("Failed to log out", e);
+    } else {
+      res.redirect("/login");
+    }
+  });
+})
+
+app.get("/logout", function (req, res) {
+  console.log("logout requested")
+  req.session.destroy(() => {
+    res.redirect("/login");
+  })
 });
 
 app.get("/gallery", function (req, res) {
@@ -100,5 +126,10 @@ app.get("/generator", function (req, res) {
 app.get("/test", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/path-test.html"));
 });
+
+// app.use(
+//   "/",
+//   express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
+// );
 
 module.exports = app;
