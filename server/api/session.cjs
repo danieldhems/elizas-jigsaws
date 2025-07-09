@@ -6,7 +6,7 @@ const dbClient = require('../database.cjs').default;
 // Database Name
 const dbName = "puzzly";
 
-async function login(req, res, next) {
+async function login(req, res) {
   try {
     console.log("attempting to log in")
     console.log(req.session)
@@ -44,6 +44,18 @@ async function login(req, res, next) {
   }
 }
 
-router.post("/", login);
+function logout(req, res) {
+  console.info("Client request: '/logout'");
+  req.session.destroy(function (err) {
+    if (err) {
+      console.log("Failed to log out", e);
+    } else {
+      res.redirect("/login");
+    }
+  });
+};
+
+router.post("/login", login);
+router.get("/logout", logout);
 
 module.exports = router;

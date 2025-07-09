@@ -41,7 +41,7 @@
                 password: passwordInput.value,
             };
 
-            const request = await fetch("/api/login", {
+            const request = await fetch("/api/session/login", {
                 body: JSON.stringify(data),
                 method: "POST",
                 headers: {
