@@ -39,30 +39,46 @@ app.use(session({
   cookie: {},
 }));
 
-passport.use(new LocalStrategy(async function verify(username, password, next) {
-  console.log("43: verify function")
+passport.serializeUser((user, done) => {
+  return done(null, user.username);
+});
+
+passport.deserializeUser(async (username, done) => {
   try {
     const conn = await dbClient.connect();
     const db = conn.db("puzzly");
     const collection = db.collection("users");
 
     const user = await collection.findOne({ username });
-    console.log("50: existing user result", user);
+
+    if (user) {
+      return done(null, user);
+    }
+
+    return done(null, false)
+  } catch (err) {
+    return done(err);
+  }
+});
+
+passport.use(new LocalStrategy(async function verify(username, password, next) {
+  try {
+    const conn = await dbClient.connect();
+    const db = conn.db("puzzly");
+    const collection = db.collection("users");
+
+    const user = await collection.findOne({ username });
 
     if (user) {
       const passwordMatch = await bcrypt.compare(password, user.password);
-      console.log("54: password match", passwordMatch)
       if (passwordMatch) return next(null, user);
     } else {
       return next(null, false);
     }
   } catch (err) {
-    console.log("Local strategy catch", err)
     return next(err);
   }
 }));
-
-
 
 app.use(passport.session());
 
@@ -81,35 +97,10 @@ app.use("/api/makePuzzleImage", makePuzzleImage);
 app.use("/api/generator-test", generatorTest);
 app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
-app.post('/auth/login',
+app.post('/login',
   function (req, res, next) {
     passport.authenticate('local', { successRedirect: "/user", failureRedirect: "/sdfsdf" })(req, res, next)
   });
-
-passport.serializeUser((user, done) => {
-  console.log("passport serialize user", user);
-  return done(null, user.username);
-});
-
-passport.deserializeUser(async (username, done) => {
-  console.log("passport deserialize user", username);
-  try {
-    const conn = await dbClient.connect();
-    const db = conn.db("puzzly");
-    const collection = db.collection("users");
-
-    const user = await collection.findOne({ username });
-
-    console.log("[passport.deserializeUser] user result", user)
-    if (user) {
-      return done(null, user);
-    }
-
-    return done(null, false)
-  } catch (err) {
-    return done(err);
-  }
-});
 
 app.get("/create-account", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));
@@ -120,7 +111,6 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/user", function (req, res) {
-  console.log("session data", req.session)
   res.sendFile(path.join(__dirname, "../client/index.html"));
 })
 
