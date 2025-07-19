@@ -12,13 +12,13 @@
 </head>
 <body>
     <h1>Log in</h1>
-    <form>
+    <form action="/auth/login" method="post">
         <div class="form-input-row">
             <label for="name">Email address</label>
-            <input type="text" name="email" id="email-input" />
+            <input type="text" name="username" id="email-input" />
         </div>
         <div class="form-input-row">
-            <label for="name">Password</label>
+            <label for="password">Password</label>
             <input type="text" name="password" id="password-input" />
         </div>
         <div class="form-input-row">
@@ -28,6 +28,7 @@
     </form>
 
     <script>
+        /*
         const submitBtn = document.getElementById("submit-btn");
 
         submitBtn.addEventListener("click", async (e) => {
@@ -37,19 +38,18 @@
             const passwordInput = document.getElementById("password-input");
 
             const data = {
-                email: emailInput.value,
+                username: emailInput.value,
                 password: passwordInput.value,
             };
 
-            const request = await fetch("/api/session/login", {
+            const request = await fetch("/login", {
                 body: JSON.stringify(data),
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
                 },
             });
-
-        })
+        });*/
     </script>
 </body>
 </html>

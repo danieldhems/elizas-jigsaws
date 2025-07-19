@@ -15,8 +15,8 @@ async function createAccount(req, res) {
         dbClient.connect().then(async (client, err) => {
             console.log("conn result", assert.strictEqual(err, undefined))
             if (!err) {
-                const { email, password } = req.body;
-                console.log("form data", email, password)
+                const { username, password } = req.body;
+                console.log("form data", username, password)
 
                 var salt = await bcrypt.genSalt();
                 var hashedPassword = await bcrypt.hash(password, salt);
@@ -25,7 +25,7 @@ async function createAccount(req, res) {
                 const db = client.db(dbName);
                 const users = db.collection("users");
 
-                const result = await users.insertOne({ email, password: hashedPassword });
+                const result = await users.insertOne({ username, password: hashedPassword });
                 console.log("user result", result)
                 res.status(200).send({
                     message: "ok"
