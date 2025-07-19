@@ -108,7 +108,7 @@ app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
 app.post('/login',
   function (req, res, next) {
-    passport.authenticate('local', { successRedirect: "/user", failureRedirect: "/sdfsdf" })(req, res, next)
+    passport.authenticate('local', { successRedirect: "/user", failureRedirect: "/login" })(req, res, next)
   });
 
 app.delete("/logout", function (req, res, next) {
@@ -120,6 +120,14 @@ app.delete("/logout", function (req, res, next) {
   });
 });
 
+function checkAuthorised(req, res, next) {
+  if (req.user) {
+    next(null, req.user);
+  } else {
+    res.redirect("/login");
+  }
+}
+
 app.get("/create-account", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));
 });
@@ -128,11 +136,12 @@ app.get("/login", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
 });
 
-app.get("/user", function (req, res) {
+app.get("/user", checkAuthorised, function (req, res) {
+  console.log("GET /user", req.user)
   res.sendFile(path.join(__dirname, "../client/index.html"));
 })
 
-app.get("/gallery", function (req, res) {
+app.get("/gallery", checkAuthorised, function (req, res) {
   res.sendFile(path.join(__dirname, "../client/puzzleGallery.html"));
 });
 
@@ -148,7 +157,7 @@ app.get("/unsolvePiece", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/unsolvePiece.html"));
 });
 
-app.get("/new", function (req, res) {
+app.get("/new", checkAuthorised, function (req, res) {
   res.sendFile(path.join(__dirname, "../client/new.html"));
 });
 
@@ -163,6 +172,8 @@ app.get("/generator", function (req, res) {
 app.get("/test", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/path-test.html"));
 });
+
+app.get("/", checkAuthorised);
 
 app.use(
   express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
