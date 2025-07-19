@@ -4,16 +4,18 @@ var session = require("express-session");
 var passport = require("passport");
 var LocalStrategy = require("passport-local");
 var bcrypt = require("bcrypt");
+var methodOverride = require("method-override");
 var bodyParser = require("body-parser");
 var puzzleApi = require("./api/puzzle.cjs");
 var upload = require("./api/upload.cjs");
 var createAccount = require("./api/create-account.cjs");
 var users = require("./api/users.cjs");
-const ObjectID = require("mongodb").ObjectID;
 var sessionController = require("./api/session.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
+const MongoDBStore = require("connect-mongodb-session")(session);
+const { connUrl } = require("./database.cjs");
 // const { connUrl, dbName } = require("./database.cjs");
 var app = express();
 // var MongoDBStore = require('connect-mongodb-session')(session);
@@ -31,11 +33,17 @@ app.use(
 );
 
 app.use(bodyParser.json());
+app.use(methodOverride("_method"))
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  store: new MongoDBStore({
+    uri: connUrl,
+    databaseName: "puzzly",
+    collection: "sessions",
+  }),
   cookie: {},
 }));
 
@@ -61,6 +69,8 @@ passport.deserializeUser(async (username, done) => {
   }
 });
 
+app.use(passport.session());
+
 passport.use(new LocalStrategy(async function verify(username, password, next) {
   try {
     const conn = await dbClient.connect();
@@ -80,7 +90,6 @@ passport.use(new LocalStrategy(async function verify(username, password, next) {
   }
 }));
 
-app.use(passport.session());
 
 app.use("/uploads", express.static("./uploads"));
 app.use("/uploads_integration", express.static("./uploads_integration"));
@@ -101,6 +110,15 @@ app.post('/login',
   function (req, res, next) {
     passport.authenticate('local', { successRedirect: "/user", failureRedirect: "/sdfsdf" })(req, res, next)
   });
+
+app.delete("/logout", function (req, res, next) {
+  req.session.destroy(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/login");
+  });
+});
 
 app.get("/create-account", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));

@@ -17,7 +17,6 @@
     <div id="form-container">
       <form enctype="multipart/form-data">
         <div id="puzzle-setup" class="form-page">
-          <a href="/logout" id="logoutLink">Log out</a>
           <!--
             <div>
               <p>Drag the white square to select the part of the image you'd like to make your puzzle from<br/><small>(The parts of the image outside the white box will be cropped)</small></p>
@@ -114,7 +113,7 @@
     <div id="debug-info"></div>
     <div id="controls">
       <div id="controls-handle">Menu</div>
-      <a href="" id="logoutLink">Log out</a>
+      <button id="logout-btn">Log out</button>
       <div id="controls-panel" class="js-hidden">
         <div id="preview">
           <span id='preview-show' class="button">Show image</span>
@@ -143,5 +142,20 @@
     </div>
     <script type="module" src="dist/bundle.js"></script>
     <script type="module" src="./lib/move-0.5.0.min.js"></script>
+    <script>
+      const btn = document.getElementById("logout-btn");
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        fetch("/logout?_method=delete", {
+          method: 'POST',
+        }).then(response => {
+          if(response.redirected) {
+            window.location.href = response.url
+          }
+        });
+      });
+    </script>
   </body>
 </html>
