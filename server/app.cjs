@@ -7,7 +7,8 @@ var bcrypt = require("bcrypt");
 var methodOverride = require("method-override");
 var bodyParser = require("body-parser");
 var puzzleApi = require("./api/puzzle.cjs");
-var upload = require("./api/upload.cjs");
+var puzzleCreatorUpload = require("./api/puzzleCreatorUpload.cjs");
+var imageUpload = require("./api/imageUpload.cjs");
 var createAccount = require("./api/create-account.cjs");
 var users = require("./api/users.cjs");
 var sessionController = require("./api/session.cjs");
@@ -100,7 +101,8 @@ app.use("/common", express.static("./common"));
 
 // Configure API endpoints
 app.use("/api/puzzle", puzzleApi.router);
-app.use("/api/upload", upload);
+app.use("/api/upload", puzzleCreatorUpload);
+app.use("/api/image-upload", imageUpload);
 app.use("/api/users", users);
 app.use("/api/create-account", createAccount);
 app.use("/api/session", sessionController);
@@ -112,7 +114,7 @@ app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 app.post('/login',
   function (req, res, next) {
     passport.authenticate('local', {
-      successRedirect: "/user",
+      successRedirect: "/",
       failureRedirect: "/login",
       failureMessage: true
     })(req, res, next)
@@ -144,20 +146,12 @@ app.get("/login", function (req, res) {
   res.render("unauth/login");
 });
 
-app.get("/user", checkAuthorised, function (req, res) {
-  res.render("auth/home", { user: req.user });
+app.get("/new-image", checkAuthorised, function (req, res) {
+  res.render("auth/new-image", { user: req.user });
 });
 
-app.get("/images/upload", checkAuthorised, function (req, res) {
-  res.render("auth/upload-image", { user: req.user });
-});
-
-app.get("/puzzles/create", checkAuthorised, function (req, res) {
-  res.render("auth/create-puzzle", { user: req.user });
-});
-
-app.get("/gallery", checkAuthorised, function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/puzzleGallery.html"));
+app.get("/new-puzzle", checkAuthorised, function (req, res) {
+  res.render("auth/new-puzzle", { user: req.user });
 });
 
 app.get("/exp", function (req, res) {
@@ -172,10 +166,6 @@ app.get("/unsolvePiece", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/unsolvePiece.html"));
 });
 
-app.get("/new", checkAuthorised, function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/new.html"));
-});
-
 app.get("/puzzle-piece", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/puzzle-piece.html"));
 });
@@ -188,7 +178,9 @@ app.get("/test", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/path-test.html"));
 });
 
-app.get("/", checkAuthorised);
+app.get("/", checkAuthorised, function (req, res) {
+  res.render("auth/home", { user: req.user });
+});
 
 app.use(
   express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
