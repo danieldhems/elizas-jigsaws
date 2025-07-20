@@ -148,6 +148,14 @@ app.get("/user", checkAuthorised, function (req, res) {
   res.render("auth/home", { user: req.user });
 });
 
+app.get("/images/upload", checkAuthorised, function (req, res) {
+  res.render("auth/upload-image", { user: req.user });
+});
+
+app.get("/puzzles/create", checkAuthorised, function (req, res) {
+  res.render("auth/create-puzzle", { user: req.user });
+});
+
 app.get("/gallery", checkAuthorised, function (req, res) {
   res.sendFile(path.join(__dirname, "../client/puzzleGallery.html"));
 });
