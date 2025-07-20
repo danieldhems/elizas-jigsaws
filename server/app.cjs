@@ -16,12 +16,13 @@ var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { connUrl } = require("./database.cjs");
-// const { connUrl, dbName } = require("./database.cjs");
-var app = express();
-// var MongoDBStore = require('connect-mongodb-session')(session);
 const dbClient = require('./database.cjs').default;
 
+var app = express();
+
 require("dotenv").config();
+
+app.set("view engine", "ejs");
 
 app.use(
   bodyParser.urlencoded({
@@ -81,15 +82,17 @@ passport.use(new LocalStrategy(async function verify(username, password, next) {
 
     if (user) {
       const passwordMatch = await bcrypt.compare(password, user.password);
-      if (passwordMatch) return next(null, user);
-    } else {
-      return next(null, false);
+
+      if (passwordMatch) {
+        return next(null, user);
+      }
     }
+
+    return next(null, false);
   } catch (err) {
     return next(err);
   }
 }));
-
 
 app.use("/uploads", express.static("./uploads"));
 app.use("/uploads_integration", express.static("./uploads_integration"));
@@ -108,7 +111,11 @@ app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
 app.post('/login',
   function (req, res, next) {
-    passport.authenticate('local', { successRedirect: "/user", failureRedirect: "/login" })(req, res, next)
+    passport.authenticate('local', {
+      successRedirect: "/user",
+      failureRedirect: "/login",
+      failureMessage: true
+    })(req, res, next)
   });
 
 app.delete("/logout", function (req, res, next) {
@@ -116,6 +123,7 @@ app.delete("/logout", function (req, res, next) {
     if (err) {
       return next(err);
     }
+
     res.redirect("/login");
   });
 });
@@ -129,17 +137,16 @@ function checkAuthorised(req, res, next) {
 }
 
 app.get("/create-account", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));
+  res.render("unauth/create-account");
 });
 
 app.get("/login", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
+  res.render("unauth/login");
 });
 
 app.get("/user", checkAuthorised, function (req, res) {
-  console.log("GET /user", req.user)
-  res.sendFile(path.join(__dirname, "../client/index.html"));
-})
+  res.render("auth/home", { user: req.user });
+});
 
 app.get("/gallery", checkAuthorised, function (req, res) {
   res.sendFile(path.join(__dirname, "../client/puzzleGallery.html"));
