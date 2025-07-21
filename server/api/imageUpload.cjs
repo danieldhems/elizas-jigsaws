@@ -6,6 +6,7 @@ const {
 var router = require("express").Router();
 var fileUpload = require("express-fileupload");
 var Sharp = require("sharp");
+const dbClient = require('../database.cjs').default;
 
 router.use(
   fileUpload({
@@ -21,37 +22,53 @@ async function upload(req, res) {
       message: "No file uploaded",
     });
   } else {
-    // console.log("upload: req object", req.body);
-    //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
-    let image = req.files["files[]"];
+    try {
+      const conn = await dbClient.connect();
+      const db = conn.db("puzzly");
+      const collection = db.collection("images");
 
-    // The client is sending the request body as FormData
-    // so expect boolean values to be sent as strings
-    const isIntegration = req.body.integration === 'true';
+      // console.log("upload: req object", req.body);
+      //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+      let image = req.files["files[]"];
 
-    const uploadDir = isIntegration
-      ? UPLOADS_DIR_INTEGRATION
-      : UPLOADS_DIR_PROD;
+      // The client is sending the request body as FormData
+      // so expect boolean values to be sent as strings
+      const isIntegration = req.body.integration === 'true';
 
-    //Use the mv() method to place the file in upload directory (i.e. "uploads")
-    const savedPath = uploadDir + "source_" + req.user._id + "_" + image.name;
-    image.mv(savedPath);
+      const uploadDir = isIntegration
+        ? UPLOADS_DIR_INTEGRATION
+        : UPLOADS_DIR_PROD;
 
-    const previewImg = Sharp(image.data);
+      //Use the mv() method to place the file in upload directory (i.e. "uploads")
+      const savedPath = uploadDir + "source_" + req.user._id + "_" + image.name;
+      image.mv(savedPath);
 
-    const { width, height } = await previewImg.metadata();
+      const img = Sharp(image.data);
 
-    res.status(200).send({
-      status: true,
-      message: "File is uploaded",
-      data: {
-        savedPath,
-        filename: image.name,
-        mimetype: image.mimetype,
-        width,
-        height,
-      },
-    });
+      const { width, height } = await img.metadata();
+
+      const insertResult = await collection.insertOne({
+        userId: req.user._id,
+        path: savedPath,
+        createdOn: Date.now(),
+      });
+
+      res.send({
+        status: true,
+        message: "Success",
+        data: {
+          savedPath,
+          filename: image.name,
+          mimetype: image.mimetype,
+          imageId: insertResult.insertedId,
+          width,
+          height,
+        },
+      });
+    } catch (err) {
+      console.log("error", err)
+      res.status(500).send(err);
+    }
   }
 }
 
