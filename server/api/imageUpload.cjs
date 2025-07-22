@@ -40,16 +40,22 @@ async function upload(req, res) {
         : UPLOADS_DIR_PROD;
 
       //Use the mv() method to place the file in upload directory (i.e. "uploads")
-      const savedPath = uploadDir + "source_" + req.user._id + "_" + image.name;
-      image.mv(savedPath);
+      const sourcePath = uploadDir + "source_" + req.user._id + "_" + image.name;
+      const galleryPath = uploadDir + "gallery_" + req.user._id + "_" + image.name;
+      image.mv(sourcePath);
 
-      const img = Sharp(image.data);
+      const imgInstance = Sharp(image.data);
 
-      const { width, height } = await img.metadata();
+      const { width, height } = await imgInstance.metadata();
+
+      await imgInstance
+        .resize(300)
+        .toFile(galleryPath);
 
       const insertResult = await collection.insertOne({
         userId: req.user._id,
-        path: savedPath,
+        sourcePath,
+        galleryPath,
         createdOn: Date.now(),
       });
 
@@ -57,7 +63,8 @@ async function upload(req, res) {
         status: true,
         message: "Success",
         data: {
-          savedPath,
+          sourcePath,
+          galleryPath,
           filename: image.name,
           mimetype: image.mimetype,
           imageId: insertResult.insertedId,

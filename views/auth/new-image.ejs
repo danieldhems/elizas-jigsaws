@@ -62,7 +62,7 @@
     console.log("onUploadSuccess", response);
 
     if (response.data) {
-      imagePreview.src = response.data.savedPath;
+      imagePreview.src = response.data.galleryPath;
       newPuzzleButton.classList.remove("js-hidden");
     }
   }
