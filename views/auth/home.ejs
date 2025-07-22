@@ -13,6 +13,8 @@
   <h2>Your images</h2>
 </section>
 
-<script>
-  const imagesRequest = fetch();
+<script type="module">
+  const imagesRequest = await fetch("api/getImages");
+  const response = await imagesRequest.json();
+  console.log(response);
 </script>
