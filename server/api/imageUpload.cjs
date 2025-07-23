@@ -4,8 +4,10 @@ const {
 } = require("../constants.cjs");
 
 var router = require("express").Router();
+const { ObjectId } = require("mongodb");
 var fileUpload = require("express-fileupload");
 var Sharp = require("sharp");
+const { dbName } = require("../database.cjs");
 const dbClient = require('../database.cjs').default;
 
 router.use(
@@ -23,8 +25,8 @@ async function upload(req, res) {
     });
   } else {
     try {
-      const conn = await dbClient.connect();
-      const db = conn.db("puzzly");
+      // const conn = await dbClient.connect();
+      const db = dbClient.db(dbName);
       const collection = db.collection("images");
 
       // console.log("upload: req object", req.body);
@@ -53,7 +55,7 @@ async function upload(req, res) {
         .toFile(galleryPath);
 
       const insertResult = await collection.insertOne({
-        userId: req.user._id,
+        username: req.user.username,
         sourcePath,
         galleryPath,
         createdOn: Date.now(),

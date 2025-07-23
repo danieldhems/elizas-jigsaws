@@ -6,7 +6,7 @@ const {
   IMAGES_INTEGRATION_COLLECTION,
   IMAGES_PROD_COLLECTION,
 } = require("../constants.cjs");
-const { ObjectId } = require("mongodb");
+const ObjectId = require("mongodb").ObjectId;
 const dbClient = require('../database.cjs').default;
 
 const dbName = "puzzly";
@@ -20,26 +20,30 @@ async function getImages(req, res) {
     // console.log("createPieces -> pieces", req.body.pieces.toString());
     console.log("getting images for user", req.user);
 
-    const dbConnection = await dbClient.connect();
-    const db = dbConnection.db(dbName);
+    // const dbConnection = await dbClient.connect();
+    const db = dbClient.db("puzzly");
+    const collection = db.collection("images");
 
-    const collection = db.collection(IMAGES_PROD_COLLECTION);
 
-    const queryResult = await collection.find(
-      { userId: req.user._id },
-    ).toArray();
+    // console.log("query images for user id", req.user._id);
 
-    console.log("get images -> success", queryResult)
+    const whereClause = { "userId": req.user._id };
+    // const queryResult = await collection.findOne(whereClause);
+    const docs = await collection.find(whereClause).toArray();
+    // for await (const doc of docs) {
+    //   console.log(doc)
+    // }
+
+    console.log("image query result", docs)
 
     const response = {
       status: "success",
-      data: queryResult
+      data: docs
     };
 
     res.status(200).send(response);
-  } catch (e) {
-    console.log(e)
-    res.status(500).send(e);
+  } catch (err) {
+    console.log(err);
   }
 };
 

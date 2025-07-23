@@ -18,6 +18,7 @@ var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { connUrl } = require("./database.cjs");
+const { ObjectId } = require("mongodb");
 const dbClient = require('./database.cjs').default;
 
 var app = express();
@@ -51,19 +52,28 @@ app.use(session({
 }));
 
 passport.serializeUser((user, done) => {
-  return done(null, user.username);
+  return done(null, user._id);
 });
 
-passport.deserializeUser(async (username, done) => {
+passport.deserializeUser(async (id, done) => {
+  console.log("user id", id)
+  // console.log("converted user id", ObjectId(id))
   try {
-    const conn = await dbClient.connect();
-    const db = conn.db("puzzly");
+    // const conn = await dbClient.connect();
+    const db = dbClient.db("puzzly");
     const collection = db.collection("users");
 
-    const user = await collection.findOne({ username });
+    const user = await collection.findOne({ _id: id });
+    console.log("user result", user)
 
     if (user) {
       return done(null, user);
+      /*
+      return done(null, {
+        userId: user._id.toString(),
+        username: user.username,
+      });
+      */
     }
 
     return done(null, false)
@@ -180,8 +190,12 @@ app.get("/test", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/path-test.html"));
 });
 
-app.get("/", checkAuthorised, function (req, res) {
-  res.render("auth/home", { user: req.user });
+app.get("/", checkAuthorised, async function (req, res) {
+  const db = dbClient.db("puzzly");
+  const collection = db.collection("images");
+  const images = await collection.find({ userId: req.user._id }).toArray();
+  console.log("images for user", images)
+  res.render("auth/home", { user: req.user, images });
 });
 
 app.use(

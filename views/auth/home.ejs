@@ -1,4 +1,5 @@
 <h1>Welcome <%= user.username %></h1>
+<button id="btn-logout">Log out</button>
 
 <nav>
   <a href="/new-puzzle">Create a puzzle</a>
@@ -11,10 +12,23 @@
 
 <section>
   <h2>Your images</h2>
+  <%= images.length %>
+  <% images.forEach(element => { %>
+    <img src="<%= element.galleryPath %>"
+  <% }) %>
 </section>
 
 <script type="module">
-  const imagesRequest = await fetch("api/getImages");
-  const response = await imagesRequest.json();
-  console.log(response);
+  const btn = document.getElementById("btn-logout");
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      fetch("/logout?_method=delete", {
+        method: 'POST',
+      }).then(response => {
+        if(response.redirected) {
+          window.location.href = response.url
+        }
+      });
+    });
 </script>
