@@ -1,22 +1,43 @@
 <nav>
-  <li>
-    <a href="/new-puzzle">Create a puzzle</a>
-    <a href="/new-image">Upload an image</a>
-  </li>
+  <ul id="navigation">
+    <li>
+      <a href="/new-puzzle">Create a puzzle</a>
+    </li>
+    <li>
+      <a href="/new-image">Upload an image</a>
+    </li>
+  </ul>
   <button id="btn-logout">Log out</button>
 </nav>
 
+<style>
+  #navigation {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+  }
+
+  #navigation li {
+    padding: .5rem;
+  }
+
+  #navigation li:not(last) {
+    margin-right: .5rem;
+  }
+</style>
+
 <script type="module">
   const btn = document.getElementById("btn-logout");
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
 
-      fetch("/logout?_method=delete", {
-        method: 'POST',
-      }).then(response => {
-        if(response.redirected) {
-          window.location.href = response.url
-        }
-      });
+    fetch("/logout?_method=delete", {
+      method: 'POST',
+    }).then(response => {
+      if (response.redirected) {
+        window.location.href = response.url
+      }
     });
+  });
 </script>

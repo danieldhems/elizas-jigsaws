@@ -26,9 +26,8 @@ var app = express();
 
 require("dotenv").config();
 
-app.use(expressLayouts);
-app.set("layout", "./layouts/main");
 app.set("view engine", "ejs");
+app.use(expressLayouts);
 
 app.use(
   bodyParser.urlencoded({
@@ -59,24 +58,14 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-  console.log("user id", id)
-  // console.log("converted user id", ObjectId(id))
   try {
-    // const conn = await dbClient.connect();
     const db = dbClient.db("puzzly");
     const collection = db.collection("users");
 
     const user = await collection.findOne({ _id: id });
-    console.log("user result", user)
 
     if (user) {
       return done(null, user);
-      /*
-      return done(null, {
-        userId: user._id.toString(),
-        username: user.username,
-      });
-      */
     }
 
     return done(null, false)
