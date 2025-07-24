@@ -1,0 +1,22 @@
+<nav>
+  <li>
+    <a href="/new-puzzle">Create a puzzle</a>
+    <a href="/new-image">Upload an image</a>
+  </li>
+  <button id="btn-logout">Log out</button>
+</nav>
+
+<script type="module">
+  const btn = document.getElementById("btn-logout");
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      fetch("/logout?_method=delete", {
+        method: 'POST',
+      }).then(response => {
+        if(response.redirected) {
+          window.location.href = response.url
+        }
+      });
+    });
+</script>

@@ -2,6 +2,7 @@ var path = require("path");
 var express = require("express");
 var session = require("express-session");
 var passport = require("passport");
+var expressLayouts = require("express-ejs-layouts");
 var LocalStrategy = require("passport-local");
 var bcrypt = require("bcrypt");
 var methodOverride = require("method-override");
@@ -25,6 +26,8 @@ var app = express();
 
 require("dotenv").config();
 
+app.use(expressLayouts);
+app.set("layout", "./layouts/main");
 app.set("view engine", "ejs");
 
 app.use(
@@ -194,7 +197,6 @@ app.get("/", checkAuthorised, async function (req, res) {
   const db = dbClient.db("puzzly");
   const collection = db.collection("images");
   const images = await collection.find({ userId: req.user._id }).toArray();
-  console.log("images for user", images)
   res.render("auth/home", { user: req.user, images });
 });
 

@@ -50,12 +50,13 @@ async function upload(req, res) {
 
       const { width, height } = await imgInstance.metadata();
 
+      // TODO: Image size should be a constant
       await imgInstance
-        .resize(300)
+        .resize(200)
         .toFile(galleryPath);
 
       const insertResult = await collection.insertOne({
-        username: req.user.username,
+        userId: req.user._id,
         sourcePath,
         galleryPath,
         createdOn: Date.now(),
