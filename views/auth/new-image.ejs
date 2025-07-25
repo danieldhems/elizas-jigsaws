@@ -1,17 +1,13 @@
-<%- include("../common/navigation") %>
-
 <h1>Upload an image</h1>
 
-<div id="form-container">
-  <form enctype="multipart/form-data">
-    <div id="image-upload" class="form-page">
-      <img id="image-preview" />
-      <input name="image" id="file-input" type="file" value="No file chosen" />
-    </div>
-  </form>
-  <div id="new-puzzle-button" class="js-hidden">
-    <a href="/new-puzzle">Create a new puzzle from this image</a>
+<form enctype="multipart/form-data">
+  <div id="image-upload" class="form-page">
+    <img id="image-preview" />
+    <input name="image" id="file-input" type="file" value="No file chosen" />
   </div>
+</form>
+<div id="new-puzzle-button" class="js-hidden">
+  <a href="" id="new-puzzle-link">Create a new puzzle from this image</a>
 </div>
 
 <style>
@@ -52,6 +48,8 @@
 
     if (image) {
       fd.append("files[]", image);
+      fd.append("viewportWidth", window.innerWidth);
+      fd.append("viewportHeight", window.innerHeight);
     }
 
     return fetch("/api/image-upload", {
@@ -66,6 +64,9 @@
     if (response.data) {
       imagePreview.src = response.data.galleryPath;
       newPuzzleButton.classList.remove("js-hidden");
+
+      const newPuzzleLink = document.getElementById("new-puzzle-link");
+      newPuzzleLink.setAttribute("href", `/new-puzzle?img_id=${response.data.imageId}`)
     }
   }
 
@@ -94,4 +95,3 @@
     onImageUploadChange
   );
 </script>
-

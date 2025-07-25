@@ -154,8 +154,21 @@ app.get("/new-image", checkAuthorised, function (req, res) {
   res.render("auth/new-image", { user: req.user });
 });
 
-app.get("/new-puzzle", checkAuthorised, function (req, res) {
-  res.render("auth/new-puzzle", { user: req.user });
+app.get("/new-puzzle", checkAuthorised, async function (req, res) {
+  console.log(req.query);
+  let image = {};
+
+  if (req.query.img_id) {
+    const db = dbClient.db("puzzly");
+    const collection = db.collection("images");
+    image = await collection.findOne({
+      userId: req.user._id,
+      _id: new ObjectId(req.query.img_id)
+    });
+  }
+
+  console.log("image found for puzzle", image)
+  res.render("auth/new-puzzle", { user: req.user, image });
 });
 
 app.get("/exp", function (req, res) {

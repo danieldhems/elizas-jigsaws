@@ -29,9 +29,14 @@ async function upload(req, res) {
       const db = dbClient.db(dbName);
       const collection = db.collection("images");
 
-      // console.log("upload: req object", req.body);
+      console.log("upload: req object", req.body);
       //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
       let image = req.files["files[]"];
+      let vWidth = req.body.viewportWidth ? parseInt(req.body.viewportWidth) : null;
+      let vHeight = req.body.viewportHeight ? parseInt(req.body.viewportHeight) : null;
+
+      console.log("v width", vWidth);
+      console.log("v height", vHeight);
 
       // The client is sending the request body as FormData
       // so expect boolean values to be sent as strings
@@ -44,21 +49,38 @@ async function upload(req, res) {
       //Use the mv() method to place the file in upload directory (i.e. "uploads")
       const sourcePath = uploadDir + "source_" + req.user._id + "_" + image.name;
       const galleryPath = uploadDir + "gallery_" + req.user._id + "_" + image.name;
+      const creatorPath = uploadDir + "creator_" + req.user._id + "_" + image.name;
       image.mv(sourcePath);
 
       const imgInstance = Sharp(image.data);
 
       const { width, height } = await imgInstance.metadata();
+      const aspectRatio = width / height;
 
       // TODO: Image size should be a constant
       await imgInstance
         .resize(200)
         .toFile(galleryPath);
 
+      if (vWidth && vHeight) {
+        let targetWidth = null, targetHeight = null;
+
+        if (vWidth < vHeight) {
+          targetWidth = Math.floor(vWidth / 2);
+        } else if (vHeight < vWidth) {
+          targetHeight = Math.floor(vHeight / 2);
+        } else if (vWidth === vHeight) {
+          targetHeight = Math.floor(vHeight / 2);
+        }
+
+        await imgInstance.resize(targetWidth, targetHeight).toFile(creatorPath);
+      }
+
       const insertResult = await collection.insertOne({
         userId: req.user._id,
         sourcePath,
         galleryPath,
+        creatorPath,
         createdOn: Date.now(),
       });
 
@@ -68,6 +90,7 @@ async function upload(req, res) {
         data: {
           sourcePath,
           galleryPath,
+          creatorPath,
           filename: image.name,
           mimetype: image.mimetype,
           imageId: insertResult.insertedId,
