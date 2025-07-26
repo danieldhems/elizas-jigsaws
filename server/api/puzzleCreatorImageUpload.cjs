@@ -53,7 +53,7 @@ async function upload(req, res) {
       status: true,
       message: "File is uploaded",
       data: {
-        previewPath: previewPath,
+        creatorPath: previewPath,
         fullSizePath: fullSizePath,
         filename: image.name,
         mimetype: image.mimetype,

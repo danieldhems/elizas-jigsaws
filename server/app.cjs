@@ -12,7 +12,8 @@ var puzzleCreatorUpload = require("./api/puzzleCreatorImageUpload.cjs");
 var imageUpload = require("./api/imageUpload.cjs");
 var createAccount = require("./api/create-account.cjs");
 var users = require("./api/users.cjs");
-var getImages = require("./api/getImages.cjs");
+var getImagesForAuthenticatedUser = require("./api/getImagesForAuthenticatedUser.cjs");
+var getImageByIdForAuthenticatedUser = require("./api/getImageByIdForAuthenticatedUser.cjs");
 var sessionController = require("./api/session.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
@@ -107,7 +108,8 @@ app.use("/api/puzzle", puzzleApi.router);
 app.use("/api/upload", puzzleCreatorUpload);
 app.use("/api/image-upload", imageUpload);
 app.use("/api/users", users);
-app.use("/api/getImages", getImages.router);
+app.use("/api/getImagesForAuthenticatedUser", getImagesForAuthenticatedUser.router);
+app.use("/api/getImageByIdForAuthenticatedUser", getImageByIdForAuthenticatedUser.router);
 app.use("/api/create-account", createAccount);
 app.use("/api/session", sessionController);
 app.use("/api/uploadPuzzleSprite", uploadPuzzleSprite);
@@ -155,20 +157,7 @@ app.get("/new-image", checkAuthorised, function (req, res) {
 });
 
 app.get("/new-puzzle", checkAuthorised, async function (req, res) {
-  console.log(req.query);
-  let image = {};
-
-  if (req.query.img_id) {
-    const db = dbClient.db("puzzly");
-    const collection = db.collection("images");
-    image = await collection.findOne({
-      userId: req.user._id,
-      _id: new ObjectId(req.query.img_id)
-    });
-  }
-
-  console.log("image found for puzzle", image)
-  res.render("auth/new-puzzle", { user: req.user, image });
+  res.render("auth/new-puzzle", { user: req.user });
 });
 
 app.get("/exp", function (req, res) {

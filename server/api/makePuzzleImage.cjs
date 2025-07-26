@@ -12,7 +12,7 @@ async function makeImage(data) {
 
   img = Sharp(fullsizeImagePath);
 
-  const { width: origW, height: origH } = data.dimensions;
+  const { width: origW, height: origH } = data;
 
   const extractionLeftOffset = Math.ceil((origW / 100) * data.leftOffsetPercentage);
   const extractionTopOffset = Math.ceil((origH / 100) * data.topOffsetPercentage);

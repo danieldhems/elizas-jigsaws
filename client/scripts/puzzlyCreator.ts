@@ -18,16 +18,12 @@ import {
 import Utils from "./utils";
 
 export interface SourceImage {
-  dimensions: {
-    width: number;
-    height: number;
-  };
-  previewPath: string;
+  width: number;
+  height: number;
+  creatorPath: string;
   fullSizePath: string;
   imageName: string;
   filename: string;
-  width: number;
-  height: number;
 }
 
 export interface DebugOptions {
@@ -152,16 +148,12 @@ export default class PuzzlyCreator {
     ) as this["puzzleTargetAreaElement"];
 
     this.sourceImage = {
-      dimensions: {
-        width: 0,
-        height: 0,
-      },
-      previewPath: "",
+      width: 0,
+      height: 0,
+      creatorPath: "",
       fullSizePath: "",
       imageName: "",
       filename: "",
-      width: 0,
-      height: 0,
     };
 
     this.debugOptions = {
@@ -172,6 +164,27 @@ export default class PuzzlyCreator {
     this.showForm();
     this.addGeneralEventListeners();
     this.setupPuzzleShapefield();
+
+    const imgId = Utils.getQueryStringValue("img_id");
+
+    // TODO: Might need a more reliable test for valid img ID
+    if (imgId.length === 24) {
+      // Initiate puzzle impressions
+      fetch("/api/getImageByIdForAuthenticatedUser/" + imgId)
+        .then(res => res.json())
+        .then(res => {
+          console.log("fetched image by id", res);
+
+          this.imageUploadPreviewEl.addEventListener(
+            "load",
+            this.onImagePreviewLoad.bind(this)
+          );
+
+          this.onUploadSuccess(res);
+        })
+        .catch(err => console.log(err))
+
+    }
 
     this.selectedPuzzleShape = PuzzleShapes.Rectangle;
 
@@ -327,17 +340,17 @@ export default class PuzzlyCreator {
     if (response.data) {
       this.imagePreviewEl.style.display = "flex";
       (this.imageUploadPreviewEl as HTMLImageElement).src =
-        response.data.previewPath;
+        response.data.creatorPath;
       this.sourceImage.imageName = response.data.filename;
       this.fullSizePath = response.data.fullSizePath;
 
-      this.sourceImage.dimensions.width = response.data.width;
-      this.sourceImage.dimensions.height = response.data.height;
+      this.sourceImage.width = response.data.width;
+      this.sourceImage.height = response.data.height;
     }
   }
 
   onImagePreviewLoad() {
-    const { width, height } = this.sourceImage.dimensions;
+    const { width, height } = this.sourceImage;
 
     this.imageAspectRatio = width / height;
 
@@ -486,8 +499,8 @@ export default class PuzzlyCreator {
       leftOffsetPercentage,
       topOffsetPercentage;
 
-    const imageWidth = this.sourceImage.dimensions.width;
-    const imageHeight = this.sourceImage.dimensions.height;
+    const imageWidth = this.sourceImage.width;
+    const imageHeight = this.sourceImage.height;
 
     const { top, left, width, height } =
       this.PuzzleImpressionOverlay.getPositionAndDimensions();
@@ -530,7 +543,8 @@ export default class PuzzlyCreator {
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
         ...cropData,
-        dimensions: this.sourceImage.dimensions,
+        width: this.sourceImage.width,
+        height: this.sourceImage.height,
         imageName: this.sourceImage.imageName,
         resizeWidth: Math.floor(this.selectedPuzzleConfig.puzzleWidth),
         resizeHeight: Math.floor(this.selectedPuzzleConfig.puzzleHeight),

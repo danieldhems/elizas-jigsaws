@@ -29,14 +29,10 @@ async function upload(req, res) {
       const db = dbClient.db(dbName);
       const collection = db.collection("images");
 
-      console.log("upload: req object", req.body);
       //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
       let image = req.files["files[]"];
       let vWidth = req.body.viewportWidth ? parseInt(req.body.viewportWidth) : null;
       let vHeight = req.body.viewportHeight ? parseInt(req.body.viewportHeight) : null;
-
-      console.log("v width", vWidth);
-      console.log("v height", vHeight);
 
       // The client is sending the request body as FormData
       // so expect boolean values to be sent as strings
@@ -55,7 +51,6 @@ async function upload(req, res) {
       const imgInstance = Sharp(image.data);
 
       const { width, height } = await imgInstance.metadata();
-      const aspectRatio = width / height;
 
       // TODO: Image size should be a constant
       await imgInstance
@@ -78,6 +73,10 @@ async function upload(req, res) {
 
       const insertResult = await collection.insertOne({
         userId: req.user._id,
+        fileName: image.name,
+        mimetype: image.mimetype,
+        width,
+        height,
         sourcePath,
         galleryPath,
         creatorPath,

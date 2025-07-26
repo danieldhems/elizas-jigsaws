@@ -2,7 +2,7 @@ var router = require("express").Router();
 const { dbName } = require("../database.cjs");
 const dbClient = require('../database.cjs').default;
 
-async function getImages(req, res) {
+async function getImagesForAuthenticatedUser(req, res) {
   try {
     const db = dbClient(dbName);
     const collection = db.collection("images");
@@ -20,6 +20,6 @@ async function getImages(req, res) {
   }
 };
 
-router.get("/", getImages);
+router.get("/", getImagesForAuthenticatedUser);
 
 module.exports.router = router;
