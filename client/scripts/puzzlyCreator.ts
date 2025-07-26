@@ -21,7 +21,7 @@ export interface SourceImage {
   width: number;
   height: number;
   creatorPath: string;
-  fullSizePath: string;
+  sourcePath: string;
   imageName: string;
   filename: string;
 }
@@ -90,7 +90,7 @@ export default class PuzzlyCreator {
   puzzleSizeField: HTMLInputElement;
   puzzleShapeInputFields: NodeListOf<HTMLInputElement>;
   puzzleShapeFieldContainer: HTMLDivElement;
-  fullSizePath: string;
+  sourcePath: string;
   imageUploadPreviewEl: HTMLImageElement & {
     naturalWidth: number;
     naturalHeight: number;
@@ -151,7 +151,7 @@ export default class PuzzlyCreator {
       width: 0,
       height: 0,
       creatorPath: "",
-      fullSizePath: "",
+      sourcePath: "",
       imageName: "",
       filename: "",
     };
@@ -335,17 +335,13 @@ export default class PuzzlyCreator {
   }
 
   onUploadSuccess(response: { data: SourceImage }) {
-    // console.log("onUploadSuccess", response);
+    console.log("onUploadSuccess", response);
 
     if (response.data) {
       this.imagePreviewEl.style.display = "flex";
       (this.imageUploadPreviewEl as HTMLImageElement).src =
         response.data.creatorPath;
-      this.sourceImage.imageName = response.data.filename;
-      this.fullSizePath = response.data.fullSizePath;
-
-      this.sourceImage.width = response.data.width;
-      this.sourceImage.height = response.data.height;
+      this.sourceImage = response.data;
     }
   }
 
@@ -539,13 +535,11 @@ export default class PuzzlyCreator {
         this.selectedPuzzleConfig
       );
     }
-
+    console.log(this.sourceImage)
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
         ...cropData,
-        width: this.sourceImage.width,
-        height: this.sourceImage.height,
-        imageName: this.sourceImage.imageName,
+        ...this.sourceImage,
         resizeWidth: Math.floor(this.selectedPuzzleConfig.puzzleWidth),
         resizeHeight: Math.floor(this.selectedPuzzleConfig.puzzleHeight),
       }),
@@ -563,7 +557,7 @@ export default class PuzzlyCreator {
       id: nanoid(),
       boardWidth: puzzleWidth,
       boardHeight: puzzleHeight,
-      imageName: this.sourceImage.imageName,
+      filename: this.sourceImage.filename,
       puzzleImagePath,
       debugOptions: this.debugOptions,
       isIntegration: this.isIntegration,

@@ -34,13 +34,18 @@ async function upload(req, res) {
       : UPLOADS_DIR_PROD;
 
     //Use the mv() method to place the file in upload directory (i.e. "uploads")
-    const previewPath = uploadDir + "preview_" + image.name;
-    const fullSizePath = uploadDir + "fullsize_" + image.name;
-    image.mv(fullSizePath);
+    const creatorPath = uploadDir + "creator_" + image.name;
+    const galleryPath = uploadDir + "gallery_" + req.user._id + "_" + image.name;
+    const sourcePath = uploadDir + "source_" + image.name;
+    image.mv(sourcePath);
 
     const previewImg = Sharp(image.data);
 
     const { width: actualW, height: actualH } = await previewImg.metadata();
+
+    await imgInstance
+      .resize(200)
+      .toFile(galleryPath);
 
     const imgW = parseInt(req.body.previewWidth);
     const imgH = parseInt(req.body.previewHeight);
@@ -53,8 +58,9 @@ async function upload(req, res) {
       status: true,
       message: "File is uploaded",
       data: {
-        creatorPath: previewPath,
-        fullSizePath: fullSizePath,
+        creatorPath,
+        sourcePath,
+        galleryPath,
         filename: image.name,
         mimetype: image.mimetype,
         width: actualW,

@@ -1,16 +1,17 @@
 var Sharp = require("sharp");
 var router = require("express").Router();
 
-async function makeImage(data) {
+async function makeImage(req) {
+  const { body: data, user } = req;
   console.log("makeImage", data);
 
   // Location of existing fulllsize image
-  const fullsizeImagePath = `./uploads/fullsize_${data.imageName}`;
+  const sourceImagePath = `./uploads/source_${user._id}_${data.filename}`;
 
   // Intended location for resized image once we've generated it
-  const resizedImagePath = `./uploads/puzzle_${data.imageName}`;
+  const resizedImagePath = `./uploads/puzzle_${user._id}_${data.filename}`;
 
-  img = Sharp(fullsizeImagePath);
+  img = Sharp(sourceImagePath);
 
   const { width: origW, height: origH } = data;
 
@@ -37,9 +38,7 @@ async function makeImage(data) {
 }
 
 async function main(req, res) {
-  const data = req.body;
-
-  const puzzleImagePath = await makeImage(data);
+  const puzzleImagePath = await makeImage(req);
 
   res.status(200).send({ puzzleImagePath });
 }

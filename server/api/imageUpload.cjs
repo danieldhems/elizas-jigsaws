@@ -73,7 +73,7 @@ async function upload(req, res) {
 
       const insertResult = await collection.insertOne({
         userId: req.user._id,
-        fileName: image.name,
+        filename: image.name,
         mimetype: image.mimetype,
         width,
         height,
