@@ -160,6 +160,10 @@ app.get("/new-puzzle", checkAuthorised, async function (req, res) {
   res.render("auth/new-puzzle", { user: req.user });
 });
 
+app.get("/puzzle", checkAuthorised, async function (req, res) {
+  res.render("auth/puzzle", { user: req.user });
+});
+
 app.get("/exp", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/experiment.html"));
 });

@@ -161,7 +161,6 @@ export default class PuzzlyCreator {
       highlightConnectingPieces: false,
     };
 
-    this.showForm();
     this.addGeneralEventListeners();
     this.setupPuzzleShapefield();
 
@@ -573,10 +572,7 @@ export default class PuzzlyCreator {
       .then((response) => response.json())
       .then(
         function (response: any) {
-          Utils.insertUrlParam("puzzleId", data.id);
-
-          this.newPuzzleForm.style.display = "none";
-
+          console.log('/api/puzzle/createPuzzle response', response)
           window.Puzzly = new Puzzly(data.id, {
             ...data,
             pieces: mappedPieces,
@@ -585,6 +581,8 @@ export default class PuzzlyCreator {
             boardWidth: puzzleWidth,
             boardHeight: puzzleHeight,
           });
+
+          window.location.href = "/puzzle?id=" + response._id;
         }.bind(this)
       )
       .catch(function (err) {

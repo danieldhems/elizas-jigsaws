@@ -1,5 +1,6 @@
 var router = require("express").Router();
 const assert = require("assert");
+const { ObjectId } = require("mongodb");
 const {
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
@@ -29,20 +30,23 @@ module.exports.clean = function () {
 async function createPuzzle(req, res) {
   console.log('createPuzzle', req.body)
   try {
-    const dbConnection = await dbClient.connect();
-    const db = dbConnection.db(dbName);
-
     const data = req.body;
-
-    const { puzzles } = getDatabaseCollections(db, data);
+    const db = dbClient.db(dbName);
+    const collection = db.collection("puzzles_dev");
 
     data.numberOfSolvedPieces = 0;
     data.dateCreated = new Date();
     data.elapsedTime = 0;
 
-    const puzzleDBResponse = await puzzles.insertOne(data);
+    const response = await collection.insertOne({
+      userId: req.user._id,
+      ...data
+    });
 
-    res.status(200).send({ message: "ok" });
+    res.status(200).send({
+      ...data,
+      _id: response.insertedId,
+    });
   } catch (e) {
     console.error("createPuzzle error", e)
     res.status(500).send(e);
@@ -484,17 +488,14 @@ async function deleteGroup(req, res) {
 
 async function getPuzzle(req, res) {
   try {
-    // console.log('getPuzzle', req.body)
-    const { puzzleId, integration } = req.body;
+    const { puzzleId } = req.params;
 
-    const dbConnection = await dbClient.connect();
-    const db = dbConnection.db(dbName);
-
-    const puzzlesCollection = integration
-      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
-      : db.collection(PUZZLES_PROD_COLLECTION);
-
-    const puzzle = await puzzlesCollection.findOne({ id: puzzleId });
+    const db = dbClient.db(dbName);
+    const puzzlesCollection = db.collection("puzzles_dev");
+    const puzzle = await puzzlesCollection.findOne({
+      _id: new ObjectId(puzzleId),
+      userId: req.user._id,
+    });
 
     res.status(200).send(puzzle);
   } catch (e) {
@@ -565,7 +566,7 @@ async function updateTimePlayed(req, res) {
 // Set API CRUD endpoints
 router.post("/createPuzzle", createPuzzle);
 router.post("/getPuzzles", getPuzzles);
-router.post("/getPuzzle", getPuzzle);
+router.get("/:puzzleId", getPuzzle);
 router.post("/createPieces", createPieces);
 router.put("/updatePiece", updatePiece);
 router.put("/updatePieces", updatePieces);
