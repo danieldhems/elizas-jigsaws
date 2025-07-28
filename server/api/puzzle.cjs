@@ -55,7 +55,7 @@ async function createPuzzle(req, res) {
 
 async function createPieces(req, res) {
   try {
-    // console.log("createPieces -> pieces", req.body.pieces.toString());
+    console.log("createPieces -> pieces", req.body.pieces.toString());
     console.log("createPieces -> puzzleId", req.body.puzzleId);
 
     const { pieces, puzzleId, integration } = req.body;

@@ -479,7 +479,8 @@ export default class PuzzlyCreator {
 
     fd.append("previewWidth", this.imagePreviewEl.offsetWidth.toString());
     fd.append("previewHeight", this.imagePreviewEl.offsetHeight.toString());
-    // fd.append("boardSize", this.boardHeight.toString());
+    fd.append("viewportWidth", window.innerWidth + "");
+    fd.append("viewportHeight", window.innerHeight + "");
     fd.append("integration", this.isIntegration + "");
 
     return fetch("/api/upload", {
@@ -523,17 +524,16 @@ export default class PuzzlyCreator {
     // console.log("crop data", cropData)
 
     const activeImpression = this.PuzzleImpressionOverlay.getActiveImpression();
-    // console.log("active impression", activeImpression);
+    console.log("active impression", activeImpression);
     // console.log("selected puzzle config", this.selectedPuzzleConfig);
     // const puzzleDimensions = this.getPuzzleDimensions(this.selectedPuzzleConfig, activeImpression);
 
     let mappedPieces: SkeletonPiece[];
-    if (activeImpression.pieces) {
-      mappedPieces = addPuzzleDataToPieces(
-        activeImpression.pieces,
-        this.selectedPuzzleConfig
-      );
-    }
+    mappedPieces = addPuzzleDataToPieces(
+      activeImpression.pieces as SkeletonPiece[],
+      this.selectedPuzzleConfig
+    );
+
     console.log(this.sourceImage)
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
@@ -553,7 +553,7 @@ export default class PuzzlyCreator {
 
     const data = {
       ...this.selectedPuzzleConfig,
-      id: nanoid(),
+      pieces: mappedPieces,
       boardWidth: puzzleWidth,
       boardHeight: puzzleHeight,
       filename: this.sourceImage.filename,
@@ -573,7 +573,7 @@ export default class PuzzlyCreator {
       .then(
         function (response: any) {
           console.log('/api/puzzle/createPuzzle response', response)
-          window.Puzzly = new Puzzly(data.id, {
+          window.Puzzly = new Puzzly(response._id, {
             ...data,
             pieces: mappedPieces,
             previewPath: response.previewPath,

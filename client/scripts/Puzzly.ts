@@ -287,7 +287,7 @@ export default class Puzzly {
           }),
         }).then(res => res.json())
           .then((response) => {
-            // console.log('/api/puzzle/createPieces response', response);
+            console.log('/api/puzzle/createPieces response', response);
           });
       }
     }

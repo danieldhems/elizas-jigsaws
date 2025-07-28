@@ -397,7 +397,7 @@ export type PuzzleImpression = {
   puzzleConfig: PuzzleConfig;
   impressionWidth?: number;
   impressionHeight?: number;
-  pieces: SkeletonPiece[]
+  pieces: SkeletonPiece[];
 };
 
 export interface SaveOptions {

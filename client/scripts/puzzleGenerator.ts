@@ -396,7 +396,7 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
 export const addPuzzleDataToPieces = (
   pieces: SkeletonPiece[],
   puzzleConfig: PuzzleConfig,
-) => {
+): SkeletonPiece[] => {
   const {
     pieceSize,
     connectorSize,
