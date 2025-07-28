@@ -80,6 +80,7 @@ export default class PuzzlyCreator {
   puzzleSizeInputLabel: HTMLLabelElement;
   chkHighlights: HTMLInputElement;
   chkNoDispersal: HTMLInputElement;
+  chkAddToLibrary: HTMLInputElement;
   imagePreviewElContainer: HTMLDivElement;
   imagePreviewElInner: HTMLDivElement;
   imagePreviewEl: HTMLImageElement;
@@ -97,6 +98,7 @@ export default class PuzzlyCreator {
   };
   PuzzleImpressionOverlay: PuzzleImpressionOverlay;
   isIntegration: boolean;
+  addToLibrary: boolean;
 
   constructor() {
     this.puzzleOptionsContainer = document.querySelector(
@@ -120,6 +122,9 @@ export default class PuzzlyCreator {
     this.chkNoDispersal = document.querySelector(
       "#chk-no-disperse"
     ) as this["chkNoDispersal"];
+    this.chkAddToLibrary = document.querySelector(
+      "#chk-add-to-library"
+    ) as this["chkAddToLibrary"];
     this.imagePreviewElContainer = document.querySelector(
       "#puzzle-setup--image"
     ) as this["imagePreviewEl"];
@@ -160,6 +165,8 @@ export default class PuzzlyCreator {
       noDispersal: false,
       highlightConnectingPieces: false,
     };
+
+    this.addToLibrary = false;
 
     this.addGeneralEventListeners();
     this.setupPuzzleShapefield();
@@ -296,6 +303,13 @@ export default class PuzzlyCreator {
       "input",
       function (e: InputEvent) {
         this.debugOptions.noDispersal = (e.target as HTMLInputElement).checked;
+      }.bind(this)
+    );
+
+    this.chkAddToLibrary.addEventListener(
+      "input",
+      function (e: InputEvent) {
+        this.addToLibrary = (e.target as HTMLInputElement).checked;
       }.bind(this)
     );
 
@@ -524,7 +538,6 @@ export default class PuzzlyCreator {
     // console.log("crop data", cropData)
 
     const activeImpression = this.PuzzleImpressionOverlay.getActiveImpression();
-    console.log("active impression", activeImpression);
     // console.log("selected puzzle config", this.selectedPuzzleConfig);
     // const puzzleDimensions = this.getPuzzleDimensions(this.selectedPuzzleConfig, activeImpression);
 
@@ -534,7 +547,6 @@ export default class PuzzlyCreator {
       this.selectedPuzzleConfig
     );
 
-    console.log(this.sourceImage)
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
         ...cropData,
@@ -558,6 +570,7 @@ export default class PuzzlyCreator {
       boardHeight: puzzleHeight,
       filename: this.sourceImage.filename,
       puzzleImagePath,
+      addToLibrary: this.addToLibrary,
       debugOptions: this.debugOptions,
       isIntegration: this.isIntegration,
     };

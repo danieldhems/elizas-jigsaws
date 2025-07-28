@@ -36,7 +36,6 @@ async function upload(req, res) {
 
     //Use the mv() method to place the file in upload directory (i.e. "uploads")
     const creatorPath = uploadDir + `creator_${req.user._id}_${image.name}`;
-    const galleryPath = uploadDir + `gallery_${req.user._id}_${req.user._id}_${image.name}`;
     const sourcePath = uploadDir + `source_${req.user._id}_${image.name}`;
     const puzzlePath = uploadDir + `puzzle_${req.user._id}_${image.name}`;
     image.mv(sourcePath);
@@ -44,10 +43,6 @@ async function upload(req, res) {
     const imgInstance = Sharp(image.data);
 
     const { width: actualW, height: actualH } = await imgInstance.metadata();
-
-    await imgInstance
-      .resize(200)
-      .toFile(galleryPath);
 
     const imgW = parseInt(req.body.previewWidth);
     const imgH = parseInt(req.body.previewHeight);
