@@ -35,10 +35,10 @@ async function upload(req, res) {
       : UPLOADS_DIR_PROD;
 
     //Use the mv() method to place the file in upload directory (i.e. "uploads")
-    const creatorPath = uploadDir + `creator_${req.user._id}_${image.name}`;
-    const sourcePath = uploadDir + `source_${req.user._id}_${image.name}`;
-    const puzzlePath = uploadDir + `puzzle_${req.user._id}_${image.name}`;
-    image.mv(sourcePath);
+    const creatorImagePath = uploadDir + `creator_${req.user._id}_${image.name}`;
+    const sourceImagePath = uploadDir + `source_${req.user._id}_${image.name}`;
+    const puzzleImagePath = uploadDir + `puzzle_${req.user._id}_${image.name}`;
+    image.mv(sourceImagePath);
 
     const imgInstance = Sharp(image.data);
 
@@ -49,7 +49,7 @@ async function upload(req, res) {
 
     await imgInstance
       .resize(imgW, imgH, { fit: 'inside' })
-      .toFile(puzzlePath);
+      .toFile(puzzleImagePath);
 
     if (vWidth && vHeight) {
       let targetWidth = null, targetHeight = null;
@@ -62,17 +62,16 @@ async function upload(req, res) {
         targetHeight = Math.floor(vHeight / 2);
       }
 
-      await imgInstance.resize(targetWidth, targetHeight).toFile(creatorPath);
+      await imgInstance.resize(targetWidth, targetHeight).toFile(creatorImagePath);
     }
 
     res.status(200).send({
       status: true,
       message: "File is uploaded",
       data: {
-        creatorPath,
-        sourcePath,
-        galleryPath,
-        puzzlePath,
+        creatorImagePath,
+        sourceImagePath,
+        puzzleImagePath,
         filename: image.name,
         mimetype: image.mimetype,
         width: actualW,

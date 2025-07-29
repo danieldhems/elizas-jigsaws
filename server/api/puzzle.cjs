@@ -5,7 +5,7 @@ const {
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
 } = require("../constants.cjs");
-const { default: Sharp } = require("sharp");
+const Sharp = require("sharp");
 const dbClient = require('../database.cjs').default;
 
 const dbName = "puzzly";
@@ -43,24 +43,26 @@ async function createPuzzle(req, res) {
       const db = dbClient.db(dbName);
       const collection = db.collection("images");
 
-      const galleryPath = `gallery_${req.user._id}_${data.filename}`;
+      const galleryImagePath = `gallery_${req.user._id}_${data.filename}`;
 
-      const imgInstance = Sharp(data.filename);
+      const imgInstance = Sharp(data.sourceImagePath);
+      const { width, height } = imgInstance.metadata();
+
       await imgInstance
         .resize(200)
-        .toFile(galleryPath);
+        .toFile(galleryImagePath);
 
       const insertResult = await collection.insertOne({
         userId: req.user._id,
-        filename: image.name,
-        mimetype: image.mimetype,
+        filename: data.filename,
         width,
         height,
-        sourcePath,
-        galleryPath,
-        creatorPath,
+        sourceImagePath: data.sourceImagePath,
+        galleryImagePath: data.galleryImagePath,
+        creatorImagePath: data.creatorImagePath,
         createdOn: Date.now(),
       });
+      console.log("image insertion result", insertResult);
     }
 
     const response = await collection.insertOne({

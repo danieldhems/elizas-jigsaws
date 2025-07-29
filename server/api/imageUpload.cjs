@@ -43,10 +43,10 @@ async function upload(req, res) {
         : UPLOADS_DIR_PROD;
 
       //Use the mv() method to place the file in upload directory (i.e. "uploads")
-      const sourcePath = uploadDir + "source_" + req.user._id + "_" + image.name;
-      const galleryPath = uploadDir + "gallery_" + req.user._id + "_" + image.name;
-      const creatorPath = uploadDir + "creator_" + req.user._id + "_" + image.name;
-      image.mv(sourcePath);
+      const sourceImagePath = uploadDir + "source_" + req.user._id + "_" + image.name;
+      const galleryImagePath = uploadDir + "gallery_" + req.user._id + "_" + image.name;
+      const creatorImagePath = uploadDir + "creator_" + req.user._id + "_" + image.name;
+      image.mv(sourceImagePath);
 
       const imgInstance = Sharp(image.data);
 
@@ -55,7 +55,7 @@ async function upload(req, res) {
       // TODO: Image size should be a constant
       await imgInstance
         .resize(200)
-        .toFile(galleryPath);
+        .toFile(galleryImagePath);
 
       if (vWidth && vHeight) {
         let targetWidth = null, targetHeight = null;
@@ -68,7 +68,7 @@ async function upload(req, res) {
           targetHeight = Math.floor(vHeight / 2);
         }
 
-        await imgInstance.resize(targetWidth, targetHeight).toFile(creatorPath);
+        await imgInstance.resize(targetWidth, targetHeight).toFile(creatorImagePath);
       }
 
       const insertResult = await collection.insertOne({
@@ -77,9 +77,9 @@ async function upload(req, res) {
         mimetype: image.mimetype,
         width,
         height,
-        sourcePath,
-        galleryPath,
-        creatorPath,
+        sourceImagePath,
+        galleryImagePath,
+        creatorImagePath,
         createdOn: Date.now(),
       });
 
@@ -87,9 +87,9 @@ async function upload(req, res) {
         status: true,
         message: "Success",
         data: {
-          sourcePath,
-          galleryPath,
-          creatorPath,
+          sourceImagePath,
+          galleryImagePath,
+          creatorImagePath,
           filename: image.name,
           mimetype: image.mimetype,
           imageId: insertResult.insertedId,

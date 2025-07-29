@@ -20,8 +20,9 @@ import Utils from "./utils";
 export interface SourceImage {
   width: number;
   height: number;
-  creatorPath: string;
-  sourcePath: string;
+  creatorImagePath: string;
+  sourceImagePath: string;
+  galleryImagePath: string;
   imageName: string;
   filename: string;
 }
@@ -91,7 +92,9 @@ export default class PuzzlyCreator {
   puzzleSizeField: HTMLInputElement;
   puzzleShapeInputFields: NodeListOf<HTMLInputElement>;
   puzzleShapeFieldContainer: HTMLDivElement;
-  sourcePath: string;
+  sourceImagePath: string;
+  creatorImagePath: string;
+  galleryImagePath: string;
   imageUploadPreviewEl: HTMLImageElement & {
     naturalWidth: number;
     naturalHeight: number;
@@ -155,8 +158,9 @@ export default class PuzzlyCreator {
     this.sourceImage = {
       width: 0,
       height: 0,
-      creatorPath: "",
-      sourcePath: "",
+      creatorImagePath: "",
+      sourceImagePath: "",
+      galleryImagePath: "",
       imageName: "",
       filename: "",
     };
@@ -310,6 +314,7 @@ export default class PuzzlyCreator {
       "input",
       function (e: InputEvent) {
         this.addToLibrary = (e.target as HTMLInputElement).checked;
+        console.log("add to library", this.addToLibrary)
       }.bind(this)
     );
 
@@ -353,8 +358,10 @@ export default class PuzzlyCreator {
     if (response.data) {
       this.imagePreviewEl.style.display = "flex";
       (this.imageUploadPreviewEl as HTMLImageElement).src =
-        response.data.creatorPath;
+        response.data.creatorImagePath;
       this.sourceImage = response.data;
+      this.sourceImagePath = response.data.sourceImagePath;
+      this.galleryImagePath = response.data.galleryImagePath;
     }
   }
 
@@ -560,7 +567,10 @@ export default class PuzzlyCreator {
       },
     });
 
-    const { puzzleImagePath } = await makePuzzleImageResponse.json();
+    const {
+      puzzleImagePath,
+    } = await makePuzzleImageResponse.json();
+
     const { puzzleWidth, puzzleHeight } = this.selectedPuzzleConfig;
 
     const data = {
@@ -570,6 +580,9 @@ export default class PuzzlyCreator {
       boardHeight: puzzleHeight,
       filename: this.sourceImage.filename,
       puzzleImagePath,
+      sourceImagePath: this.sourceImagePath,
+      creatorImagePath: this.creatorImagePath,
+      galleryImagePath: this.galleryImagePath,
       addToLibrary: this.addToLibrary,
       debugOptions: this.debugOptions,
       isIntegration: this.isIntegration,
