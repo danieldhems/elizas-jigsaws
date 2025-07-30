@@ -177,6 +177,20 @@ export default class PuzzlyCreator {
 
     const imgId = Utils.getQueryStringValue("img_id");
 
+    if (!imgId) {
+      // TODO: Messy as hell doing this in an IF-statement
+      const addToLibraryControl = document.getElementById("puzzle-setup--add-to-library");
+      addToLibraryControl?.classList.remove("js-hidden");
+
+      this.chkAddToLibrary.addEventListener(
+        "input",
+        function (e: InputEvent) {
+          this.addToLibrary = (e.target as HTMLInputElement).checked;
+          console.log("add to library", this.addToLibrary)
+        }.bind(this)
+      );
+    }
+
     // TODO: Might need a more reliable test for valid img ID
     if (imgId.length === 24) {
       // Initiate puzzle impressions
@@ -193,7 +207,6 @@ export default class PuzzlyCreator {
           this.onUploadSuccess(res);
         })
         .catch(err => console.log(err))
-
     }
 
     this.selectedPuzzleShape = PuzzleShapes.Rectangle;
@@ -258,10 +271,6 @@ export default class PuzzlyCreator {
 
   }
 
-  showForm() {
-    this.newPuzzleForm.style.display = "flex";
-  }
-
   addGeneralEventListeners() {
     this.imageUploadField.addEventListener(
       "change",
@@ -310,14 +319,6 @@ export default class PuzzlyCreator {
       }.bind(this)
     );
 
-    this.chkAddToLibrary.addEventListener(
-      "input",
-      function (e: InputEvent) {
-        this.addToLibrary = (e.target as HTMLInputElement).checked;
-        console.log("add to library", this.addToLibrary)
-      }.bind(this)
-    );
-
     window.addEventListener(
       "PuzzlyPuzzleImpressionMoved",
       this.onOverlayMove.bind(this)
@@ -362,6 +363,7 @@ export default class PuzzlyCreator {
       this.sourceImage = response.data;
       this.sourceImagePath = response.data.sourceImagePath;
       this.galleryImagePath = response.data.galleryImagePath;
+      this.creatorImagePath = response.data.creatorImagePath;
     }
   }
 

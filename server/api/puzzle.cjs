@@ -4,6 +4,8 @@ const { ObjectId } = require("mongodb");
 const {
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
+  UPLOADS_DIR_INTEGRATION,
+  UPLOADS_DIR_PROD,
 } = require("../constants.cjs");
 const Sharp = require("sharp");
 const dbClient = require('../database.cjs').default;
@@ -11,8 +13,6 @@ const dbClient = require('../database.cjs').default;
 const dbName = "puzzly";
 
 const getDatabaseCollections = require("./getDatabaseCollections.cjs").default;
-
-let db;
 
 module.exports.clean = function () {
   dbClient.connect().then((client, err) => {
@@ -29,11 +29,11 @@ module.exports.clean = function () {
 };
 
 async function createPuzzle(req, res) {
-  console.log('createPuzzle', req.body)
+  // console.log('createPuzzle payload', req.body)
   try {
     const data = req.body;
     const db = dbClient.db(dbName);
-    const collection = db.collection("puzzles_dev");
+    const puzzles = db.collection("puzzles_dev");
 
     data.numberOfSolvedPieces = 0;
     data.dateCreated = new Date();
@@ -41,31 +41,35 @@ async function createPuzzle(req, res) {
 
     if (data.addToLibrary) {
       const db = dbClient.db(dbName);
-      const collection = db.collection("images");
+      const images = db.collection("images");
 
-      const galleryImagePath = `gallery_${req.user._id}_${data.filename}`;
+      const isIntegration = req.body.integration === 'true';
+      const uploadDir = isIntegration
+        ? UPLOADS_DIR_INTEGRATION
+        : UPLOADS_DIR_PROD;
+
+      const galleryImagePath = `${uploadDir}gallery_${req.user._id}_${data.filename}`;
 
       const imgInstance = Sharp(data.sourceImagePath);
-      const { width, height } = imgInstance.metadata();
+      const { width, height } = await imgInstance.metadata();
 
       await imgInstance
         .resize(200)
         .toFile(galleryImagePath);
 
-      const insertResult = await collection.insertOne({
+      const insertResult = await images.insertOne({
         userId: req.user._id,
         filename: data.filename,
         width,
         height,
         sourceImagePath: data.sourceImagePath,
-        galleryImagePath: data.galleryImagePath,
+        galleryImagePath,
         creatorImagePath: data.creatorImagePath,
         createdOn: Date.now(),
       });
-      console.log("image insertion result", insertResult);
     }
 
-    const response = await collection.insertOne({
+    const response = await puzzles.insertOne({
       userId: req.user._id,
       ...data
     });

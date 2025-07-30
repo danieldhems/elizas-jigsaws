@@ -35,9 +35,9 @@ async function upload(req, res) {
       : UPLOADS_DIR_PROD;
 
     //Use the mv() method to place the file in upload directory (i.e. "uploads")
-    const creatorImagePath = uploadDir + `creator_${req.user._id}_${image.name}`;
-    const sourceImagePath = uploadDir + `source_${req.user._id}_${image.name}`;
-    const puzzleImagePath = uploadDir + `puzzle_${req.user._id}_${image.name}`;
+    const creatorImagePath = `${uploadDir}/creator_${req.user._id}_${image.name}`;
+    const sourceImagePath = `${uploadDir}/source_${req.user._id}_${image.name}`;
+    const puzzleImagePath = `${uploadDir}/puzzle_${req.user._id}_${image.name}`;
     image.mv(sourceImagePath);
 
     const imgInstance = Sharp(image.data);
