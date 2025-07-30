@@ -1,6 +1,7 @@
 const path = require("path");
 
 module.exports = {
+  entry: __dirname + "/client/scripts/main.ts",
   mode: "development",
   context: __dirname + "/client/scripts",
   output: {
