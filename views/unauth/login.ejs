@@ -1,30 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliza's Jigsaws - Log in</title>
-    <style>
-        .js-hidden { 
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Log in</h1>
-    <form action="/login" method="post">
-        <div class="form-input-row">
-            <label for="name">Email address</label>
-            <input type="text" name="username" id="email-input" />
-        </div>
-        <div class="form-input-row">
-            <label for="password">Password</label>
-            <input type="text" name="password" id="password-input" />
-        </div>
-        <div class="form-input-row">
-            <input id="submit-btn" type="submit" />
-        </div>
-        <a href="/create-account" id="create-account-link">Create an account</a>
-    </form>
-</body>
-</html>
+<h1>Log in</h1>
+<form action="/login" method="post">
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="inputUsername">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" id="input-password">
+    </div>
+    <div class="col-auto">
+        <button type="submit" id="button-submit" class="btn btn-primary mb-3">Log in</button>
+    </div>
+    <a href="/create-account" id="create-account-link">Create an account</a>
+</form>

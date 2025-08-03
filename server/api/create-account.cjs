@@ -20,7 +20,6 @@ async function createAccount(req, res) {
 
                 var salt = await bcrypt.genSalt();
                 var hashedPassword = await bcrypt.hash(password, salt);
-                console.log("secure password", hashedPassword)
 
                 const db = client.db(dbName);
                 const users = db.collection("users");

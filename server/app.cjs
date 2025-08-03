@@ -20,7 +20,6 @@ var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { connUrl } = require("./database.cjs");
-const { ObjectId } = require("mongodb");
 const dbClient = require('./database.cjs').default;
 
 var app = express();
@@ -144,16 +143,18 @@ function checkAuthorised(req, res, next) {
   }
 }
 
+// app.set("unauth-layout", "unauth/layout.ejs");
+
 app.get("/create-account", function (req, res) {
-  res.render("unauth/create-account");
+  res.render("unauth/create-account", { layout: "unauth/layout" });
 });
 
 app.get("/login", function (req, res) {
-  res.render("unauth/login");
+  res.render("unauth/login", { layout: "unauth/layout" });
 });
 
 app.get("/new-image", checkAuthorised, function (req, res) {
-  res.render("auth/new-image", { user: req.user });
+  res.render("auth/new-image", { user: req.user, layout: "auth/layout" });
 });
 
 app.get("/new-puzzle", checkAuthorised, async function (req, res) {
@@ -190,9 +191,11 @@ app.get("/test", function (req, res) {
 
 app.get("/", checkAuthorised, async function (req, res) {
   const db = dbClient.db("puzzly");
-  const collection = db.collection("images");
-  const images = await collection.find({ userId: req.user._id }).toArray();
-  res.render("auth/home", { user: req.user, images });
+  const imagesCollection = db.collection("images");
+  const images = await imagesCollection.find({ userId: req.user._id }).toArray();
+  const puzzlesCollection = db.collection("puzzles");
+  const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
+  res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
 });
 
 app.use(

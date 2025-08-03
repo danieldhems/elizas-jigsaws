@@ -1,59 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliza's Jigsaws - Create your account</title>
-    <style>
-        .js-hidden { 
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Create your account</h1>
-    <form>
-        <div class="form-input-row">
-            <label for="name">Email address</label>
-            <input type="text" name="email" id="email-input" />
-        </div>
-        <div class="form-input-row">
-            <label for="name">Password</label>
-            <input type="text" name="password" id="password-input" />
-        </div>
-        <div class="form-input-row">
-            <input id="submit-btn" type="submit" />
-        </div>
-        <a href="/login" id="login-link" class="js-hidden">Log in</a>
-    </form>
+<h1>Create an account</h1>
+<form>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="inputUsername">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" id="input-password">
+    </div>
+    <div class="col-auto">
+        <button type="submit" id="button-submit" class="btn btn-primary mb-3">Submit</button>
+    </div>
+</form>
+<p>
+    Already have an account?
+    <br />
+    <a href="/login" id="login-link">Log in</a>
+</p>
 
-    <script>
-        const submitBtn = document.getElementById("submit-btn");
-        const loginLink = document.getElementById("login-link");
+<script>
+    const submitBtn = document.getElementById("button-submit");
 
-        submitBtn.addEventListener("click", async (e) => {
-            e.preventDefault();
+    submitBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-            const emailInput = document.getElementById("email-input");
-            const passwordInput = document.getElementById("password-input");
+        const emailInput = document.getElementById("email-input");
+        const passwordInput = document.getElementById("password-input");
 
-            const data = {
-                username: emailInput.value,
-                password: passwordInput.value,
-            };
+        const data = {
+            username: emailInput.value,
+            password: passwordInput.value,
+        };
 
-            const request = await fetch("/api/create-account", {
-                body: JSON.stringify(data),
-                method: "POST",
-                headers: {
-                    "content-type": "application/json",
-                },
-            });
+        const request = await fetch("/api/create-account", {
+            body: JSON.stringify(data),
+            method: "POST",
+            headers: {
+                "content-type": "application/json",
+            },
+        });
 
-            const result = await request.json();
+        const result = await request.json();
 
-            window.location.href = "/login";
-        })
-    </script>
-</body>
-</html>
+        window.location.href = "/login";
+    })
+</script>
