@@ -158,7 +158,7 @@ app.get("/new-image", checkAuthorised, function (req, res) {
 });
 
 app.get("/new-puzzle", checkAuthorised, async function (req, res) {
-  res.render("auth/new-puzzle", { user: req.user });
+  res.render("auth/new-puzzle", { user: req.user, layout: "auth/layout" });
 });
 
 app.get("/puzzle", checkAuthorised, async function (req, res) {
