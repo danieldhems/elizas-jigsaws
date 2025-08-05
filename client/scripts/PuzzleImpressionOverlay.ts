@@ -46,6 +46,8 @@ export default class PuzzleImpressionOverlay {
 
     this.setImpressions(this.puzzleConfigs);
     this.setActiveImpression(this.selectedPuzzleConfig);
+
+
   }
 
   reset() {

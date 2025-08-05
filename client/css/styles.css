@@ -176,15 +176,6 @@ label {
     height: 100%;
 }
 
-#puzzle-impression-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    cursor: move;
-    background-color: #fff;
-    opacity: .3;
-}
-
 .image-crop-drag-handle {
     display: none;
 }

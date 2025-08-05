@@ -47,6 +47,13 @@ export default class RestrictedDraggable {
       this.setDragBounds(restrictionBoundingBox);
       this.attachListeners();
     }
+
+    // this.element.style.position = "absolute";
+    // this.element.style.top = "0";
+    // this.element.style.left = "0";
+    this.element.style.cursor = "move";
+    this.element.style.backgroundColor = "#fff";
+    this.element.style.opacity = ".3";
   }
 
   createElement(
