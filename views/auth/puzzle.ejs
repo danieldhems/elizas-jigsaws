@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+
+<head>
+  <%- include("../partials/head") %>
+</head>
+
+<div id="stage">
+  <div id="play-boundary">
+    <div id="pieces-container" class="fill-container">
+      <!-- <div id="board-background"></div> -->
+      <div id="solved-puzzle-area">
+        <div id="solved-background" class="fill-container"></div>
+        <div id="solved-preview" class="fill-container"></div>
+      </div>
+      <div id="pockets">
+        <div id="pockets-inner">
+          <div id="pocket-0" class="pocket">
+            <div class="pocket-inner"></div>
+          </div>
+          <div id="pocket-1" class="pocket">
+            <div class="pocket-inner"></div>
+          </div>
+          <div id="pocket-2" class="pocket">
+            <div class="pocket-inner"></div>
+          </div>
+          <div id="pocket-3" class="pocket">
+            <div class="pocket-inner"></div>
+          </div>
+        </div>
+        <div id="pockets-handle"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="integration-test-drag-helper" class="js-hidden"></div>
+<div id="debug-info"></div>
+<div id="controls">
+  <div id="controls-handle">Menu</div>
+  <button id="logout-btn">Log out</button>
+  <div id="controls-panel" class="js-hidden">
+    <div id="preview">
+      <span id='preview-show' class="button">Show image</span>
+      <span id='preview-hide' class="button js-hidden">Hide image</span>
+    </div>
+    <div id="filter-pieces">
+      <span id='inner-pieces-off' class="button">Edges only</span>
+      <span id='inner-pieces-on' class="button">All pieces</span>
+    </div>
+    <div id="sound-toggle">
+      <span id='sounds-off' class="button">Turn sound off</span>
+      <span id='sounds-on' class="button">Turn sound on</span>
+    </div>
+    <div id="shuffle-pieces">
+      <span id='' class="button">Send pieces to edge: Shuffle</span>
+    </div>
+    <div id="neaten-pieces">
+      <span id='wrap-pieces-around-edge' class="button">Send pieces to edge: Neaten</span>
+    </div>
+    <div id="gather-pieces">
+      <span id='' class="button">Gather pieces</span>
+    </div>
+    <a href="/gallery" title="All puzzles" class="button">Go to Gallery</a>
+    <a id="js-create-new-puzzle" class="button" href="/" title="New puzzle">Create new puzzle</a>
+  </div>
+</div>
+<script type="module" src="dist/bundle.js"></script>

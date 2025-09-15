@@ -29,21 +29,21 @@
     </div>
     <div class="col-8">
       <div id="puzzle-setup--image">
-        <div id="puzzle-setup--image_preview">
+        <div id="puzzle-setup--image_preview" class="mb-3">
           <div id="puzzle-setup--image_preview_inner" class="position-relative">
             <img id="puzzle-setup--image_preview-imgEl" />
           </div>
         </div>
-        <div id="puzzle-setup--image_input">
+        <div id="puzzle-setup--image_input" class="mb-3">
           <input name="image" id="upload-fld" type="file" value="No file chosen" />
         </div>
-        <div class="puzzle-setup--option-row centered">
-          <input type="submit" id="start-btn" value="Start">
-        </div>
       </div>
-      <div id="puzzle-setup--add-to-library" class="form control">
+      <div id="puzzle-setup--add-to-library" class="mb-3">
         <label for="chk-add-to-library">Add this image to your library?</label>
         <input type="checkbox" id="chk-add-to-library" />
+      </div>
+      <div class="puzzle-setup--option-row centered">
+        <input type="submit" id="start-btn" value="Start" disabled>
       </div>
     </div>
   </div>

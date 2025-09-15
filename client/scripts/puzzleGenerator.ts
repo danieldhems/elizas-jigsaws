@@ -993,13 +993,9 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
     const currentConfig = puzzleConfigs[nConf];
     let pieces = generatePieces(currentConfig);
 
-
-
-
     const element = document.createElement("div");
     element.dataset.impressionIndex = nConf + '';
     element.id = "puzzle-" + currentConfig.totalNumberOfPieces;
-    // element.classList.add("js-hidden");
 
     const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
     svgElement.setAttribute("xmlns", SVG_NAMESPACE);

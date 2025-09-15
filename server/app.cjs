@@ -162,7 +162,7 @@ app.get("/new-puzzle", checkAuthorised, async function (req, res) {
 });
 
 app.get("/puzzle", checkAuthorised, async function (req, res) {
-  res.render("auth/puzzle", { user: req.user });
+  res.render("auth/puzzle", { user: req.user, layout: false });
 });
 
 app.get("/exp", function (req, res) {
@@ -193,6 +193,7 @@ app.get("/", checkAuthorised, async function (req, res) {
   const db = dbClient.db("puzzly");
   const imagesCollection = db.collection("images");
   const images = await imagesCollection.find({ userId: req.user._id }).toArray();
+  console.log("images", images)
   const puzzlesCollection = db.collection("puzzles");
   const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
   res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });

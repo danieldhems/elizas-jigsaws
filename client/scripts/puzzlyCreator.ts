@@ -180,7 +180,7 @@ export default class PuzzlyCreator {
     if (!imgId) {
       // TODO: Messy as hell doing this in an IF-statement
       const addToLibraryControl = document.getElementById("puzzle-setup--add-to-library");
-      addToLibraryControl?.classList.remove("js-hidden");
+      addToLibraryControl?.classList.remove("d-none");
 
       this.chkAddToLibrary.addEventListener(
         "input",
@@ -364,6 +364,8 @@ export default class PuzzlyCreator {
       this.sourceImagePath = response.data.sourceImagePath;
       this.galleryImagePath = response.data.galleryImagePath;
       this.creatorImagePath = response.data.creatorImagePath;
+
+      this.startBtn.removeAttribute("disabled");
     }
   }
 
@@ -422,10 +424,9 @@ export default class PuzzlyCreator {
       );
     }
 
-    this.imagePreviewEl.classList.remove("js-hidden");
+    this.imagePreviewEl.classList.remove("d-none");
 
     this.updatePuzzleSizeField(this.activePuzzleConfigs);
-
     this.addPuzzleOptionEventListeners();
     this.getCropData();
   }

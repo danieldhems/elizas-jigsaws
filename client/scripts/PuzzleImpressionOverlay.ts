@@ -127,7 +127,7 @@ export default class PuzzleImpressionOverlay {
 
     Array.from(impressionElements).forEach((impressionElement) => {
       if (impressionElement.id === id) {
-        impressionElement.classList.remove("js-hidden");
+        impressionElement.classList.remove("d-none");
 
         if (puzzleWidth !== puzzleHeight) {
           this.draggable.update(this.getLayout(puzzleConfig));
@@ -142,7 +142,7 @@ export default class PuzzleImpressionOverlay {
             impression.index === impressiongIndex
         ) as PuzzleImpression;
       } else {
-        impressionElement.classList.add("js-hidden");
+        impressionElement.classList.add("d-none");
       }
     });
   }
