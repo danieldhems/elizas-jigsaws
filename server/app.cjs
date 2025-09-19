@@ -21,7 +21,7 @@ var generatorTest = require("./api/generator-test.cjs");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const { connUrl } = require("./database.cjs");
 const dbClient = require('./database.cjs').default;
-
+const { PUZZLES_DEV_COLLECTION } = require("./constants.cjs");
 var app = express();
 
 require("dotenv").config();
@@ -193,9 +193,10 @@ app.get("/", checkAuthorised, async function (req, res) {
   const db = dbClient.db("puzzly");
   const imagesCollection = db.collection("images");
   const images = await imagesCollection.find({ userId: req.user._id }).toArray();
-  console.log("images", images)
-  const puzzlesCollection = db.collection("puzzles");
+  const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
+
   const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
+
   res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
 });
 

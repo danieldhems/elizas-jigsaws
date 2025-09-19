@@ -1,7 +1,7 @@
 <div class="row justify-content-start">
   <% if(puzzles.length) { puzzles.forEach(puzzle=> { %>
     <div class="col-4 ">
-      Puzzle image here
+      <img src="<%= puzzle.puzzleImagePath %>" />
     </div>
     <% }) } else { %>
       <p>You haven't created any puzzles yet.</p>

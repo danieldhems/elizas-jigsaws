@@ -1,6 +1,7 @@
 module.exports.UPLOADS_DIR_PROD = "./uploads/";
 module.exports.UPLOADS_DIR_INTEGRATION = "./uploads_integration/";
 
+module.exports.PUZZLES_DEV_COLLECTION = "puzzles_dev";
 module.exports.PUZZLES_PROD_COLLECTION = "puzzles_prod";
 module.exports.PIECES_PROD_COLLECTION = "pieces_prod";
 module.exports.GROUPS_PROD_COLLECTION = "groups_prod";

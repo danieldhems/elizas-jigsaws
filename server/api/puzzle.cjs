@@ -2,6 +2,7 @@ var router = require("express").Router();
 const assert = require("assert");
 const { ObjectId } = require("mongodb");
 const {
+  PUZZLES_DEV_COLLECTION,
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
   UPLOADS_DIR_INTEGRATION,
@@ -33,7 +34,7 @@ async function createPuzzle(req, res) {
   try {
     const data = req.body;
     const db = dbClient.db(dbName);
-    const puzzles = db.collection("puzzles_dev");
+    const puzzles = db.collection(PUZZLES_DEV_COLLECTION);
 
     data.numberOfSolvedPieces = 0;
     data.dateCreated = new Date();
@@ -522,7 +523,7 @@ async function getPuzzle(req, res) {
     const { puzzleId } = req.params;
 
     const db = dbClient.db(dbName);
-    const puzzlesCollection = db.collection("puzzles_dev");
+    const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
     const puzzle = await puzzlesCollection.findOne({
       _id: new ObjectId(puzzleId),
       userId: req.user._id,
