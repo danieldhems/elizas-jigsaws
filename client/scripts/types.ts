@@ -20,6 +20,19 @@ export enum InstanceTypes {
   PlayBoundaryMovable = "PlayBoundaryMovable",
 }
 
+export interface PuzzleData {
+  numberOfPiecesHorizontal: number;
+  numberOfPiecesVertical: number;
+  totalNumberOfPieces: number;
+  boardWidth: number;
+  boardHeight: number;
+  pieces: JigsawPieceData[];
+  pieceSize: number;
+  puzzleId: string;
+  zIndex: number;
+  isComplete: boolean;
+}
+
 export type SingleMovableElement = HTMLDivElement;
 export type GroupMovableElement = HTMLDivElement;
 export type PocketMovableElement = HTMLDivElement;

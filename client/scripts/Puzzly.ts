@@ -24,6 +24,7 @@ import {
   GroupData,
   JigsawPieceData,
   MovableElement,
+  PuzzleData,
   SolvedPuzzlePreviewType,
 } from "./types";
 import Utils from "./utils";
@@ -48,6 +49,7 @@ export default class Puzzly {
   puzzleHeight: number;
   puzzleId: string;
   pieces: JigsawPieceData[];
+  solvedPieces: JigsawPieceData[];
   groups: GroupData[];
   lastSaveDate: number;
   pieceSize: number;
@@ -73,7 +75,7 @@ export default class Puzzly {
   floatTolerance: number;
   pieceInstances: SingleMovable[];
   groupInstances: GroupMovable[];
-  complete?: boolean;
+  isComplete?: boolean;
   solvedCount: number;
   stage: HTMLDivElement | null;
   playBoundary: HTMLDivElement | null;
@@ -108,48 +110,44 @@ export default class Puzzly {
     width: number;
     height: number;
   }
+  debug: boolean;
 
-  constructor(puzzleId: string, config: any) {
-    Object.assign(this, {
-      ...config,
-      debug: true,
-      showDebugInfo: false,
-      piecesPerSideHorizontal: config.numberOfPiecesHorizontal,
-      piecesPerSideVertical: config.numberOfPiecesVertical,
-    });
-
+  constructor(
+    puzzleData: PuzzleData,
+    config: {
+      noDispersal: boolean
+    }
+  ) {
     window.Puzzly = this;
 
-    this.numberOfPiecesHorizontal = config.numberOfPiecesHorizontal;
-    this.numberOfPiecesVertical = config.numberOfPiecesVertical;
+    this.debug = true;
 
-    // TODO: Rename this to avoid confusion
-    this.selectedNumPieces = config.totalNumberOfPieces;
+    this.numberOfPiecesHorizontal = puzzleData.numberOfPiecesHorizontal,
+      this.numberOfPiecesVertical = puzzleData.numberOfPiecesVertical,
 
-    this.boardWidth = config.boardWidth;
-    this.boardHeight = config.boardHeight;
+      // TODO: Rename this to avoid confusion
+      this.selectedNumPieces = puzzleData.totalNumberOfPieces;
 
-    this.pieces = config.pieces as JigsawPieceData[];
+    this.boardWidth = puzzleData.boardWidth;
+    this.boardHeight = puzzleData.boardHeight;
 
-    this.pieceSize = config.pieceSize;
+    this.pieces = puzzleData.pieces as JigsawPieceData[];
+
+    this.pieceSize = puzzleData.pieceSize;
     this.shadowOffset = this.pieceSize / 100 * SHADOW_OFFSET_RATIO;
 
-    this.complete = config.complete;
+    this.isComplete = puzzleData.isComplete;
 
-    this.puzzleId = puzzleId;
+    this.puzzleId = puzzleData.puzzleId;
 
-    this.noDispersal = config?.debugOptions?.noDispersal;
+    this.noDispersal = config?.noDispersal;
 
-    this.currentZIndex = config.zIndex || INITIAL_ZINDEX_FOR_PIECES;
+    this.currentZIndex = puzzleData.zIndex || INITIAL_ZINDEX_FOR_PIECES;
 
     this.solvedGroupId = 1111;
 
-    this.puzzleId = puzzleId;
-
     this.puzzleImage = new Image();
     this.puzzleImage.src = this.puzzleImagePath;
-
-    console.log(this);
 
     this.previewImageType = SolvedPuzzlePreviewType.AlwaysOn;
 
@@ -195,6 +193,7 @@ export default class Puzzly {
 
     this.controlsHandle = document.querySelector("#controls-handle") as HTMLDivElement;
     this.controlsPanel = document.querySelector("#controls-panel") as HTMLDivElement;
+
     if (this.controlsHandle && this.controlsPanel) {
       this.controlsHandle.addEventListener("click", () => {
         if (this.controlsPanel.classList.contains("js-hidden")) {
@@ -218,81 +217,21 @@ export default class Puzzly {
       height: this.boardHeight,
       puzzleImage: this.puzzleImage,
       shadowOffset: this.shadowOffset,
-      piecesPerSideHorizontal: this.piecesPerSideHorizontal,
-      piecesPerSideVertical: this.piecesPerSideVertical,
+      numberOfPiecesHorizontal: this.numberOfPiecesHorizontal,
+      numberOfPiecesVertical: this.numberOfPiecesVertical,
     });
 
     const storage = this.PersistenceOperations.getPersistence(this);
 
     this.pieceInstances = [];
     this.groupInstances = [];
-    const solvedPieces: JigsawPieceData[] = [];
 
     if (storage && storage.pieces.length > 0) {
-      // console.log("Getting pieces from storage", storage)
-      storage.pieces.forEach((p) => {
-        const pieceInstance = new SingleMovable({
-          puzzleData: this,
-          pieceData: p,
-        });
+      this.restorePuzzleFromSavedState(storage.pieces);
 
-        this.pieceInstances.push(pieceInstance);
-
-        if (p.isSolved) {
-          solvedPieces.push(p);
-        }
-      });
-      // console.log('Single pieces', this.pieceInstances)
-
-      if (solvedPieces.length > 0) {
-        this.SolvingArea.addSolvedPieces(solvedPieces);
-      }
-
-      // console.log("groups from persistence", this.groups);
-      if (this.groups && Object.keys(this.groups).length) {
-        for (let g in this.groups) {
-          const group = this.groups[g];
-          const groupInstance = new GroupMovable(group);
-          this.groupInstances.push(groupInstance);
-        }
-      }
     } else {
-      this.pieces.forEach((piece, index) => {
-        const pieceInstance = new SingleMovable({
-          puzzleData: this,
-          pieceData: {
-            ...piece,
-            index,
-          },
-        });
-        this.pieceInstances.push(pieceInstance);
-      });
-
-      if (!this.noDispersal) {
-        arrangePiecesAroundEdge();
-      } else {
-        // NOTE: Initial save once all pieces have been rendered
-        // Only necessary when loading puzzle without disperal (for debug)
-        // else the save would be called elsewhere
-        const pieces = this.pieceInstances.map((piece) => piece.getDataForSave());
-
-        fetch('/api/puzzle/createPieces', {
-          method: 'POST',
-          headers: {
-            "Content-Type": "Application/json",
-          },
-          body: JSON.stringify({
-            pieces,
-            puzzleId: this.puzzleId,
-          }),
-        }).then(res => res.json())
-          .then((response) => {
-            console.log('/api/puzzle/createPieces response', response);
-          });
-      }
+      this.renderNewPuzzle(this.pieces);
     }
-
-    this.timeStarted = new Date().getTime();
 
     addEventListener(
       "beforeunload",
@@ -308,8 +247,6 @@ export default class Puzzly {
 
     (this.stage as HTMLDivElement).classList.add("loaded");
 
-
-
     const integrationTestDragHelper = document.querySelector(
       "#integration-test-drag-helper"
     ) as HTMLDivElement;
@@ -319,6 +256,74 @@ export default class Puzzly {
       parseInt((this.playBoundary as HTMLDivElement).style.left) / 2 + "px";
     integrationTestDragHelper.style.width = "100px";
     integrationTestDragHelper.style.height = "100px";
+  }
+
+  restorePuzzleFromSavedState(pieces: JigsawPieceData[]) {
+    // console.log("Getting pieces from storage", storage)
+    pieces.forEach((p) => {
+      const pieceInstance = new SingleMovable({
+        puzzleData: this,
+        pieceData: p,
+      });
+
+      this.pieceInstances.push(pieceInstance);
+
+      if (p.isSolved) {
+        this.solvedPieces.push(p);
+      }
+    });
+    // console.log('Single pieces', this.pieceInstances)
+
+    if (this.solvedPieces.length > 0) {
+      this.SolvingArea.addSolvedPieces(this.solvedPieces);
+    }
+
+    // console.log("groups from persistence", this.groups);
+    if (this.groups && Object.keys(this.groups).length) {
+      for (let g in this.groups) {
+        const group = this.groups[g];
+        const groupInstance = new GroupMovable(group);
+        this.groupInstances.push(groupInstance);
+      }
+    }
+  }
+
+  renderNewPuzzle(pieces: JigsawPieceData[]) {
+    pieces.forEach((piece, index) => {
+      const pieceInstance = new SingleMovable({
+        puzzleData: this,
+        pieceData: {
+          ...piece,
+          index,
+        },
+      });
+      this.pieceInstances.push(pieceInstance);
+    });
+
+    if (!this.noDispersal) {
+      arrangePiecesAroundEdge();
+    }
+
+    // NOTE: Initial save once all pieces have been rendered
+    // Only necessary when loading puzzle without disperal (for debug)
+    // else the save would be called elsewhere
+    const pieceDataToSave = this.pieceInstances.map((piece) => piece.getDataForSave());
+
+    fetch('/api/puzzle/createPieces', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "Application/json",
+      },
+      body: JSON.stringify({
+        pieces: pieceDataToSave,
+        puzzleId: this.puzzleId,
+      }),
+    }).then(res => res.json())
+      .then((response) => {
+        console.log('/api/puzzle/createPieces response', response);
+      });
+
+    this.timeStarted = new Date().getTime();
   }
 
   getSingleInstanceByIndex(

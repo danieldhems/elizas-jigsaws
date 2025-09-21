@@ -7,8 +7,8 @@ export interface GroupOperationsProperties {
   height: number;
   puzzleImage: HTMLImageElement;
   shadowOffset: number;
-  piecesPerSideHorizontal: number;
-  piecesPerSideVertical: number;
+  numberOfPiecesHorizontal: number;
+  numberOfPiecesVertical: number;
   position?: {
     top: number;
     left: number;
@@ -21,8 +21,8 @@ export default class GroupOperations {
   height: number;
   puzzleImage: HTMLImageElement;
   shadowOffset: number;
-  piecesPerSideHorizontal: number;
-  piecesPerSideVertical: number;
+  numberOfPiecesHorizontal: number;
+  numberOfPiecesVertical: number;
   position?: {
     top: number;
     left: number;
@@ -36,8 +36,8 @@ export default class GroupOperations {
     this.shadowOffset = config.shadowOffset;
     this.position = config.position;
     this.zIndex = config.zIndex;
-    this.piecesPerSideHorizontal = config.piecesPerSideHorizontal;
-    this.piecesPerSideVertical = config.piecesPerSideVertical;
+    this.numberOfPiecesHorizontal = config.numberOfPiecesHorizontal;
+    this.numberOfPiecesVertical = config.numberOfPiecesVertical;
   }
 
   isGroupSolved(groupId: string): boolean | void {
@@ -89,8 +89,6 @@ export default class GroupOperations {
         : [attrValue]
       : [];
   }
-
-
 
   static generateGroupId() {
     return new Date().getTime();
@@ -281,12 +279,12 @@ export default class GroupOperations {
 
     const pieceTop =
       !Utils.isTopEdgePiece(p.type) &&
-      Utils.getElementByPieceId(p.id - this.piecesPerSideHorizontal);
+      Utils.getElementByPieceId(p.id - this.numberOfPiecesHorizontal);
     const pieceRight =
       !Utils.isRightEdgePiece(p.type) && Utils.getElementByPieceId(p.id + 1);
     const pieceBottom =
       !Utils.isBottomEdgePiece(p.type) &&
-      Utils.getElementByPieceId(p.id + this.piecesPerSideHorizontal);
+      Utils.getElementByPieceId(p.id + this.numberOfPiecesHorizontal);
     const pieceLeft =
       !Utils.isLeftEdgePiece(p.type) && Utils.getElementByPieceId(p.id - 1);
 
