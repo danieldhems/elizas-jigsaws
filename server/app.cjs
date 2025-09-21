@@ -29,6 +29,8 @@ require("dotenv").config();
 app.set("view engine", "ejs");
 app.use(expressLayouts);
 
+const db = dbClient.db("puzzly");
+
 app.use(
   bodyParser.urlencoded({
     uploadDir: path.join(__dirname, "uploads"),
@@ -162,7 +164,9 @@ app.get("/new-puzzle", checkAuthorised, async function (req, res) {
 });
 
 app.get("/puzzle", checkAuthorised, async function (req, res) {
-  res.render("auth/puzzle", { user: req.user, layout: false });
+  const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
+  const puzzle = await puzzlesCollection.findOne({ _id: req.query.id, userId: req.user._id });
+  res.render("auth/puzzle", { user: req.user, puzzle, layout: false });
 });
 
 app.get("/exp", function (req, res) {
@@ -190,13 +194,11 @@ app.get("/test", function (req, res) {
 });
 
 app.get("/", checkAuthorised, async function (req, res) {
-  const db = dbClient.db("puzzly");
   const imagesCollection = db.collection("images");
   const images = await imagesCollection.find({ userId: req.user._id }).toArray();
   const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
-
   const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
-
+  console.log("puzzle data", puzzles[0])
   res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
 });
 
