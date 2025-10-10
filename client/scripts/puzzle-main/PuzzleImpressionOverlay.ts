@@ -1,6 +1,6 @@
 import RestrictedDraggable from "./RestrictedDraggable";
-import { getPuzzleImpressions } from "./puzzleGenerator";
-import { MovementAxis, PuzzleConfig, PuzzleImpression } from "./types";
+import { getPuzzleImpressions } from "../puzzle-creator/puzzleGenerator";
+import { MovementAxis, PuzzleConfig, PuzzleImpression } from "../types";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;

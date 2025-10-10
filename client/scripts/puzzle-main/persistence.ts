@@ -1,13 +1,13 @@
-import { EVENT_TYPES } from "./constants";
+import { EVENT_TYPES } from "../constants";
 import GroupMovable from "./GroupMovable";
-import Puzzly from "./Puzzly";
+import Puzzly from ".";
 import {
   GroupMovableSaveState,
   LocalStorageKeys,
   SavedProgress,
   SaveOptions,
   SingleMovableSaveState,
-} from "./types";
+} from "../types";
 
 const UPDATE_PIECE_ENDPOINT = "/api/puzzle/updatePiece";
 const UPDATE_PIECES_ENDPOINT = "/api/puzzle/updatePieces";

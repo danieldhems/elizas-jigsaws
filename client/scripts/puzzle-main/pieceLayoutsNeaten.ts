@@ -1,7 +1,7 @@
 import SingleMovable from "./SingleMovable";
-import { EVENT_TYPES, LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE } from "./constants";
-import { MovableElement, SideNames } from "./types";
-import Utils from "./utils";
+import { EVENT_TYPES, LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE } from "../constants";
+import { MovableElement, SideNames } from "../types";
+import Utils from "../utils";
 
 // Determine when to start placing pieces on next side
 function shouldProceedToNextSide(

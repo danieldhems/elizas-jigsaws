@@ -1,9 +1,9 @@
 import GroupMovable from "./GroupMovable";
 import SingleMovable from "./SingleMovable";
-import { ELEMENT_IDS } from "./constants";
-import { getSvg } from "./svg";
-import { JigsawPieceData } from "./types";
-import Utils from "./utils";
+import { ELEMENT_IDS } from "../constants";
+import { getSvg } from "../puzzle-creator/svg";
+import { JigsawPieceData } from "../types";
+import Utils from "../utils";
 
 export default class SolvingArea {
     element: HTMLDivElement;

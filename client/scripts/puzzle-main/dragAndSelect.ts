@@ -1,11 +1,11 @@
 import BaseMovable from "./BaseMovable";
-import { EVENT_TYPES } from "./constants";
+import { EVENT_TYPES } from "../constants";
 import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
-import Puzzly from "./Puzzly";
+import Puzzly from ".";
 import SingleMovable from "./SingleMovable";
-import { BoundingBox, MovableElement, SingleMovableSaveState } from "./types";
-import Utils from "./utils";
+import { BoundingBox, MovableElement, SingleMovableSaveState } from "../types";
+import Utils from "../utils";
 
 class DragAndSelect extends BaseMovable {
   Puzzly: Puzzly;
@@ -216,7 +216,7 @@ class DragAndSelect extends BaseMovable {
       for (const piece of group.piecesInGroup) {
         const pieceRect = piece.element.getBoundingClientRect();
         Utils.drawBox(pieceRect, "red");
-        
+
         if (Utils.hasCollision(pieceRect, rect)) {
           groups.push(group);
           break;
@@ -390,7 +390,7 @@ class DragAndSelect extends BaseMovable {
 
     const tagName = (e.target as HTMLElement).tagName;
 
-    if((this.selectedPieces.length || this.selectedGroups.length) && tagName !== "use") {
+    if ((this.selectedPieces.length || this.selectedGroups.length) && tagName !== "use") {
       // If one or more pieces or groups have been selected and empty space has been clicked,
       // stop the drag
       this.stopDrag();

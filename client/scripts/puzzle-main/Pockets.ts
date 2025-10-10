@@ -1,10 +1,10 @@
 import BaseMovable from "./BaseMovable";
-import { ELEMENT_IDS, EVENT_TYPES, PIECE_SCALE_INSIDE_POCKETS } from "./constants";
+import { ELEMENT_IDS, EVENT_TYPES, PIECE_SCALE_INSIDE_POCKETS } from "../constants";
 import { PocketMovable } from "./PocketMovable";
-import Puzzly from "./Puzzly";
+import Puzzly from ".";
 import SingleMovable from "./SingleMovable";
-import { BoundingBox, DomBox, MovableElement, Orientation } from "./types";
-import Utils from "./utils";
+import { BoundingBox, DomBox, MovableElement, Orientation } from "../types";
+import Utils from "../utils";
 
 const POCKET_DEPTH = 110;
 

@@ -1,5 +1,5 @@
-import Puzzly from "./Puzzly";
-import PuzzlyCreator from "./puzzlyCreator";
+import Puzzly from "./puzzle-main";
+import PuzzlyCreator from "./puzzle-creator";
 import Utils from "./utils";
 
 document.body.onload = function () {
@@ -8,9 +8,8 @@ document.body.onload = function () {
     fetch("/api/puzzle/" + puzzleId)
       .then((response) => response.json())
       .then((response) => {
-        window.Puzzly = new Puzzly(puzzleId, response);
+        const config = { noDispersal: true };
+        window.Puzzly = new Puzzly(response);
       });
-  } else {
-    new PuzzlyCreator();
   }
 };

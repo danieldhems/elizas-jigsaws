@@ -1,8 +1,8 @@
 import SingleMovable from "./SingleMovable";
 import {
   BoundingBox,
-} from "./types";
-import Utils from "./utils";
+} from "../types";
+import Utils from "../utils";
 
 export function checkConnections(
   piece: SingleMovable,

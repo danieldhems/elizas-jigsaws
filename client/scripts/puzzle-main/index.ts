@@ -16,7 +16,7 @@ import {
   INITIAL_ZINDEX_FOR_PIECES,
   QUERY_STRING_PARAM_SHOW_CONNECTOR_BOXES,
   SHADOW_OFFSET_RATIO,
-} from "./constants";
+} from "../constants";
 import DragAndSelect from "./dragAndSelect";
 import PersistenceOperations from "./persistence";
 import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
@@ -26,8 +26,8 @@ import {
   MovableElement,
   PuzzleData,
   SolvedPuzzlePreviewType,
-} from "./types";
-import Utils from "./utils";
+} from "../types";
+import Utils from "../utils";
 import Zoom from "./zoom";
 /**
  * Puzzly
@@ -47,15 +47,14 @@ export default class Puzzly {
   boardSize: number;
   puzzleWidth: number;
   puzzleHeight: number;
+  totalNumberOfPieces: PuzzleData['totalNumberOfPieces'];
+  pieces: PuzzleData['pieces'];
+  boardWidth: PuzzleData['boardWidth'];
   puzzleId: string;
-  pieces: JigsawPieceData[];
   solvedPieces: JigsawPieceData[];
   groups: GroupData[];
   lastSaveDate: number;
   pieceSize: number;
-  piecesPerSideHorizontal: number;
-  piecesPerSideVertical: number;
-  selectedNumPieces: number;
   shadowOffset: number;
   Pockets: Pockets;
   pocketId: number;
@@ -65,7 +64,6 @@ export default class Puzzly {
   previewImageType: SolvedPuzzlePreviewType;
   puzzleImagePath: string;
   spritePath: string;
-  boardWidth: number;
   solvedGroupId: number;
   boardHeight: number;
   zoomLevel: number;
@@ -114,9 +112,6 @@ export default class Puzzly {
 
   constructor(
     puzzleData: PuzzleData,
-    config: {
-      noDispersal: boolean
-    }
   ) {
     window.Puzzly = this;
 
@@ -125,11 +120,10 @@ export default class Puzzly {
     this.numberOfPiecesHorizontal = puzzleData.numberOfPiecesHorizontal,
       this.numberOfPiecesVertical = puzzleData.numberOfPiecesVertical,
 
-      // TODO: Rename this to avoid confusion
-      this.selectedNumPieces = puzzleData.totalNumberOfPieces;
-
-    this.boardWidth = puzzleData.boardWidth;
+      this.boardWidth = puzzleData.boardWidth;
     this.boardHeight = puzzleData.boardHeight;
+
+    this.totalNumberOfPieces = puzzleData.totalNumberOfPieces;
 
     this.pieces = puzzleData.pieces as JigsawPieceData[];
 
@@ -140,7 +134,7 @@ export default class Puzzly {
 
     this.puzzleId = puzzleData.puzzleId;
 
-    this.noDispersal = config?.noDispersal;
+    this.noDispersal = puzzleData?.noDispersal;
 
     this.currentZIndex = puzzleData.zIndex || INITIAL_ZINDEX_FOR_PIECES;
 

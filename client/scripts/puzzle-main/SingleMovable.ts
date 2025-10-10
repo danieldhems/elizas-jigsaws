@@ -1,10 +1,10 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES } from "./constants";
+import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES } from "../constants";
 import GroupMovable from "./GroupMovable";
 import PathOperations from "./pathOperations";
-import Puzzly from "./Puzzly";
-import { getJigsawShapeSvgString, getSvg } from "./svg";
+import Puzzly from ".";
+import { getJigsawShapeSvgString, getSvg } from "../puzzle-creator/svg";
 
 import { nanoid } from "nanoid";
 import {
@@ -16,8 +16,8 @@ import {
   JigsawPieceData,
   SingleMovableSaveState,
   XYCoordinate
-} from "./types";
-import Utils from "./utils";
+} from "../types";
+import Utils from "../utils";
 
 export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
@@ -458,7 +458,7 @@ export default class SingleMovable extends BaseMovable {
     this.element.removeEventListener('mouseup', this.onMouseUp);
     this.element.removeEventListener('mouseout', this.onMouseOut);
 
-    if(this.active) {
+    if (this.active) {
       if (this.isOutOfBounds(event)) {
         this.resetPosition();
       } else {

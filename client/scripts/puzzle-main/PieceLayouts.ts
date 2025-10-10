@@ -1,15 +1,14 @@
 import wrapPiecesAroundEdge from "./pieceLayoutsNeaten";
-import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 import randomisePiecePositions from "./pieceLayoutsShuffle";
 import Pockets from "./Pockets";
 import SingleMovable from "./SingleMovable";
 import SolvingArea from "./SolvingArea";
-import { MovableElement, PieceSectors } from "./types";
-import Utils from "./utils";
+import { MovableElement, PieceSectors, PuzzleData } from "../types";
+import Utils from "../utils";
 
 export interface PieceLayoutsProperties {
   largestPieceSpan: number;
-  selectedNumPieces: number;
+  totalNumberOfPieces: PuzzleData['totalNumberOfPieces'];
   SolvingArea: SolvingArea;
   playBoundary: HTMLDivElement | null;
   Pockets: Pockets;
@@ -21,7 +20,7 @@ export default class PieceLayouts {
   menuIsOpen: boolean;
   playBoundary: HTMLDivElement | null;
   solvingArea: SolvingArea;
-  selectedNumberOfPieces: number;
+  totalNumberOfPieces: PuzzleData['totalNumberOfPieces'];
   pieceSectors: PieceSectors;
   sendToEdgeNeatenBtn: HTMLSpanElement | null;
   controlsHandle: HTMLElement | null;
@@ -42,7 +41,7 @@ export default class PieceLayouts {
 
   constructor({
     largestPieceSpan,
-    selectedNumPieces,
+    totalNumberOfPieces,
     SolvingArea,
     playBoundary,
     Pockets,
@@ -52,7 +51,7 @@ export default class PieceLayouts {
     this.largestPieceSpan = largestPieceSpan;
     this.SolvingArea = SolvingArea;
     this.playBoundary = playBoundary;
-    this.selectedNumberOfPieces = selectedNumPieces;
+    this.totalNumberOfPieces = totalNumberOfPieces;
 
     this.sendToEdgeNeatenBtn = document.getElementById("wrap-pieces-around-edge");
     this.controlsHandle = document.getElementById("controls-handle");
@@ -183,7 +182,7 @@ export default class PieceLayouts {
   generatePieceSectorMap() {
     const box = Utils.getStyleBoundingBox(this.playBoundary as HTMLDivElement);
     const totalArea = box.bottom * box.right;
-    const pieceSectorSize = totalArea / this.selectedNumberOfPieces;
+    const pieceSectorSize = totalArea / this.totalNumberOfPieces;
 
     const sqr = Math.abs(Math.sqrt(pieceSectorSize));
     const area = { width: sqr, height: sqr };
@@ -191,7 +190,7 @@ export default class PieceLayouts {
     let currX = 0,
       currY = 0;
 
-    for (let i = 0, l = this.selectedNumberOfPieces; i < l; i++) {
+    for (let i = 0, l = this.totalNumberOfPieces; i < l; i++) {
       this.pieceSectors[i] = {
         left: currX,
         top: currY,

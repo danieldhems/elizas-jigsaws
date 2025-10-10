@@ -1,8 +1,8 @@
 import { nanoid } from "nanoid";
-import GroupMovable from "./GroupMovable";
-import { PocketMovable } from "./PocketMovable";
-import { DebugOptions } from "./puzzlyCreator";
-import SingleMovable from "./SingleMovable";
+import GroupMovable from "./puzzle-main/GroupMovable";
+import { PocketMovable } from "./puzzle-main/PocketMovable";
+import { DebugOptions } from "./puzzle-creator";
+import SingleMovable from "./puzzle-main/SingleMovable";
 
 declare global {
   interface Window {
@@ -29,8 +29,10 @@ export interface PuzzleData {
   pieces: JigsawPieceData[];
   pieceSize: number;
   puzzleId: string;
-  zIndex: number;
-  isComplete: boolean;
+  zIndex?: number;
+  puzzleImagePath: string;
+  isComplete?: boolean;
+  noDispersal?: boolean;
 }
 
 export type SingleMovableElement = HTMLDivElement;
@@ -53,7 +55,11 @@ export interface Connection {
   isSolving: boolean;
 }
 
-export type ConnectorType = -1 | 0 | 1;
+export enum ConnectorType {
+  Plug = 1,
+  Socket = -1
+};
+
 export enum ConnectorNames {
   Plug = "plug",
   Socket = "socket",
@@ -86,53 +92,7 @@ export enum SideNames {
 }
 export type CurrentConnections = [SideNames, SideNames, SideNames, SideNames];
 export type ConnectsTo = Record<string, number>;
-export interface JigsawPieceData {
-  id: string;
-  index: number;
-  puzzleId: string;
-  groupId: string;
-  pocketId: number;
-  imgX: number;
-  imgY: number;
-  puzzleX: number;
-  puzzleY: number,
-  width: number;
-  height: number;
-  basePieceSize: number;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorTolerance: number;
-  connectors: Connector[];
-  shadowOffset: number;
-  puzzleWidth: number;
-  puzzleHeight: number;
-  imgW: number;
-  imgH: number;
-  pageX: number;
-  pageY: number;
-  size: number;
-  zIndex: number;
-  type: ConnectorType[];
-  spriteX: number;
-  spriteY: number;
-  spritePath: string;
-  spriteShadowX: number;
-  spriteShadowY: number;
-  solvedX: number;
-  solvedY: number;
-  isInnerPiece: boolean;
-  isVisible: boolean;
-  isSolved: boolean;
-  connections: SideNames[];
-  connectsTo: ConnectsTo;
-  numPiecesFromTopEdge: number;
-  numPiecesFromLeftEdge: number;
-  numberOfPiecesHorizontal: number;
-  numberOfPiecesVertical: number;
-  selectedNumPieces: number;
-  svgPath: string;
-  scale: number;
-}
+
 
 export interface GroupData {
   _id: string;
@@ -186,18 +146,90 @@ export interface PuzzleCreatorOptions {
 }
 
 export type Connector = {
-  id: ReturnType<typeof nanoid>;
   ownerIndex: number;
-  // The unique ID for the connector on the adjacecnt piece that connects to this one
-  targetConnectorID?: ReturnType<typeof nanoid>;
   targetPieceIndex: number;
-  type: ConnectorType,
+  connectorType: ConnectorType;
   // Where this connector lives on this piece
   // ('degrees' being the orientation of the side this connector is on) 
-  atDegrees: number,
-  boundingBox?: BoundingBox,
+  atDegrees: number;
+  boundingBox?: BoundingBox;
   isConnected: boolean;
 };
+
+export interface JigsawPiece {
+  index: number; // Unique ID using simple index
+  puzzleId: string; // Maps to puzzle's ObjectID
+  groupId: string;
+  pocketId: string;
+  connectors: Connector[];
+  // Coordinate for this piece's position in the solved puzzle
+  positionInPuzzle: {
+    x: number;
+    y: number;
+  };
+  // Current coordinate on the page while in play 
+  // (will be ignored when this piece becomes sovled)
+  currentPositionInPlay: {
+    x: number;
+    y: number;
+  };
+  width: number;
+  height: number;
+  zIndex: number;
+  isInnerPiece: boolean;
+  isVisible: boolean;
+  isSolved: boolean;
+  numPiecesFromTopEdge: number;
+  numPiecesFromLeftEdge: number;
+}
+
+export interface JigsawPieceData {
+  id: string; // unique ID shouldn't be needed if simple numbered index will suffice
+  index: number;
+  puzzleId: string;
+  groupId: string;
+  pocketId: number;
+  imgX: number; // not used?
+  imgY: number; // not used?
+  puzzleX: number;
+  puzzleY: number,
+  width: number;
+  height: number;
+  basePieceSize: number;
+  connectorDistanceFromCorner: number;
+  connectorSize: number;
+  connectorTolerance: number;
+  connectors: Connector[];
+  shadowOffset: number;
+  puzzleWidth: number;
+  puzzleHeight: number;
+  imgW: number;
+  imgH: number;
+  pageX: number;
+  pageY: number;
+  size: number;
+  zIndex: number;
+  type: ConnectorType[];
+  spriteX: number;
+  spriteY: number;
+  spritePath: string;
+  spriteShadowX: number;
+  spriteShadowY: number;
+  solvedX: number;
+  solvedY: number;
+  isInnerPiece: boolean;
+  isVisible: boolean;
+  isSolved: boolean;
+  connections: SideNames[];
+  connectsTo: ConnectsTo;
+  numPiecesFromTopEdge: number;
+  numPiecesFromLeftEdge: number;
+  numberOfPiecesHorizontal: number;
+  numberOfPiecesVertical: number;
+  selectedNumPieces: number;
+  svgPath: string;
+  scale: number;
+}
 
 // FIX: JigsawPieceData and SkeletonPiece describe the same entity
 // at different stages of puzzle generation lifecycle.
@@ -209,29 +241,12 @@ export type SkeletonPiece = Pick<
   JigsawPieceData,
   "type" | "numPiecesFromLeftEdge" | "numPiecesFromTopEdge"
 > & {
-  id: string;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorTolerance: number;
-  connectors: Connector[];
-  numberOfPiecesHorizontal: number;
-  numberOfPiecesVertical: number;
   pieceAbove: {
     type: ConnectorType[],
   };
   pieceBehind: {
     type: ConnectorType[],
   };
-  puzzleWidth: number;
-  puzzleHeight: number;
-  // Need this for generating the SVG path to the correct proportions
-  basePieceSize?: number;
-  width?: number;
-  height?: number;
-  puzzleX?: number;
-  puzzleY?: number;
-  pageX?: number;
-  pageY?: number;
 };
 
 export interface PuzzleConfig {
@@ -410,7 +425,7 @@ export type PuzzleImpression = {
   puzzleConfig: PuzzleConfig;
   impressionWidth?: number;
   impressionHeight?: number;
-  pieces: SkeletonPiece[];
+  pieces: JigsawPiece[];
 };
 
 export interface SaveOptions {

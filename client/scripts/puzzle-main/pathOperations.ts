@@ -1,4 +1,4 @@
-import { PathParts } from "./types.js";
+import { PathParts } from "../types.js";
 
 // TODO: No need for this to be a class
 export default class PathOperations {

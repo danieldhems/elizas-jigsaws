@@ -63,6 +63,10 @@ const Utils = {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
 
+  getRandomConnector() {
+    return [ConnectorType.Plug, ConnectorType.Socket][Utils.getRandomInt(0, 1)];
+  },
+
   getQueryStringValue(key: string): string {
     return decodeURIComponent(
       window.location.search.replace(
@@ -79,84 +83,6 @@ const Utils = {
 
   isSolved(el: HTMLDivElement): boolean {
     return el.dataset.isSolved === "true";
-  },
-
-  isTopSide(type: ConnectorType[]): boolean {
-    return type[0] === 0 && type[1] !== 0 && type[3] !== 0;
-  },
-
-  isTopRightCorner(type: ConnectorType[]) {
-    return type[0] === 0 && type[1] === 0;
-  },
-
-  isTopLeftCorner(type: ConnectorType[]) {
-    return type[0] === 0 && type[3] === 0;
-  },
-
-  isLeftSide(type: ConnectorType[]) {
-    return type[0] !== 0 && type[2] !== 0 && type[3] === 0;
-  },
-
-  isInnerPiece(type: ConnectorType[]) {
-    return type[0] !== 0 && type[1] !== 0 && type[2] !== 0 && type[3] !== 0;
-  },
-
-  isRightSide(type: ConnectorType[]) {
-    return type[0] !== 0 && type[1] === 0 && type[2] !== 0;
-  },
-
-  isTopEdgePiece(type: ConnectorType[]) {
-    return type[0] === 0;
-  },
-
-  isRightEdgePiece(type: ConnectorType[]) {
-    return type[1] === 0;
-  },
-
-  isBottomEdgePiece(type: ConnectorType[]) {
-    return type[2] === 0;
-  },
-
-  isLeftEdgePiece(type: ConnectorType[]) {
-    return type[3] === 0;
-  },
-
-  isBottomLeftCorner(type: ConnectorType[]) {
-    return type[2] === 0 && type[3] === 0;
-  },
-
-  isBottomSide(type: ConnectorType[]) {
-    return type[1] !== 0 && type[2] === 0 && type[3] !== 0;
-  },
-
-  isSidePiece(type: ConnectorType[]) {
-    return type.filter((t) => t === 0).length === 1;
-  },
-
-  isBottomRightCorner(type: ConnectorType[]) {
-    return type[1] === 0 && type[2] === 0;
-  },
-
-  isCornerPiece(type: ConnectorType[]) {
-    return (
-      Utils.isTopLeftCorner(type) ||
-      Utils.isTopRightCorner(type) ||
-      Utils.isBottomRightCorner(type) ||
-      Utils.isBottomLeftCorner(type)
-    );
-  },
-
-  isCornerConnection(str: SideNames) {
-    return (
-      str === "top-left" ||
-      str === "top-right" ||
-      str === "bottom-right" ||
-      str === "bottom-left"
-    );
-  },
-
-  isEdgePiece(pieceType: ConnectorType[]) {
-    return this.isSidePiece(pieceType) || this.isCornerPiece(pieceType);
   },
 
   getPieceType(element: HTMLDivElement): ConnectorType[] {
@@ -252,13 +178,6 @@ const Utils = {
   getElementsInGroupByElement(groupedElement: HTMLDivElement) {
     const groupId = this.GroupOperations.getGroupIdByElement(groupedElement);
     return Array.from(document.querySelectorAll(`[data-group='${groupId}']`));
-  },
-
-  getCornerNameForPiece(pieceType: ConnectorType[]) {
-    if (pieceType[0] === 0 && pieceType[3] === 0) return SideNames.TopLeft;
-    if (pieceType[0] === 0 && pieceType[1] === 0) return SideNames.TopRight;
-    if (pieceType[1] === 0 && pieceType[2] === 0) return SideNames.BottomRight;
-    if (pieceType[2] === 0 && pieceType[3] === 0) return SideNames.BottomLeft;
   },
 
   getElementBoundingBox(element: MovableElement) {
@@ -451,9 +370,6 @@ const Utils = {
       connectorSize +
       connectorSize * CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE
       : elementBoundingBox.left;
-
-    const isTopSidePiece = piece.type[0] === 0;
-    const isLeftSidePiece = piece.type[3] === 0;
 
     // console.log("elementBoundingBox", elementBoundingBox);
 
@@ -723,7 +639,7 @@ const Utils = {
   },
 
   removeAllBoundingBoxIndicators() {
-    
+
     const elements = document.querySelectorAll(".bounding-box-indicator");
     if (elements.length > 0) {
       elements.forEach((el) => el.remove());
@@ -1002,9 +918,8 @@ const Utils = {
     // alert("" + xl + " " + xh + " " + yl + " " + yh);
   },
 
-  getOppositeConnector(connector: ConnectorType) {
-    if (connector === -1) return 1 as ConnectorType;
-    if (connector === 1) return -1 as ConnectorType;
+  getOppositeConnector(connector: ConnectorType): ConnectorType {
+    return connector === ConnectorType.Plug ? ConnectorType.Socket : ConnectorType.Plug;
   },
 
   /**

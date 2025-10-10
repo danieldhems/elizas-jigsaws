@@ -1,5 +1,5 @@
-import { MovableElement, PieceSectors } from "./types";
-import Utils from "./utils";
+import { MovableElement, PieceSectors } from "../types";
+import Utils from "../utils";
 
 export default function randomisePiecePositions(pieceSectors: PieceSectors) {
   const sectors = Utils.getSequentialArray(

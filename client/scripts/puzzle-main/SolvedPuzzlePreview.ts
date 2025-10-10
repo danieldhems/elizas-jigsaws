@@ -1,6 +1,6 @@
-import { INITIAL_ZINDEX_FOR_PIECES } from './constants';
-import Puzzly from "./Puzzly";
-import { SolvedPuzzlePreviewType } from "./types";
+import { INITIAL_ZINDEX_FOR_PIECES } from '../constants';
+import Puzzly from ".";
+import { SolvedPuzzlePreviewType } from "../types";
 
 export default class SolvedPuzzlePreview {
   fullImageViewerEl: HTMLDivElement;

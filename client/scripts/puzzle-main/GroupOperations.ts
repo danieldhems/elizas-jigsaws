@@ -1,6 +1,6 @@
 import SingleMovable from "./SingleMovable";
-import { MovableElement } from "./types";
-import Utils from "./utils";
+import { MovableElement } from "../types";
+import Utils from "../utils";
 
 export interface GroupOperationsProperties {
   width: number;

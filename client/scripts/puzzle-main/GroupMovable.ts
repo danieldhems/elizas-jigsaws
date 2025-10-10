@@ -1,8 +1,8 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { ELEMENT_IDS, EVENT_TYPES } from "./constants";
+import { ELEMENT_IDS, EVENT_TYPES } from "../constants";
 import SingleMovable from "./SingleMovable";
-import { getSvg } from "./svg";
+import { getSvg } from "../puzzle-creator/svg";
 import {
   Connection,
   GroupMovableSaveState,
@@ -10,8 +10,8 @@ import {
   JigsawPieceData,
   MovableElement,
   TopLeftCoordinate,
-} from "./types";
-import Utils from "./utils";
+} from "../types";
+import Utils from "../utils";
 
 export default class GroupMovable extends BaseMovable {
   instanceType = InstanceTypes.GroupMovable;
@@ -327,7 +327,7 @@ export default class GroupMovable extends BaseMovable {
 
   onMouseOut(event: MouseEvent) {
     const relatedTarget = (event.relatedTarget as HTMLElement);
-    if(
+    if (
       this.active &&
       (
         relatedTarget.id === ELEMENT_IDS.PLAY_BOUNDARY
@@ -355,7 +355,7 @@ export default class GroupMovable extends BaseMovable {
 
   onMouseMove(event: MouseEvent) {
     let newPosTop, newPosLeft;
-    
+
     newPosTop =
       event.clientY / window.Zoom.zoomLevel -
       this.diffY / window.Zoom.zoomLevel;

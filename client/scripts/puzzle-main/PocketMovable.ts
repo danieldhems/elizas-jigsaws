@@ -1,9 +1,9 @@
 import BaseMovable from "./BaseMovable";
-import { EVENT_TYPES } from "./constants";
-import Puzzly from "./Puzzly";
+import { EVENT_TYPES } from "../constants";
+import Puzzly from ".";
 import SingleMovable from "./SingleMovable";
-import { InstanceTypes, MovableElement } from "./types";
-import Utils from "./utils";
+import { InstanceTypes, MovableElement } from "../types";
+import Utils from "../utils";
 
 export class PocketMovable extends BaseMovable {
   instanceType = InstanceTypes.PocketMovable;

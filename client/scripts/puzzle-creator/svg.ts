@@ -1,6 +1,6 @@
-import { SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "./constants";
-import jigsawPath from "./jigsawPath";
-import { JigsawPieceData, SkeletonPiece } from "./types";
+import { SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
+import jigsawPath from "../puzzle-main/jigsawPath";
+import { ConnectorType, JigsawPiece, JigsawPieceData, PuzzleConfig, SkeletonPiece } from "../types";
 
 export function getSvg(
     id: string,
@@ -115,23 +115,21 @@ export function getAttributesForPiece(
  * @returns 
  */
 export const getJigsawShapeSvgString = (
-    piece: SkeletonPiece | JigsawPieceData,
-    startingPosition?: {
-        x: number;
-        y: number;
-    }
+    piece: JigsawPiece,
+    puzzleConfig: PuzzleConfig
 ) => {
     let svgString = "";
 
-    let x = startingPosition?.x || 0;
-    let y = startingPosition?.y || 0;
+    let x = 0;
+    let y = 0;
 
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
-    const pieceSize = piece.basePieceSize as number;
+    const { pieceSize, connectorSize, connectorDistanceFromCorner } = puzzleConfig;
 
-    const { connectorSize, connectorDistanceFromCorner } = piece;
-    const hasTopPlug = piece.type[0] === 1;
-    const hasLeftPlug = piece.type[3] === 1;
+    const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
+    const hasTopSocket = piece.connectors[0].connectorType === ConnectorType.Socket;
+    const hasLeftPlug = piece.connectors[3].connectorType === ConnectorType.Plug;
+    const hasLeftSocket = piece.connectors[3].connectorType === ConnectorType.Socket;
 
     let topBoundary = hasTopPlug ? y + connectorSize : y;
     let leftBoundary = hasLeftPlug ? x + connectorSize : x;
@@ -147,9 +145,9 @@ export const getJigsawShapeSvgString = (
 
     svgString += `M ${leftBoundary} ${topBoundary} `;
 
-    if (piece.type[0] === 1) {
+    if (hasTopPlug) {
         topConnector = getRotatedConnector(jigsawShapes.getPlug(), 0);
-    } else if (piece.type[0] === -1) {
+    } else if (hasTopSocket) {
         topConnector = getRotatedConnector(jigsawShapes.getSocket(), 0);
     }
 

@@ -1,8 +1,8 @@
 import BaseMovable from "./BaseMovable";
-import Puzzly from "./Puzzly";
-import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN } from "./constants";
-import { InstanceTypes } from "./types";
-import Utils from "./utils";
+import Puzzly from ".";
+import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN } from "../constants";
+import { InstanceTypes } from "../types";
+import Utils from "../utils";
 
 export default class PlayBoundaryMovable extends BaseMovable {
   instanceType = InstanceTypes.PlayBoundaryMovable;
@@ -19,7 +19,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
     this.puzzleWidth = puzzly.boardWidth;
     this.puzzleHeight = puzzly.boardHeight;
     window.Puzzly.PlayBoundaryMovable = this;
-    
+
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.onMouseUp = this.onMouseUp.bind(this);
@@ -36,7 +36,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
       }
     );
   }
-  
+
   init() {
     this.setSize();
     window.addEventListener("resize", this.reCenter.bind(this));
@@ -136,7 +136,7 @@ export default class PlayBoundaryMovable extends BaseMovable {
   }
 
   onMouseUp() {
-    if(this.active) {
+    if (this.active) {
       this.element.removeEventListener('mousemove', this.onMouseMove);
       this.active = false;
     }

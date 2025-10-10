@@ -2,20 +2,20 @@ import { nanoid } from "nanoid";
 import {
   MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
   MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT,
-} from "./constants";
-import GeneratorSteps from "./generatorSteps";
+} from "../constants";
+import GeneratorSteps from "../../sandbox/generatorSteps";
 import {
   addPuzzleDataToPieces,
   getPuzzleConfigs,
 } from "./puzzleGenerator";
-import PuzzleImpressionOverlay from "./PuzzleImpressionOverlay";
-import Puzzly from "./Puzzly";
+import PuzzleImpressionOverlay from "../puzzle-main/PuzzleImpressionOverlay";
+import Puzzly from "../puzzle-main";
 import {
   PuzzleConfig,
   PuzzleShapes,
   SkeletonPiece,
-} from "./types";
-import Utils from "./utils";
+} from "../types";
+import Utils from "../utils";
 
 export interface SourceImage {
   width: number;
@@ -42,6 +42,7 @@ export default class PuzzlyCreator {
     squarePuzzleConfigs: PuzzleConfig[];
   };
   activePuzzleConfigs: PuzzleConfig[];
+  activePuzzleConfig: PuzzleConfig;
   selectedPuzzleConfig: PuzzleConfig;
   selectedPuzzleShape: PuzzleShapes;
   /**
@@ -547,15 +548,8 @@ export default class PuzzlyCreator {
 
     // console.log("crop data", cropData)
 
-    const activeImpression = this.PuzzleImpressionOverlay.getActiveImpression();
     // console.log("selected puzzle config", this.selectedPuzzleConfig);
     // const puzzleDimensions = this.getPuzzleDimensions(this.selectedPuzzleConfig, activeImpression);
-
-    let mappedPieces: SkeletonPiece[];
-    mappedPieces = addPuzzleDataToPieces(
-      activeImpression.pieces as SkeletonPiece[],
-      this.selectedPuzzleConfig
-    );
 
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
@@ -602,10 +596,10 @@ export default class PuzzlyCreator {
       .then(
         function (response: any) {
           console.log('/api/puzzle/createPuzzle response', response)
-          window.Puzzly = new Puzzly(response._id, {
+          window.Puzzly = new Puzzly({
             ...data,
+            puzzleId: response._id,
             pieces: mappedPieces,
-            previewPath: response.previewPath,
             puzzleImagePath,
             boardWidth: puzzleWidth,
             boardHeight: puzzleHeight,

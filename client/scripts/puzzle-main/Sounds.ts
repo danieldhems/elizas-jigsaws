@@ -1,4 +1,4 @@
-import { EVENT_TYPES } from "./constants";
+import { EVENT_TYPES } from "../constants";
 
 export default class Sounds {
   soundsBtn: HTMLElement | null;

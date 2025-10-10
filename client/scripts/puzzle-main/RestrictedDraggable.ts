@@ -1,4 +1,4 @@
-import { MovementAxis } from "./types";
+import { MovementAxis } from "../types";
 
 export interface RestrictedDraggableArguments {
   containerElement: HTMLElement;

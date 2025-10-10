@@ -164,9 +164,7 @@ app.get("/new-puzzle", checkAuthorised, async function (req, res) {
 });
 
 app.get("/puzzle", checkAuthorised, async function (req, res) {
-  const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
-  const puzzle = await puzzlesCollection.findOne({ _id: req.query.id, userId: req.user._id });
-  res.render("auth/puzzle", { user: req.user, puzzle, layout: false });
+  res.render("auth/puzzle", { user: req.user, layout: false });
 });
 
 app.get("/exp", function (req, res) {

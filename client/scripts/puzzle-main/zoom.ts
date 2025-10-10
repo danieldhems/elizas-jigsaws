@@ -1,6 +1,6 @@
 import BaseMovable from "./BaseMovable";
-import { EVENT_TYPES, ZOOM_AMOUNT } from "./constants";
-import Puzzly from "./Puzzly";
+import { EVENT_TYPES, ZOOM_AMOUNT } from "../constants";
+import Puzzly from ".";
 
 export enum ZoomTypes {
   Normal = "normal",

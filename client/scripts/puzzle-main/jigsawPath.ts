@@ -1,5 +1,5 @@
-import { CONNECTOR_DIVISOR_FOR_CONTROL_POINT_HANDLE, CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE } from "./constants";
-import { ConnectorControlPoints } from "./types";
+import { CONNECTOR_DIVISOR_FOR_CONTROL_POINT_HANDLE, CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE } from "../constants";
+import { ConnectorControlPoints } from "../types";
 
 export default class JigsawPath {
   pieceSize: number;

@@ -1,14 +1,14 @@
-import { ELEMENT_IDS, EVENT_TYPES, PUZZLE_PIECE_CLASSES } from "./constants";
-import Utils from "./utils";
+import { ELEMENT_IDS, EVENT_TYPES, PUZZLE_PIECE_CLASSES } from "../constants";
+import Utils from "../utils";
 import {
   BoundingBox,
   Connection,
   InstanceTypes,
   MovableElement,
-} from "./types";
+} from "../types";
 import SingleMovable from "./SingleMovable";
 import GroupMovable from "./GroupMovable";
-import Puzzly from "./Puzzly";
+import Puzzly from ".";
 
 export default class BaseMovable {
   instanceType: InstanceTypes;

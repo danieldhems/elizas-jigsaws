@@ -1,11 +1,14 @@
 const path = require("path");
 
 module.exports = {
-  entry: __dirname + "/client/scripts/main.ts",
+  entry: [
+    "./client/scripts/puzzle-main",
+    "./client/scripts/puzzle-creator",
+  ],
   mode: "development",
-  context: __dirname + "/client/scripts",
+  context: __dirname,
   output: {
-    path: path.resolve(__dirname, "./client/dist"),
+    path: path.resolve(__dirname, "./dist"),
     filename: "bundle.js",
   },
   module: {
