@@ -1,6 +1,6 @@
 import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHOULDER_SIZE_PERC, SVG_NAMESPACE } from "../constants";
 import { getJigsawShapeSvgString } from "./svg";
-import { ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SkeletonPiece, PuzzleImpression, Connector, JigsawPiece } from "../types";
+import { ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SkeletonPiece, PuzzleImpression, Connector, JigsawPiece, ConnectorChoices } from "../types";
 import Utils from "../utils";
 
 export const getConnectorSize = (pieceSize: number) => {
@@ -27,15 +27,21 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
   let leftConnector: ConnectorType | null;
   let topConnector: ConnectorType | null;
 
-  const { totalNumberOfPieces, numberOfPiecesHorizontal, numberOfPiecesVertical } = puzzleConfig;
-  const connectorChoices = [-1, 1];
-
-  const connectorSize = getConnectorSize(puzzleConfig.pieceSize);
-  const connectorTolerance = getConnectorTolerance(connectorSize);
-  const connectorDistanceFromCorner = getConnectorDistanceFromCorner(puzzleConfig.pieceSize);
+  const {
+    totalNumberOfPieces,
+    numberOfPiecesHorizontal,
+    numberOfPiecesVertical,
+    puzzleWidth,
+    puzzleHeight
+  } = puzzleConfig;
 
   let currentIndexFromLeftEdge = 0;
   let currentIndexFromTopEdge = 0;
+
+  const connectorChoices: ConnectorChoices = [
+    ConnectorType.Plug,
+    ConnectorType.Socket
+  ];
 
   const allConnectors: Connector[] = [];
 
@@ -46,6 +52,14 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
     const piece = {} as JigsawPiece;
 
     piece.index = n;
+
+    if (puzzleHeight <= puzzleWidth || puzzleWidth == puzzleHeight) {
+      piece.pieceBodySize = puzzleWidth / numberOfPiecesHorizontal;
+    } else {
+      piece.pieceBodySize = puzzleHeight / numberOfPiecesVertical;
+    }
+
+    const connectorSize = getConnectorSize(piece.pieceBodySize);
 
     piece.connectors = [];
 
@@ -176,6 +190,37 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
       }
     }
 
+    let width = piece.pieceBodySize;
+    let height = piece.pieceBodySize;
+
+    let xPos = width * piece.numPiecesFromLeftEdge;
+    let yPos = height * piece.numPiecesFromTopEdge;
+
+    const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
+    const hasRightPlug = piece.connectors[1].connectorType === ConnectorType.Plug;
+    const hasBottomPlug = piece.connectors[2].connectorType === ConnectorType.Plug;
+    const hasLeftPlug = piece.connectors[3].connectorType === ConnectorType.Plug;
+
+    if (hasTopPlug) {
+      yPos -= connectorSize;
+      height += connectorSize;
+    }
+
+    if (hasRightPlug) {
+      width += connectorSize;
+    }
+
+    if (hasBottomPlug) {
+      height += connectorSize;
+    }
+    if (hasLeftPlug) {
+      xPos -= connectorSize;
+      width += connectorSize;
+    }
+
+    piece.width = width;
+    piece.height = height;
+
     pieces.push(piece);
 
     n++;
@@ -197,121 +242,6 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
   }
 
   return pieceSize;
-}
-
-export const addPuzzleDataToPieces = (
-  pieces: SkeletonPiece[],
-  puzzleConfig: PuzzleConfig,
-): SkeletonPiece[] => {
-  const {
-    pieceSize,
-    connectorSize,
-    connectorDistanceFromCorner,
-    connectorTolerance,
-    puzzleWidth,
-    puzzleHeight,
-  } = puzzleConfig;
-
-  pieces = pieces.map((piece, index) => {
-    let width = pieceSize;
-    let height = pieceSize;
-
-    let xPos = pieceSize * piece.numPiecesFromLeftEdge;
-    let yPos = pieceSize * piece.numPiecesFromTopEdge;
-
-    if (piece.type[0] === 1) {
-      yPos -= connectorSize;
-      height += connectorSize;
-    }
-
-    if (piece.type[1] === 1) {
-      width += connectorSize;
-    }
-
-    if (piece.type[2] === 1) {
-      height += connectorSize;
-    }
-    if (piece.type[3] === 1) {
-      xPos -= connectorSize;
-      width += connectorSize;
-    }
-
-    const pageX = xPos * 2 + pieceSize;
-    const pageY = yPos * 2 + pieceSize;
-
-    return {
-      ...piece,
-      index,
-      basePieceSize: pieceSize,
-      connectorSize,
-      connectorTolerance,
-      connectorDistanceFromCorner,
-      puzzleX: xPos,
-      puzzleY: yPos,
-      puzzleWidth,
-      puzzleHeight,
-      pageX,
-      pageY,
-      width,
-      height,
-    }
-  })
-
-  /**
-   * Now all pieces and connectors have been generated, and all have unique IDs,
-   * let's marry up each connector pair by finding their collisions and assigning their opposing IDs.
-   * NB: This should work for any puzzle configuration including 'wild' pieces
-   * because, given each piece's collision with its adjacent pieces,
-   * and each connector's orientation in degrees i.e. connector A at 30deg belongs to
-   * connector B at 310deg.
-   */
-
-  // for (const thisPiece of pieces) {
-  //   console.log('current piece', thisPiece)
-  //   // Get adjacent pieces by collision
-  //   const thisPieceBoundingBox = {
-  //     top: thisPiece.puzzleX as number,
-  //     left: thisPiece.puzzleY as number,
-  //     right: (thisPiece.puzzleX as number) + (thisPiece.width as number),
-  //     bottom: (thisPiece.puzzleY as number) + (thisPiece.height as number),
-  //   };
-
-  //   // console.log('this piece bounding box', thisPieceBoundingBox)
-
-  //   const adjacentPieces = pieces.filter((targetPiece) => {
-  //     // console.log('filtering piece', targetPiece)
-  //     if (thisPiece.id === targetPiece.id) return;
-  //     // Get adjacent pieces by collision
-  //     const targetPieceBoundingBox = {
-  //       top: targetPiece.puzzleX as number,
-  //       left: targetPiece.puzzleY as number,
-  //       right: (targetPiece.puzzleX as number) + (targetPiece.width as number),
-  //       bottom: (targetPiece.puzzleY as number) + (targetPiece.height as number),
-  //     };
-  //     // console.log('filtered piece bounding box', targetPieceBoundingBox)
-
-  //     return Utils.hasCollision(thisPieceBoundingBox, targetPieceBoundingBox);
-  //   });
-
-  //   console.log('adjacent pieces', adjacentPieces)
-
-  //   // Marry up connectors by their adjacent degrees
-  //   thisPiece.connectors = thisPiece.connectors.map((thisPieceConnector) => {
-  //     const adjacentDegrees = Utils.getAdjacentDegrees(thisPieceConnector.atDegrees);
-  //     for (const adjacentPiece of adjacentPieces) {
-  //       for (const adjacentPieceConnector of adjacentPiece.connectors) {
-  //         if (adjacentPieceConnector.atDegrees === adjacentDegrees) {
-  //           thisPieceConnector.targetConnectorID = adjacentPieceConnector.id;
-  //           return thisPieceConnector;
-  //         }
-  //       }
-  //     }
-
-  //     return thisPieceConnector;
-  //   })
-  // };
-
-  return pieces;
 }
 
 export function getPuzzleConfigs(
@@ -359,11 +289,6 @@ export function getPuzzleConfigs(
     const puzzleConfig = {} as PuzzleConfig;
 
     if (shortSide) {
-      puzzleConfig.pieceSize = pieceSize;
-      puzzleConfig.connectorSize = connectorSize;
-      puzzleConfig.connectorTolerance = connectorTolerance;
-      puzzleConfig.connectorDistanceFromCorner = connectorDistanceFromCorner;
-
       let numberOfPiecesOnLongSide: number;
 
       switch (shortSide) {

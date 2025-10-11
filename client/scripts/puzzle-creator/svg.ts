@@ -1,11 +1,10 @@
 import { SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
 import jigsawPath from "../puzzle-main/jigsawPath";
-import { ConnectorType, JigsawPiece, JigsawPieceData, PuzzleConfig, SkeletonPiece } from "../types";
+import { ConnectorType, JigsawPiece } from "../types";
 
 export function getSvg(
     id: string,
-    groupId: string,
-    pieces: JigsawPieceData[],
+    pieces: JigsawPiece[],
     imagePath: string,
     options: {
         svgWidth: number,
@@ -25,8 +24,6 @@ export function getSvg(
         },
     }
 ): string {
-    if (pieces.length < 1) return "";
-
     const {
         svgWidth,
         svgHeight,
@@ -43,8 +40,6 @@ export function getSvg(
     };
 
     // TODO Bad name
-    const pieceInfo = pieces.map(piece => getAttributesForPiece(piece));
-
     const clipId = `clip-${id}`;
 
     let pathElementsForDefs: string = "";
@@ -52,16 +47,19 @@ export function getSvg(
     let useElementsForShadow: string = "";
     let useElementsForStroke: string = "";
 
-    pieceInfo.map((info) => {
-        const xPosition = options.isGroup ? info.puzzleX : 0;
-        const yPosition = options.isGroup ? info.puzzleY : 0;
+    for (let i = 0, l = pieces.length; i < l; i++) {
+        const piece = pieces[i];
+        const { positionInPuzzle, pathString } = this.getAttributesForPiece(piece);
 
-        pathElementsForDefs += `<path id="path-${info.shapeId}" d="${info.pathString}"></path>`;
-        useElementsForClip += `<use href="#path-${info.shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
-        useElementsForShadow += `<use id="shadow-${info.shapeId}" href="#path-${info.shapeId}" x="${xPosition + shadowOffset}" y="${yPosition + shadowOffset}" fill="${SVG_SHADOW_COLOR}"></use>`
-        useElementsForStroke += `<use id="path-${info.shapeId}"   href="#path-${info.shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${info.index}"></use>`
+        const shapeId = `shape-${i}`;
+        const xPosition = pieces.length > 1 ? positionInPuzzle.x : 0;
+        const yPosition = pieces.length > 1 ? positionInPuzzle.y : 0;
 
-    }).join("");
+        pathElementsForDefs += `<path id="path-${shapeId}" d="${pathString}"></path>`;
+        useElementsForClip += `<use href="#path-${shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
+        useElementsForShadow += `<use id="shadow-${shapeId}" href="#path-${shapeId}" x="${xPosition + shadowOffset}" y="${yPosition + shadowOffset}" fill="${SVG_SHADOW_COLOR}"></use>`
+        useElementsForStroke += `<use id="path-${shapeId}"   href="#path-${shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${piece.index}"></use>`
+    }
 
     return `
       <svg xmlns="${SVG_NAMESPACE}" width="${svgWidth}" height="${svgHeight}" viewBox="${viewbox}" class="puzzle-piece-group-svg">
@@ -87,24 +85,26 @@ export function getSvg(
 }
 
 export function getAttributesForPiece(
-    piece: JigsawPieceData,
+    piece: JigsawPiece,
     isGroup?: boolean,
 ) {
-    const { index, puzzleX, puzzleY, width, height } = piece;
+    const { index, positionInPuzzle, width, height } = piece;
 
     const pathStartPosition = {
-        x: isGroup ? piece.puzzleX : 0,
-        y: isGroup ? piece.puzzleY : 0,
+        x: isGroup ? positionInPuzzle.x : 0,
+        y: isGroup ? positionInPuzzle.y : 0,
     };
 
     return {
         index,
         shapeId: `shape-${index}`,
-        pathString: getJigsawShapeSvgString(piece, pathStartPosition),
-        puzzleX,
-        puzzleY,
+        pathString: getJigsawShapeSvgString(piece),
         width,
         height,
+        ...{
+            positionInPuzzleX: positionInPuzzle.x,
+            positionInPuzzley: positionInPuzzle.y,
+        }
     };
 }
 
@@ -116,7 +116,6 @@ export function getAttributesForPiece(
  */
 export const getJigsawShapeSvgString = (
     piece: JigsawPiece,
-    puzzleConfig: PuzzleConfig
 ) => {
     let svgString = "";
 
@@ -124,10 +123,17 @@ export const getJigsawShapeSvgString = (
     let y = 0;
 
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
-    const { pieceSize, connectorSize, connectorDistanceFromCorner } = puzzleConfig;
+    const { pieceSize, connectorSize, connectorDistanceFromCorner } = piece;
 
     const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
     const hasTopSocket = piece.connectors[0].connectorType === ConnectorType.Socket;
+
+    const hasRightPlug = piece.connectors[1].connectorType === ConnectorType.Plug;
+    const hasRightSocket = piece.connectors[1].connectorType === ConnectorType.Socket;
+
+    const hasBottomPlug = piece.connectors[2].connectorType === ConnectorType.Plug;
+    const hasBottomSocket = piece.connectors[2].connectorType === ConnectorType.Socket;
+
     const hasLeftPlug = piece.connectors[3].connectorType === ConnectorType.Plug;
     const hasLeftSocket = piece.connectors[3].connectorType === ConnectorType.Socket;
 
@@ -163,9 +169,9 @@ export const getJigsawShapeSvgString = (
         svgString += `h ${pieceSize} `;
     }
 
-    if (piece.type[1] === 1) {
+    if (hasRightPlug) {
         rightConnector = getRotatedConnector(jigsawShapes.getPlug(), 90);
-    } else if (piece.type[1] === -1) {
+    } else if (hasRightSocket) {
         rightConnector = getRotatedConnector(jigsawShapes.getSocket(), 90);
     }
 
@@ -177,9 +183,9 @@ export const getJigsawShapeSvgString = (
         svgString += `v ${pieceSize} `;
     }
 
-    if (piece.type[2] === 1) {
+    if (hasBottomPlug) {
         bottomConnector = getRotatedConnector(jigsawShapes.getPlug(), 180);
-    } else if (piece.type[2] === -1) {
+    } else if (hasBottomSocket) {
         bottomConnector = getRotatedConnector(jigsawShapes.getSocket(), 180);
     }
 
@@ -191,9 +197,9 @@ export const getJigsawShapeSvgString = (
         svgString += `h -${pieceSize}`;
     }
 
-    if (piece.type[3] === 1) {
+    if (hasLeftPlug) {
         leftConnector = getRotatedConnector(jigsawShapes.getPlug(), 270);
-    } else if (piece.type[3] === -1) {
+    } else if (hasLeftSocket) {
         leftConnector = getRotatedConnector(jigsawShapes.getSocket(), 270);
     }
 
