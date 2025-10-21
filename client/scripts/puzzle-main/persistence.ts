@@ -1,12 +1,11 @@
 import { EVENT_TYPES } from "../constants";
-import GroupMovable from "./GroupMovable";
 import Puzzly from ".";
 import {
   GroupMovableSaveState,
+  JigsawPiece,
   LocalStorageKeys,
   SavedProgress,
   SaveOptions,
-  SingleMovableSaveState,
 } from "../types";
 
 const UPDATE_PIECE_ENDPOINT = "/api/puzzle/updatePiece";
@@ -102,7 +101,7 @@ export default class PersistenceOperations {
     return this[key].replace(this.localStorageStringReplaceKey, this.puzzleId);
   }
 
-  saveToLocalStorage(data: SingleMovableSaveState | SingleMovableSaveState[] | GroupMovableSaveState) {
+  saveToLocalStorage(data: JigsawPiece | JigsawPiece[] | GroupMovableSaveState) {
     let time = Date.now();
 
     const progressKey = this.getUniqueLocalStorageKeyForPuzzle(
@@ -133,18 +132,18 @@ export default class PersistenceOperations {
     return urlParams.get("integration") === "true";
   }
 
-  async saveSinglePiece(piece: SingleMovableSaveState, options: SaveOptions) {
+  async saveSinglePiece(piece: JigsawPiece, options: SaveOptions) {
     // console.log("saveSinglePiece", piece);
 
     const useLocalStorage = false;
 
     const data: {
-      piece?: SingleMovableSaveState,
+      piece?: JigsawPiece,
     } = {};
     data.piece = piece;
 
     if (useLocalStorage) {
-      this.saveToLocalStorage(piece as SingleMovableSaveState);
+      this.saveToLocalStorage(piece as JigsawPiece);
     } else {
       // const isFirstSave = !payload[0]?._id;
       return fetch(UPDATE_PIECE_ENDPOINT, {
@@ -162,29 +161,34 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data.piece as SingleMovableSaveState);
+          this.saveToLocalStorage(data.piece as JigsawPiece);
         });
     }
   }
 
-  async saveMultiplePieces(pieces: SingleMovableSaveState[], options?: SaveOptions) {
+  async saveMultiplePieces(pieces: JigsawPiece[], options?: SaveOptions) {
     // console.log('saveMultiplePieces', pieces)
     const useLocalStorage = false;
 
-    const requestMethod = pieces[0]._id ? "PUT" : "POST";
-
     const data: {
-      payload?: SingleMovableSaveState[],
+      payload?: {
+        puzzleId: string;
+        pieces: JigsawPiece[],
+      };
       options?: {}
     } = {};
-    data.payload = pieces;
+
+    data.payload = {
+      puzzleId: window.Puzzly._id,
+      pieces
+    };
     data.options = options;
 
     if (useLocalStorage) {
       this.saveToLocalStorage(pieces);
     } else {
       return fetch(UPDATE_PIECES_ENDPOINT, {
-        method: requestMethod,
+        method: 'PUT',
         headers: {
           "Content-Type": "Application/json",
         },

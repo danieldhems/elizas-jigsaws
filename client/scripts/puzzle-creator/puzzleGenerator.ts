@@ -1,6 +1,19 @@
-import { CONNECTOR_SIZE_PERC, CONNECTOR_TOLERANCE_AMOUNT, SHOULDER_SIZE_PERC, SVG_NAMESPACE } from "../constants";
+import {
+  CONNECTOR_SIZE_PERC,
+  CONNECTOR_TOLERANCE_AMOUNT,
+  SHOULDER_SIZE_PERC,
+  SVG_NAMESPACE
+} from "../constants";
 import { getJigsawShapeSvgString } from "./svg";
-import { ConnectorType, JigsawPieceData, PuzzleAxis, PuzzleCreatorOptions, PuzzleGenerator, PuzzleConfig, SkeletonPiece, PuzzleImpression, Connector, JigsawPiece, ConnectorChoices } from "../types";
+import {
+  ConnectorType,
+  PuzzleAxis,
+  PuzzleConfig,
+  PuzzleImpression,
+  Connector,
+  JigsawPiece,
+  ConnectorChoices
+} from "../types";
 import Utils from "../utils";
 
 export const getConnectorSize = (pieceSize: number) => {
@@ -18,9 +31,6 @@ export const getConnectorTolerance = (connectorSize: number) => {
 export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
   let pieces: JigsawPiece[] = [];
   let n = 0;
-
-  let pieceAbove = {} as Pick<JigsawPieceData, "type">;
-  let previousPiece = {} as Pick<JigsawPieceData, "type">;
 
   let rightConnector: ConnectorType | null;
   let bottomConnector: ConnectorType | null;
@@ -46,28 +56,27 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
   const allConnectors: Connector[] = [];
 
   while (n < puzzleConfig.totalNumberOfPieces) {
-    // Using Partial generic to start with an object literal
-    // that we can populate as we go
-    // Fix: anti-pattern?
     const piece = {} as JigsawPiece;
 
     piece.index = n;
 
+    let pieceBodySize: number;
+
     if (puzzleHeight <= puzzleWidth || puzzleWidth == puzzleHeight) {
-      piece.pieceBodySize = puzzleWidth / numberOfPiecesHorizontal;
+      pieceBodySize = puzzleWidth / numberOfPiecesHorizontal;
     } else {
-      piece.pieceBodySize = puzzleHeight / numberOfPiecesVertical;
+      pieceBodySize = puzzleHeight / numberOfPiecesVertical;
     }
 
-    const connectorSize = getConnectorSize(piece.pieceBodySize);
+    piece.pieceBodySize = pieceBodySize;
 
-    piece.connectors = [];
+    const connectorSize = getConnectorSize(pieceBodySize);
 
     if (n === 0) {
+      // First piece
+
       // TODO: top-right-bottom-left won't work for wild pieces
       // expect to revisit this
-
-      // First piece
       topConnector = null;
       rightConnector = Utils.getRandomConnector();
 
@@ -87,12 +96,13 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
         },
         {
           ownerIndex: n,
-          connectorType: bottomConnector,
           targetPieceIndex: bottomAdjacentPieceIndex,
+          connectorType: bottomConnector,
           isConnected: false,
           atDegrees: 270,
         },
       ];
+
       piece.connectors = connectors;
       allConnectors.push(...connectors);
 
@@ -244,15 +254,33 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
   return pieceSize;
 }
 
-export function getPuzzleConfigs(
+/**
+ * Generate configs for all possible puzzles that can be made 
+ * given the available width and weight
+ * 
+ *  
+ * @param availableWidth 
+ * @param availableHeight 
+ * @param minimumPieceSize 
+ * @param minimumNumberOfPiecesPerSide 
+ * @returns 
+ */
+export function generatePuzzleConfigs(constraints: {
   availableWidth: number,
   availableHeight: number,
   minimumPieceSize: number,
   minimumNumberOfPiecesPerSide: number
-): {
+}): {
   rectangularPuzzleConfigs: PuzzleConfig[];
   squarePuzzleConfigs: PuzzleConfig[];
 } {
+  const {
+    availableWidth,
+    availableHeight,
+    minimumPieceSize,
+    minimumNumberOfPiecesPerSide,
+  } = constraints;
+
   let shortSide: PuzzleAxis | null;
 
   if (availableWidth < availableHeight) {
@@ -404,10 +432,6 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
     element.appendChild(svgElement)
     container.appendChild(element)
 
-    // const groupElement = document.createElementNS(SVG_NAMESPACE, "symbol");
-    // groupElement.setAttribute("width", currentConfig.puzzleWidth + "");
-    // groupElement.setAttribute("height", currentConfig.puzzleHeight + "");
-
     const piecePosition = {
       x: 0,
       y: 0,
@@ -420,17 +444,18 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
       pathElement.setAttribute("id", "piece-" + n);
       svgElement.appendChild(pathElement);
 
-      const shape = getJigsawShapeSvgString(
-        currentPiece,
-        currentConfig
-      );
+      const shape = getJigsawShapeSvgString(currentPiece);
       pathElement.setAttribute("d", shape);
 
       if (currentPiece.numPiecesFromLeftEdge === currentConfig.numberOfPiecesHorizontal - 1) {
-        piecePosition.y += currentConfig.pieceSize;
+        // TODO: We can use the pieceBodySize from the current piece
+        // because the pieces all have the same size in a normal puzzle.
+        // 
+        // But, this won't work for wild pieces
+        piecePosition.y += currentPiece.pieceBodySize;
         piecePosition.x = 0;
       } else {
-        piecePosition.x += currentConfig.pieceSize;
+        piecePosition.x += currentPiece.pieceBodySize;
       }
     }
 
@@ -480,8 +505,3 @@ export function getNumberOfPiecesForAdjacentSideByPieceSize(
 
   return n;
 }
-
-// exports.drawJigsawShape = drawJigsawShape;
-// exports.default = PuzzleGenerator;
-
-export default puzzleGenerator;

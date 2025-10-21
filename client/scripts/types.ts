@@ -27,7 +27,6 @@ export interface PuzzleData {
   boardWidth: number;
   boardHeight: number;
   pieces: JigsawPiece[];
-  pieceSize: number;
   puzzleId: string;
   zIndex?: number;
   puzzleImagePath: string;
@@ -209,7 +208,16 @@ export interface PuzzleConfig {
   // imageWidth: number;
   // imageHeight: number;
   aspectRatio?: number;
+  pieces: JigsawPiece[];
 }
+
+export type PuzzleImpression = {
+  index: number;
+  puzzleConfig: PuzzleConfig;
+  impressionWidth?: number;
+  impressionHeight?: number;
+  pieces: JigsawPiece[];
+};
 
 export enum PuzzleAxis {
   Horizontal = "Horizontal",
@@ -322,13 +330,7 @@ export enum SolvedPuzzlePreviewType {
   Toggle = "Toggle",
 }
 
-export type PuzzleImpression = {
-  index: number;
-  puzzleConfig: PuzzleConfig;
-  impressionWidth?: number;
-  impressionHeight?: number;
-  pieces: JigsawPiece[];
-};
+
 
 export interface SaveOptions {
   isIntegration: boolean;

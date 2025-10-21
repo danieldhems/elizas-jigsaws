@@ -1,19 +1,18 @@
-import { nanoid } from "nanoid";
 import {
   MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
   MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT,
 } from "../constants";
 import GeneratorSteps from "../../sandbox/generatorSteps";
 import {
-  addPuzzleDataToPieces,
-  getPuzzleConfigs,
+  generatePieces,
+  generatePuzzleConfigs,
 } from "./puzzleGenerator";
 import PuzzleImpressionOverlay from "../puzzle-main/PuzzleImpressionOverlay";
 import Puzzly from "../puzzle-main";
 import {
   PuzzleConfig,
+  PuzzleImpression,
   PuzzleShapes,
-  SkeletonPiece,
 } from "../types";
 import Utils from "../utils";
 
@@ -269,7 +268,6 @@ export default class PuzzlyCreator {
         }.bind(this)
       );
     })
-
   }
 
   addGeneralEventListeners() {
@@ -301,8 +299,6 @@ export default class PuzzlyCreator {
         this.selectedPuzzleConfig = highlightedPuzzleSize;
       }
     });
-
-
 
     // this.chkHighlights.addEventListener(
     //   "input",
@@ -385,7 +381,7 @@ export default class PuzzlyCreator {
     const minimumPieceSize = Math.min(window.innerWidth, window.innerHeight) / 100 * MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT;
 
     const { rectangularPuzzleConfigs, squarePuzzleConfigs } =
-      getPuzzleConfigs(
+      generatePuzzleConfigs(
         this.maximumPuzzleWidth,
         this.maximumPuzzleHeight,
         minimumPieceSize,
@@ -396,6 +392,8 @@ export default class PuzzlyCreator {
       rectangularPuzzleConfigs,
       squarePuzzleConfigs,
     };
+
+    console.log('puzzle configs', this.puzzleConfigs);
 
     if (width === height) {
       this.selectedPuzzleShape = PuzzleShapes.Square;
@@ -546,11 +544,6 @@ export default class PuzzlyCreator {
     // const pieces = generatePieces(this.selectedPuzzleConfig);
     const cropData = this.getCropData();
 
-    // console.log("crop data", cropData)
-
-    // console.log("selected puzzle config", this.selectedPuzzleConfig);
-    // const puzzleDimensions = this.getPuzzleDimensions(this.selectedPuzzleConfig, activeImpression);
-
     const makePuzzleImageResponse = await fetch("/api/makePuzzleImage", {
       body: JSON.stringify({
         ...cropData,
@@ -599,7 +592,7 @@ export default class PuzzlyCreator {
           window.Puzzly = new Puzzly({
             ...data,
             puzzleId: response._id,
-            pieces: mappedPieces,
+            pieces,
             puzzleImagePath,
             boardWidth: puzzleWidth,
             boardHeight: puzzleHeight,

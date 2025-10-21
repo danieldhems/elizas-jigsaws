@@ -123,7 +123,7 @@ export const getJigsawShapeSvgString = (
     let y = 0;
 
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
-    const { pieceSize, connectorSize, connectorDistanceFromCorner } = piece;
+    const { pieceBodySize, connectorSize, connectorDistanceFromCorner } = piece;
 
     const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
     const hasTopSocket = piece.connectors[0].connectorType === ConnectorType.Socket;
@@ -145,7 +145,7 @@ export const getJigsawShapeSvgString = (
         bottomConnector = null,
         leftConnector = null;
 
-    const jigsawShapes = new jigsawPath(pieceSize as number, connectorSize);
+    const jigsawShapes = new jigsawPath(pieceBodySize, connectorSize);
 
     const getRotatedConnector = jigsawShapes.getRotatedConnector;
 
@@ -166,7 +166,7 @@ export const getJigsawShapeSvgString = (
         // should go to piece size - connector size
         svgString += `h ${connectorDistanceFromCorner} `;
     } else {
-        svgString += `h ${pieceSize} `;
+        svgString += `h ${pieceBodySize} `;
     }
 
     if (hasRightPlug) {
@@ -180,7 +180,7 @@ export const getJigsawShapeSvgString = (
         svgString += `c ${rightConnector.cp1.x} ${rightConnector.cp1.y}, ${rightConnector.cp2.x} ${rightConnector.cp2.y}, ${rightConnector.dest.x} ${rightConnector.dest.y} `;
         svgString += `v ${connectorDistanceFromCorner} `;
     } else {
-        svgString += `v ${pieceSize} `;
+        svgString += `v ${pieceBodySize} `;
     }
 
     if (hasBottomPlug) {
@@ -194,7 +194,7 @@ export const getJigsawShapeSvgString = (
         svgString += `c ${bottomConnector.cp1.x} ${bottomConnector.cp1.y}, ${bottomConnector.cp2.x} ${bottomConnector.cp2.y}, ${bottomConnector.dest.x} ${bottomConnector.dest.y} `;
         svgString += `h -${connectorDistanceFromCorner}`;
     } else {
-        svgString += `h -${pieceSize}`;
+        svgString += `h -${pieceBodySize}`;
     }
 
     if (hasLeftPlug) {
