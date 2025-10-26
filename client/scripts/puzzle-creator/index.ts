@@ -5,13 +5,12 @@ import {
 import GeneratorSteps from "../../sandbox/generatorSteps";
 import {
   generatePieces,
-  generatePuzzleConfigs,
+  generatePuzzlesWithinConstraints,
 } from "./puzzleGenerator";
 import PuzzleImpressionOverlay from "../puzzle-main/PuzzleImpressionOverlay";
 import Puzzly from "../puzzle-main";
 import {
-  PuzzleConfig,
-  PuzzleImpression,
+  Puzzle,
   PuzzleShapes,
 } from "../types";
 import Utils from "../utils";
@@ -37,12 +36,12 @@ export default class PuzzlyCreator {
   piecesPerSideVertical: number;
   sourceImage: SourceImage;
   puzzleConfigs: {
-    rectangularPuzzleConfigs: PuzzleConfig[];
-    squarePuzzleConfigs: PuzzleConfig[];
+    rectangularPuzzleConfigs: Puzzle[];
+    squarePuzzleConfigs: Puzzle[];
   };
-  activePuzzleConfigs: PuzzleConfig[];
-  activePuzzleConfig: PuzzleConfig;
-  selectedPuzzleConfig: PuzzleConfig;
+  activePuzzleConfigs: Puzzle[];
+  activePuzzleConfig: Puzzle;
+  selectedPuzzleConfig: Puzzle;
   selectedPuzzleShape: PuzzleShapes;
   /**
    * Puzzle target area
@@ -289,7 +288,7 @@ export default class PuzzlyCreator {
       const eventTarget = event.target as HTMLInputElement;
       const value = parseInt(eventTarget.value);
 
-      const highlightedPuzzleSize: PuzzleConfig =
+      const highlightedPuzzleSize: Puzzle =
         this.activePuzzleConfigs[value - 1];
 
       if (this.puzzleConfigs) {
@@ -375,23 +374,10 @@ export default class PuzzlyCreator {
       innerWidth, innerHeight, width, height,
     );
 
-    this.maximumPuzzleWidth = maxWidth;
-    this.maximumPuzzleHeight = maxHeight;
-
-    const minimumPieceSize = Math.min(window.innerWidth, window.innerHeight) / 100 * MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT;
-
-    const { rectangularPuzzleConfigs, squarePuzzleConfigs } =
-      generatePuzzleConfigs(
-        this.maximumPuzzleWidth,
-        this.maximumPuzzleHeight,
-        minimumPieceSize,
-        MINIMUM_NUMBER_OF_PIECES_PER_SIDE
-      );
-
-    this.puzzleConfigs = {
-      rectangularPuzzleConfigs,
-      squarePuzzleConfigs,
-    };
+    this.puzzleConfigs = generatePuzzlesWithinConstraints({
+      availableWidth: maxWidth,
+      availableHeight: maxHeight,
+    });
 
     console.log('puzzle configs', this.puzzleConfigs);
 
@@ -430,7 +416,7 @@ export default class PuzzlyCreator {
     this.getCropData();
   }
 
-  updatePuzzleSizeField(puzzleConfigs: PuzzleConfig[]) {
+  updatePuzzleSizeField(puzzleConfigs: Puzzle[]) {
     this.selectedPuzzleConfig = puzzleConfigs[0];
 
     if (puzzleConfigs.length > 1) {
@@ -548,8 +534,8 @@ export default class PuzzlyCreator {
       body: JSON.stringify({
         ...cropData,
         ...this.sourceImage,
-        resizeWidth: Math.floor(this.selectedPuzzleConfig.puzzleWidth),
-        resizeHeight: Math.floor(this.selectedPuzzleConfig.puzzleHeight),
+        resizeWidth: Math.floor(this.selectedPuzzleConfig.width),
+        resizeHeight: Math.floor(this.selectedPuzzleConfig.height),
       }),
       method: "POST",
       headers: {
@@ -561,13 +547,13 @@ export default class PuzzlyCreator {
       puzzleImagePath,
     } = await makePuzzleImageResponse.json();
 
-    const { puzzleWidth, puzzleHeight } = this.selectedPuzzleConfig;
+    const { width, height, pieces } = this.selectedPuzzleConfig;
 
     const data = {
       ...this.selectedPuzzleConfig,
-      pieces: mappedPieces,
-      boardWidth: puzzleWidth,
-      boardHeight: puzzleHeight,
+      pieces: pieces,
+      boardWidth: width,
+      boardHeight: height,
       filename: this.sourceImage.filename,
       puzzleImagePath,
       sourceImagePath: this.sourceImagePath,
@@ -594,8 +580,8 @@ export default class PuzzlyCreator {
             puzzleId: response._id,
             pieces,
             puzzleImagePath,
-            boardWidth: puzzleWidth,
-            boardHeight: puzzleHeight,
+            boardWidth: width,
+            boardHeight: height,
           });
 
           window.location.href = "/puzzle?id=" + response._id;

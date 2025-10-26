@@ -1,11 +1,11 @@
 import RestrictedDraggable from "./RestrictedDraggable";
 import { getPuzzleImpressions } from "../puzzle-creator/puzzleGenerator";
-import { MovementAxis, PuzzleConfig, PuzzleImpression } from "../types";
+import { MovementAxis, Puzzle } from "../types";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;
-  selectedPuzzleConfig: PuzzleConfig;
-  puzzleConfigs: PuzzleConfig[];
+  selectedPuzzle: Puzzle;
+  puzzles: Puzzle[];
 }
 
 export default class PuzzleImpressionOverlay {
@@ -13,12 +13,12 @@ export default class PuzzleImpressionOverlay {
   draggable: RestrictedDraggable;
   targetElement: HTMLImageElement | HTMLDivElement;
   container: HTMLElement;
-  puzzleConfigs: PuzzleConfig[] | null;
-  selectedPuzzleConfig: PuzzleConfig;
+  puzzles: Puzzle[] | null;
+  selectedPuzzle: Puzzle;
   pieceSvgGroups: HTMLOrSVGElement[];
   impressionsContainer: HTMLDivElement;
-  impressions: PuzzleImpression[];
-  activeImpression: PuzzleImpression | null;
+  impressions: Puzzle[];
+  activeImpression: Puzzle | null;
   leftBoundary: number;
   topBoundary: number;
 
@@ -30,11 +30,11 @@ export default class PuzzleImpressionOverlay {
     this.reset();
 
     this.targetElement = args.targetElement;
-    this.selectedPuzzleConfig = args.selectedPuzzleConfig;
-    this.puzzleConfigs = args.puzzleConfigs;
+    this.selectedPuzzle = args.selectedPuzzle;
+    this.puzzles = args.puzzles;
     this.container = this.targetElement.parentElement as HTMLElement;
 
-    const layout = this.getLayout(this.selectedPuzzleConfig);
+    const layout = this.getLayout(this.selectedPuzzle);
     this.setLayoutInternal(layout);
 
     this.draggable = new RestrictedDraggable({
@@ -44,13 +44,13 @@ export default class PuzzleImpressionOverlay {
       restrictionBoundingBox: layout,
     });
 
-    this.setImpressions(this.puzzleConfigs);
-    this.setActiveImpression(this.selectedPuzzleConfig);
+    this.setImpressions(this.puzzles);
+    this.setActiveImpression(this.selectedPuzzle);
   }
 
   reset() {
-    if (this.puzzleConfigs) {
-      this.puzzleConfigs = null;
+    if (this.puzzles) {
+      this.puzzles = null;
     }
     if (this.activeImpression) {
       this.activeImpression = null;
@@ -63,7 +63,7 @@ export default class PuzzleImpressionOverlay {
     }
   }
 
-  getLayout(puzzleConfig: PuzzleConfig) {
+  getLayout(puzzleConfig: Puzzle) {
     // Calculate top and left position of target element, assuming it is centered
     const topBoundary =
       (this.container.offsetHeight - this.targetElement.offsetHeight) / 2;
@@ -103,20 +103,20 @@ export default class PuzzleImpressionOverlay {
     this.topBoundary = top;
   }
 
-  setImpressions(puzzleConfigs: PuzzleConfig[]) {
+  setImpressions(puzzles: Puzzle[]) {
     if (this.impressionsContainer) {
       this.impressionsContainer.remove();
     }
 
-    const { container, impressions } = getPuzzleImpressions(puzzleConfigs);
+    const { container, impressions } = getPuzzleImpressions(puzzles);
 
     this.impressionsContainer = container;
     this.impressions = impressions;
     this.draggable.element.appendChild(this.impressionsContainer);
-    this.draggable.update(this.getLayout(puzzleConfigs[0]));
+    this.draggable.update(this.getLayout(puzzles[0]));
   }
 
-  setActiveImpression(puzzleConfig: PuzzleConfig) {
+  setActiveImpression(puzzleConfig: Puzzle) {
     const { puzzleWidth, puzzleHeight } = puzzleConfig;
 
     const impressionElements =
@@ -135,10 +135,7 @@ export default class PuzzleImpressionOverlay {
           impressionElement.dataset.impressionIndex as string
         );
 
-        this.activeImpression = this.impressions.find(
-          (impression: PuzzleImpression) =>
-            impression.index === impressiongIndex
-        ) as PuzzleImpression;
+        this.activeImpression = this.impressions[impressiongIndex];
       } else {
         impressionElement.classList.add("d-none");
       }
@@ -146,11 +143,7 @@ export default class PuzzleImpressionOverlay {
   }
 
   getActiveImpression() {
-    return {
-      ...this.activeImpression,
-      impressionWidth: this.draggable.element.offsetWidth,
-      impressionHeight: this.draggable.element.offsetHeight,
-    };
+    return this.activeImpression;
   }
 
   getPositionAndDimensions() {

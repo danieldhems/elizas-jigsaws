@@ -26,7 +26,7 @@ export interface PuzzleData {
   totalNumberOfPieces: number;
   boardWidth: number;
   boardHeight: number;
-  pieces: JigsawPiece[];
+  pieces: PuzzlePiece[];
   puzzleId: string;
   zIndex?: number;
   puzzleImagePath: string;
@@ -99,7 +99,7 @@ export interface GroupData {
   _id: string;
   id: string;
   puzzleId: string;
-  pieces: JigsawPiece[];
+  pieces: PuzzlePiece[];
   position: {
     top: number;
     left: number;
@@ -157,7 +157,7 @@ export type Connector = {
   isConnected: boolean;
 };
 
-export interface JigsawPiece {
+export interface PuzzlePiece {
   index: number; // Unique ID using simple index
   puzzleId: string; // Maps to puzzle's ObjectID
   groupId: string;
@@ -187,94 +187,43 @@ export interface JigsawPiece {
   numPiecesFromLeftEdge: number;
 }
 
-export interface PuzzleConfig {
+export interface Puzzle {
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
   totalNumberOfPieces: number;
   percentageOfImageUsedHorizontal: number;
   percentageOfImageUsedVertical: number;
-  connectorTolerance: number;
   /** 
    * Width and height of the puzzle based on how much of the image it includes
    * (This will almost never match the image's dimensions exactly unless the user
    * uploads a perfectly square image, or one who's dimensions just-so-happen to match
    * a given puzzle config)
    */
-  puzzleWidth: number;
-  puzzleHeight: number;
+  width: number;
+  height: number;
   /**
    * True width and height of the uploaded image
    */
   // imageWidth: number;
   // imageHeight: number;
-  aspectRatio?: number;
-  pieces: JigsawPiece[];
+  pieces: PuzzlePiece[];
 }
-
-export type PuzzleImpression = {
-  index: number;
-  puzzleConfig: PuzzleConfig;
-  impressionWidth?: number;
-  impressionHeight?: number;
-  pieces: JigsawPiece[];
-};
 
 export enum PuzzleAxis {
   Horizontal = "Horizontal",
   Vertical = "Vertical",
 }
 
-export type PuzzleGenerator = {
-  connectorRatio: number;
-  piecesPerSideHorizontal: number;
-  piecesPerSideVertical: number;
-  selectedNumberOfPieces: number;
-  pieceSize: number;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorLateralControlPointDistance: number;
-  largestPieceSpan: number;
-  strokeWidth: number;
-  strokeColor: string;
-  spriteSpacing: number;
-  stageWidth: number;
-  stageHeight: number;
-  debugOptions?: {
-    noDispersal: boolean;
-  };
-  image: HTMLImageElement;
-  shadowColor: string;
-  strokeStyle: string;
-  generateDataForPuzzlePieces: () => Promise<{
-    spriteEncodedString: string;
-    pieces: JigsawPiece[];
-  }>;
-  getJigsawShapeSvgString: (
-    piece: JigsawPiece,
-    position?: {
-      x: number;
-      y: number
-    }
-  ) => string;
-  generatePuzzleSprite: (
-    imagePath: string,
-    pieces: JigsawPiece[]
-  ) => Promise<HTMLImageElement>;
-  puzzleSizes: PuzzleConfig[];
-};
-
 export type PuzzleCreationResponse = PuzzleCreatorOptions & {
   _id: string;
   complete?: boolean;
   zIndex?: number;
-  pieceSize: number;
   previewPath: string;
   puzzleImagePath: string;
-  connectorDistanceFromCorner: number;
 };
 
 export interface SavedProgress {
-  pieces: JigsawPiece[];
+  pieces: PuzzlePiece[];
   groups: GroupData[];
   latestSave: number;
 }
@@ -293,10 +242,10 @@ export interface GroupMovableSaveState {
     x: number;
     y: number;
   };
-  pieces: JigsawPiece[];
+  pieces: PuzzlePiece[];
 }
 
-export type SaveStates = JigsawPiece | JigsawPiece[] | GroupMovableSaveState;
+export type SaveStates = PuzzlePiece | PuzzlePiece[] | GroupMovableSaveState;
 
 export type PathPartHorizontalRelative = `h ${number}`;
 export type PathPartVerticalRelative = `v ${number}`;
@@ -314,6 +263,7 @@ export type TopLeftCoordinate = { top: number; left: number; };
 export enum Orientation {
   Landscape = "Landscape",
   Portrait = "Portrait",
+  Square = "Square",
 }
 
 export type PieceSectors = {
@@ -330,19 +280,17 @@ export enum SolvedPuzzlePreviewType {
   Toggle = "Toggle",
 }
 
-
-
 export interface SaveOptions {
   isIntegration: boolean;
   isComplete: boolean;
 }
 
 export interface SinglePieceSavePayload {
-  data: JigsawPiece;
+  data: PuzzlePiece;
 }
 
 export interface MultiplePieceSavePayload {
-  data: JigsawPiece[];
+  data: PuzzlePiece[];
 }
 
 export interface GroupSavePayload {

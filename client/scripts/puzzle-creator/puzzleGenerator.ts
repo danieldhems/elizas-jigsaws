@@ -1,18 +1,18 @@
 import {
   CONNECTOR_SIZE_PERC,
   CONNECTOR_TOLERANCE_AMOUNT,
+  MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
+  MINIMUM_PIECE_SIZE,
   SHOULDER_SIZE_PERC,
   SVG_NAMESPACE
 } from "../constants";
 import { getJigsawShapeSvgString } from "./svg";
 import {
   ConnectorType,
-  PuzzleAxis,
-  PuzzleConfig,
-  PuzzleImpression,
+  Puzzle,
   Connector,
-  JigsawPiece,
-  ConnectorChoices
+  PuzzlePiece,
+  ConnectorChoices,
 } from "../types";
 import Utils from "../utils";
 
@@ -28,8 +28,8 @@ export const getConnectorTolerance = (connectorSize: number) => {
   return connectorSize / 100 * CONNECTOR_TOLERANCE_AMOUNT;
 }
 
-export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
-  let pieces: JigsawPiece[] = [];
+export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
+  let pieces: PuzzlePiece[] = [];
   let n = 0;
 
   let rightConnector: ConnectorType | null;
@@ -41,9 +41,9 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
     totalNumberOfPieces,
     numberOfPiecesHorizontal,
     numberOfPiecesVertical,
-    puzzleWidth,
-    puzzleHeight
-  } = puzzleConfig;
+    width,
+    height
+  } = puzzle;
 
   let currentIndexFromLeftEdge = 0;
   let currentIndexFromTopEdge = 0;
@@ -55,17 +55,17 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
 
   const allConnectors: Connector[] = [];
 
-  while (n < puzzleConfig.totalNumberOfPieces) {
-    const piece = {} as JigsawPiece;
+  while (n < puzzle.totalNumberOfPieces) {
+    const piece = {} as PuzzlePiece;
 
     piece.index = n;
 
     let pieceBodySize: number;
 
-    if (puzzleHeight <= puzzleWidth || puzzleWidth == puzzleHeight) {
-      pieceBodySize = puzzleWidth / numberOfPiecesHorizontal;
+    if (height <= width || width == height) {
+      pieceBodySize = width / numberOfPiecesHorizontal;
     } else {
-      pieceBodySize = puzzleHeight / numberOfPiecesVertical;
+      pieceBodySize = height / numberOfPiecesVertical;
     }
 
     piece.pieceBodySize = pieceBodySize;
@@ -110,12 +110,12 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
       piece.numPiecesFromLeftEdge = 0;
     } else {
       // All other pieces
-      const pieceAbove = pieces[n - puzzleConfig.numberOfPiecesHorizontal];
+      const pieceAbove = pieces[n - puzzle.numberOfPiecesHorizontal];
       const previousPiece = pieces[n - 1];
 
       // If we've reached the end of the current row of pieces
       // start the next row
-      if (currentIndexFromLeftEdge + 1 === puzzleConfig.numberOfPiecesHorizontal) {
+      if (currentIndexFromLeftEdge + 1 === puzzle.numberOfPiecesHorizontal) {
         currentIndexFromLeftEdge++;
       } else {
         currentIndexFromLeftEdge = 0;
@@ -141,7 +141,7 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
         );
       }
 
-      if ((n + 1) % puzzleConfig.numberOfPiecesHorizontal === 0) {
+      if ((n + 1) % puzzle.numberOfPiecesHorizontal === 0) {
         // Right edge pieces
         rightConnector = null;
       } else {
@@ -200,11 +200,11 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
       }
     }
 
-    let width = piece.pieceBodySize;
-    let height = piece.pieceBodySize;
+    let pieceWidth = piece.pieceBodySize;
+    let pieceHeight = piece.pieceBodySize;
 
-    let xPos = width * piece.numPiecesFromLeftEdge;
-    let yPos = height * piece.numPiecesFromTopEdge;
+    let xPos = pieceWidth * piece.numPiecesFromLeftEdge;
+    let yPos = pieceHeight * piece.numPiecesFromTopEdge;
 
     const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
     const hasRightPlug = piece.connectors[1].connectorType === ConnectorType.Plug;
@@ -213,23 +213,23 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
 
     if (hasTopPlug) {
       yPos -= connectorSize;
-      height += connectorSize;
+      pieceHeight += connectorSize;
     }
 
     if (hasRightPlug) {
-      width += connectorSize;
+      pieceWidth += connectorSize;
     }
 
     if (hasBottomPlug) {
-      height += connectorSize;
+      pieceHeight += connectorSize;
     }
     if (hasLeftPlug) {
       xPos -= connectorSize;
-      width += connectorSize;
+      pieceWidth += connectorSize;
     }
 
-    piece.width = width;
-    piece.height = height;
+    piece.width = pieceWidth;
+    piece.height = pieceHeight;
 
     pieces.push(piece);
 
@@ -239,16 +239,16 @@ export const generatePieces = (puzzleConfig: PuzzleConfig): JigsawPiece[] => {
   return pieces;
 }
 
-export const getPieceSize = (puzzleDimensions: { width: number; height: number }, puzzleConfig: PuzzleConfig): number => {
+export const getPieceSize = (puzzleDimensions: { width: number; height: number }, puzzleConfig: Puzzle): number => {
   const { numberOfPiecesHorizontal, numberOfPiecesVertical } = puzzleConfig;
-  const { width: puzzleWidth, height: puzzleHeight } = puzzleDimensions;
+  const { width: width, height: height } = puzzleDimensions;
 
   let pieceSize: number;
 
   if (numberOfPiecesHorizontal < numberOfPiecesVertical) {
-    pieceSize = puzzleWidth / numberOfPiecesHorizontal;
+    pieceSize = width / numberOfPiecesHorizontal;
   } else {
-    pieceSize = puzzleHeight / numberOfPiecesVertical;
+    pieceSize = height / numberOfPiecesVertical;
   }
 
   return pieceSize;
@@ -258,134 +258,88 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
  * Generate configs for all possible puzzles that can be made 
  * given the available width and weight
  * 
- *  
- * @param availableWidth 
- * @param availableHeight 
- * @param minimumPieceSize 
- * @param minimumNumberOfPiecesPerSide 
- * @returns 
+ * @param availableWidth The maximum available width
+ * @param availableHeight The maximum available height
+ * @requires
+ *  @constant MINIMUM_PIECE_SIZE
+ *  @constant MINIMUM_NUMBER_OF_PIECES_PER_SIDE
  */
-export function generatePuzzleConfigs(constraints: {
+export function generatePuzzlesWithinConstraints(constraints: {
   availableWidth: number,
   availableHeight: number,
-  minimumPieceSize: number,
-  minimumNumberOfPiecesPerSide: number
-}): {
-  rectangularPuzzleConfigs: PuzzleConfig[];
-  squarePuzzleConfigs: PuzzleConfig[];
-} {
+}): Puzzle[] {
   const {
     availableWidth,
     availableHeight,
-    minimumPieceSize,
-    minimumNumberOfPiecesPerSide,
   } = constraints;
 
-  let shortSide: PuzzleAxis | null;
+  const puzzleConfigs: Puzzle[] = [];
 
-  if (availableWidth < availableHeight) {
-    shortSide = PuzzleAxis.Horizontal;
-  } else if (availableHeight < availableWidth) {
-    shortSide = PuzzleAxis.Vertical;
-  } else {
-    shortSide = null;
-  }
-
-  let n: number = minimumNumberOfPiecesPerSide;
-
-  const length = shortSide === PuzzleAxis.Horizontal
-    ? availableWidth
-    : availableHeight;
-
-  const rectangularPuzzleConfigs: PuzzleConfig[] = [];
-  const squarePuzzleConfigs: PuzzleConfig[] = [];
-
-  let divisionResult: number;
+  let n: number = MINIMUM_NUMBER_OF_PIECES_PER_SIDE;
+  let currentPieceSize: number;
 
   do {
-    divisionResult = length / n;
+    let puzzle = {} as Puzzle;
 
-    if (divisionResult < minimumPieceSize) break;
+    currentPieceSize = length / n;
 
-    const connectorTolerance = (divisionResult / 100 * CONNECTOR_TOLERANCE_AMOUNT);
-
-    const connectorSize = getConnectorSize(divisionResult);
-    const connectorDistanceFromCorner = getConnectorDistanceFromCorner(divisionResult);
-
+    const connectorSize = getConnectorSize(currentPieceSize);
+    const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
     const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
 
-    const puzzleConfig = {} as PuzzleConfig;
+    let numberOfPiecesOnLongSide: number;
 
-    if (shortSide) {
-      let numberOfPiecesOnLongSide: number;
+    if (availableWidth < availableHeight) {
+      // Portrait puzzle
+      numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+        availableHeight,
+        pieceSize
+      );
 
-      switch (shortSide) {
-        case PuzzleAxis.Horizontal:
-          // Portrait puzzle
-          numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
-            availableHeight,
-            pieceSize
-          );
+      puzzle.numberOfPiecesHorizontal = n;
+      puzzle.numberOfPiecesVertical = numberOfPiecesOnLongSide;
+      puzzle.width = pieceSize * n;
+      puzzle.height = pieceSize * numberOfPiecesOnLongSide;
+      puzzle.percentageOfImageUsedHorizontal = puzzle.width / availableWidth * 100;
+      puzzle.percentageOfImageUsedVertical = puzzle.height / availableHeight * 100;
+      puzzle.pieces = generatePieces(puzzle);
+    } else if (availableHeight < availableWidth) {
+      // Landscape puzzle
+      numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+        availableWidth,
+        pieceSize
+      );
 
-          puzzleConfig.numberOfPiecesHorizontal = n;
-          puzzleConfig.numberOfPiecesVertical = numberOfPiecesOnLongSide;
-          puzzleConfig.puzzleWidth = pieceSize * n;
-          puzzleConfig.puzzleHeight = pieceSize * numberOfPiecesOnLongSide;
-          puzzleConfig.percentageOfImageUsedHorizontal = puzzleConfig.puzzleWidth / availableWidth * 100;
-          puzzleConfig.percentageOfImageUsedVertical = puzzleConfig.puzzleHeight / availableHeight * 100;
+      puzzle.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
+      puzzle.numberOfPiecesVertical = n;
+      puzzle.width = pieceSize * numberOfPiecesOnLongSide;
+      puzzle.height = pieceSize * n;
+      puzzle.percentageOfImageUsedHorizontal = puzzle.width / availableWidth * 100;
+      puzzle.percentageOfImageUsedVertical = puzzle.height / availableHeight * 100;
+      puzzle.pieces = generatePieces(puzzle);
+    } else {
+      puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
 
-          break;
-
-        case PuzzleAxis.Vertical:
-          // Landscape puzzle
-          numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
-            availableWidth,
-            pieceSize
-          );
-
-          puzzleConfig.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
-          puzzleConfig.numberOfPiecesVertical = n;
-          puzzleConfig.puzzleWidth = pieceSize * numberOfPiecesOnLongSide;
-          puzzleConfig.puzzleHeight = pieceSize * n;
-          puzzleConfig.percentageOfImageUsedHorizontal = puzzleConfig.puzzleWidth / availableWidth * 100;
-          puzzleConfig.percentageOfImageUsedVertical = puzzleConfig.puzzleHeight / availableHeight * 100;
-
-          break;
-      }
-
-      puzzleConfig.aspectRatio = puzzleConfig.puzzleWidth / puzzleConfig.puzzleHeight;
-      puzzleConfig.totalNumberOfPieces = puzzleConfig.numberOfPiecesHorizontal * puzzleConfig.numberOfPiecesVertical;
-
-      rectangularPuzzleConfigs.push(puzzleConfig);
+      // Square puzzles
+      puzzle = {
+        numberOfPiecesHorizontal: n,
+        numberOfPiecesVertical: n,
+        totalNumberOfPieces: n * n,
+        width: pieceSize * n,
+        height: pieceSize * n,
+        percentageOfImageUsedHorizontal: 100,
+        percentageOfImageUsedVertical: 100,
+        pieces: generatePieces(puzzle),
+      };
     }
 
-    // Square puzzles
-    const config = {
-      numberOfPiecesHorizontal: n,
-      numberOfPiecesVertical: n,
-      totalNumberOfPieces: n * n,
-      pieceSize,
-      connectorSize,
-      connectorTolerance,
-      connectorDistanceFromCorner,
-      availableWidth,
-      availableHeight,
-      puzzleWidth: pieceSize * n,
-      puzzleHeight: pieceSize * n,
-      percentageOfImageUsedHorizontal: 100,
-      percentageOfImageUsedVertical: 100,
-    };
 
-    squarePuzzleConfigs.push(config);
+    puzzleConfigs.push(puzzle);
 
     n = n + 1;
+  } while (currentPieceSize > MINIMUM_PIECE_SIZE);
 
-  } while (divisionResult >= minimumPieceSize);
-
-  return {
-    rectangularPuzzleConfigs,
-    squarePuzzleConfigs,
-  };
+  return puzzleConfigs;
 }
 
 export type ImageInfo = {
@@ -394,9 +348,19 @@ export type ImageInfo = {
   aspectRatio: number;
 }
 
-export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
+/**
+ * Fix: This is where the puzzle piece HTML elements are created?
+ * Should rename this and invoke it somewhere more logical, for example
+ * in the same function that creates the puzzles.
+ * 
+ * The name 'impression' is semantically irrelevant to what this function
+ * is actually doing; The ImpressionsOverlay merely displays the puzzles
+ * as a small-scale preview, so it shouldn't be confused with this function's
+ * purpose.
+ */
+export const getPuzzlesForImpressionsOverlay = (puzzleConfigs: Puzzle[]): {
   container: HTMLDivElement;
-  impressions: PuzzleImpression[];
+  impressions: Puzzle[];
 } => {
   const container = document.createElement("div");
 
@@ -422,12 +386,12 @@ export const getPuzzleImpressions = (puzzleConfigs: PuzzleConfig[]): {
 
     const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
     svgElement.setAttribute("xmlns", SVG_NAMESPACE);
-    // svgElement.setAttribute("width", currentConfig.puzzleWidth + "");
-    // svgElement.setAttribute("height", currentConfig.puzzleHeight + "");
+    // svgElement.setAttribute("width", currentConfig.width + "");
+    // svgElement.setAttribute("height", currentConfig.height + "");
     svgElement.setAttribute("fill", "none");
     svgElement.setAttribute("stroke", "#000")
     // svgElement.setAttribute("stroke-alignment", "inner")
-    svgElement.setAttribute("viewBox", "0 0 " + currentConfig.puzzleWidth + " " + currentConfig.puzzleHeight);
+    svgElement.setAttribute("viewBox", "0 0 " + currentConfig.width + " " + currentConfig.height);
 
     element.appendChild(svgElement)
     container.appendChild(element)
