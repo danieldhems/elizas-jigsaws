@@ -1,10 +1,10 @@
 import { SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
 import jigsawPath from "../puzzle-main/jigsawPath";
-import { ConnectorType, JigsawPiece } from "../types";
+import { ConnectorType, PuzzlePiece } from "../types";
 
 export function getSvg(
     id: string,
-    pieces: JigsawPiece[],
+    pieces: PuzzlePiece[],
     imagePath: string,
     options: {
         svgWidth: number,
@@ -85,15 +85,9 @@ export function getSvg(
 }
 
 export function getAttributesForPiece(
-    piece: JigsawPiece,
-    isGroup?: boolean,
+    piece: PuzzlePiece,
 ) {
     const { index, positionInPuzzle, width, height } = piece;
-
-    const pathStartPosition = {
-        x: isGroup ? positionInPuzzle.x : 0,
-        y: isGroup ? positionInPuzzle.y : 0,
-    };
 
     return {
         index,
@@ -101,10 +95,8 @@ export function getAttributesForPiece(
         pathString: getJigsawShapeSvgString(piece),
         width,
         height,
-        ...{
-            positionInPuzzleX: positionInPuzzle.x,
-            positionInPuzzley: positionInPuzzle.y,
-        }
+        positionInPuzzleX: positionInPuzzle.x,
+        positionInPuzzley: positionInPuzzle.y,
     };
 }
 
@@ -115,7 +107,7 @@ export function getAttributesForPiece(
  * @returns 
  */
 export const getJigsawShapeSvgString = (
-    piece: JigsawPiece,
+    piece: PuzzlePiece,
 ) => {
     let svgString = "";
 

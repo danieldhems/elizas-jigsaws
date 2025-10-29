@@ -13,6 +13,7 @@ import {
   Connector,
   PuzzlePiece,
   ConnectorChoices,
+  PuzzleOrientation,
 } from "../types";
 import Utils from "../utils";
 
@@ -296,6 +297,7 @@ export function generatePuzzlesWithinConstraints(constraints: {
         pieceSize
       );
 
+      puzzle.orientation = PuzzleOrientation.Portrait;
       puzzle.numberOfPiecesHorizontal = n;
       puzzle.numberOfPiecesVertical = numberOfPiecesOnLongSide;
       puzzle.width = pieceSize * n;
@@ -310,6 +312,7 @@ export function generatePuzzlesWithinConstraints(constraints: {
         pieceSize
       );
 
+      puzzle.orientation = PuzzleOrientation.Landscape;
       puzzle.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
       puzzle.numberOfPiecesVertical = n;
       puzzle.width = pieceSize * numberOfPiecesOnLongSide;
@@ -322,6 +325,7 @@ export function generatePuzzlesWithinConstraints(constraints: {
 
       // Square puzzles
       puzzle = {
+        orientation: PuzzleOrientation.Square,
         numberOfPiecesHorizontal: n,
         numberOfPiecesVertical: n,
         totalNumberOfPieces: n * n,

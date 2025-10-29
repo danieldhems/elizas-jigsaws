@@ -207,7 +207,14 @@ export interface Puzzle {
   // imageWidth: number;
   // imageHeight: number;
   pieces: PuzzlePiece[];
+  orientation: PuzzleOrientation;
 }
+
+export enum PuzzleOrientation {
+  Landscape = "Landscape",
+  Portrait = "Portrait",
+  Square = "Square"
+};
 
 export enum PuzzleAxis {
   Horizontal = "Horizontal",

@@ -11,6 +11,7 @@ import PuzzleImpressionOverlay from "../puzzle-main/PuzzleImpressionOverlay";
 import Puzzly from "../puzzle-main";
 import {
   Puzzle,
+  PuzzleOrientation,
   PuzzleShapes,
 } from "../types";
 import Utils from "../utils";
@@ -35,14 +36,14 @@ export default class PuzzlyCreator {
   piecesPerSideHorizontal: number;
   piecesPerSideVertical: number;
   sourceImage: SourceImage;
-  puzzleConfigs: {
-    rectangularPuzzleConfigs: Puzzle[];
-    squarePuzzleConfigs: Puzzle[];
-  };
+  puzzleConfigs: Puzzle[];
   activePuzzleConfigs: Puzzle[];
   activePuzzleConfig: Puzzle;
   selectedPuzzleConfig: Puzzle;
   selectedPuzzleShape: PuzzleShapes;
+  landscapePuzzles: Puzzle[]; //TODO: Narrow this to landscape puzzles only
+  portraitPuzzles: Puzzle[]; // TODO: Narrow this to portrait puzzles only
+  squarePuzzles: Puzzle[]; // TODO: Narrow this to square puzzles only
   /**
    * Puzzle target area
    * Used by PuzzleImpressionOverlay
@@ -379,16 +380,25 @@ export default class PuzzlyCreator {
       availableHeight: maxHeight,
     });
 
+    this.landscapePuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Landscape);
+    this.portraitPuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Portrait);
+    this.squarePuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Square);
+
     console.log('puzzle configs', this.puzzleConfigs);
 
     if (width === height) {
       this.selectedPuzzleShape = PuzzleShapes.Square;
-      this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
+      this.activePuzzleConfigs = this.squarePuzzles;
       this.disablePuzzleShapeInputs()
       this.setPuzzleShapeInputsValue(PuzzleShapes.Square);
+    } else if (width > height) {
+      this.selectedPuzzleShape = PuzzleShapes.Rectangle;
+      this.activePuzzleConfigs = this.landscapePuzzles;
+      this.enablePuzzleShapeInputs()
+      this.setPuzzleShapeInputsValue(PuzzleShapes.Rectangle);
     } else {
       this.selectedPuzzleShape = PuzzleShapes.Rectangle;
-      this.activePuzzleConfigs = this.puzzleConfigs.rectangularPuzzleConfigs;
+      this.activePuzzleConfigs = this.portraitPuzzles;
       this.enablePuzzleShapeInputs()
       this.setPuzzleShapeInputsValue(PuzzleShapes.Rectangle);
     }
@@ -397,8 +407,8 @@ export default class PuzzlyCreator {
 
     const puzzleImpressionOverlayConfig = {
       targetElement: this.imageUploadPreviewEl,
-      puzzleConfigs: this.activePuzzleConfigs,
-      selectedPuzzleConfig: this.selectedPuzzleConfig,
+      puzzles: this.activePuzzleConfigs,
+      selectedPuzzle: this.selectedPuzzleConfig,
     };
 
     if (this.PuzzleImpressionOverlay) {
