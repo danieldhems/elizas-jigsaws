@@ -45,8 +45,6 @@ export default class PuzzleImpressionOverlay {
   }
 
   generateImpressions(puzzles: Puzzle[]) {
-    const impressions = [];
-
     const containerElementForLandscapePuzzles = document.createElement("div");
     containerElementForLandscapePuzzles.id = PuzzleOrientation.Landscape;
 
@@ -60,24 +58,34 @@ export default class PuzzleImpressionOverlay {
     const portraitPuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Portrait);
     const squarePuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Square);
 
-    function generateSvgElementForImpressions(puzzles: Puzzle[]): HTMLDivElement {
-      const currentConfig = puzzles[n];
+    const landscapePuzzleSVGElements = landscapePuzzles.map(generateSvgElementForPuzzleImpressions);
+    containerElementForLandscapePuzzles.append(...landscapePuzzleSVGElements);
 
+    const portraitPuzzleSVGElements = portraitPuzzles.map(generateSvgElementForPuzzleImpressions);
+    containerElementForPortraitPuzzles.append(...portraitPuzzleSVGElements);
+
+    const squarePuzzleSVGElements = squarePuzzles.map(generateSvgElementForPuzzleImpressions);
+    containerElementForSquarePuzzles.append(...squarePuzzleSVGElements);
+
+    function generateSvgElementForPuzzleImpressions(puzzle: Puzzle): HTMLDivElement {
       const element = document.createElement("div");
-      element.dataset.impressionIndex = n + '';
-      element.id = "puzzle-" + currentConfig.totalNumberOfPieces;
+      element.id = "puzzle-" + puzzle.totalNumberOfPieces;
 
       const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
       svgElement.setAttribute("xmlns", SVG_NAMESPACE);
       svgElement.setAttribute("fill", "none");
       svgElement.setAttribute("stroke", "#000")
-      svgElement.setAttribute("viewBox", "0 0 " + currentConfig.width + " " + currentConfig.height);
+      svgElement.setAttribute("viewBox", "0 0 " + puzzle.width + " " + puzzle.height);
 
       element.appendChild(svgElement);
+
+      const puzzlePieces = generatePiecesForPuzzleImpression(puzzle);
+      puzzlePieces.map(p => element.appendChild(p));
+
       return element;
     }
 
-    function generatePiecesForImpression(puzzle: Puzzle): HTMLOrSVGElement[] {
+    function generatePiecesForPuzzleImpression(puzzle: Puzzle): HTMLOrSVGElement[] {
       const svgElements: HTMLOrSVGElement[] = [];
 
       for (let n = 0, l = puzzle.pieces.length; n < l; n++) {
@@ -88,6 +96,8 @@ export default class PuzzleImpressionOverlay {
         svgElement.setAttribute("fill", "none");
         svgElement.setAttribute("stroke", "#000")
         svgElement.setAttribute("viewBox", "0 0 " + currentPiece.width + " " + currentPiece.height);
+        svgElement.setAttribute("x", currentPiece.positionInPuzzle.x + "");
+        svgElement.setAttribute("y", currentPiece.positionInPuzzle.y + "");
 
         const pathElement = document.createElementNS(SVG_NAMESPACE, "path");
         pathElement.setAttribute("id", "piece-" + n);
