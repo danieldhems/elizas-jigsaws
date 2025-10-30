@@ -406,7 +406,7 @@ export default class PuzzlyCreator {
     this.selectedPuzzleConfig = this.activePuzzleConfigs[0];
 
     const puzzleImpressionOverlayConfig = {
-      targetElement: this.imageUploadPreviewEl,
+      targetElement: document.querySelector(".js-impressions-overlay") as HTMLDivElement,
       puzzles: this.activePuzzleConfigs,
       selectedPuzzle: this.selectedPuzzleConfig,
     };
@@ -561,7 +561,7 @@ export default class PuzzlyCreator {
 
     const data = {
       ...this.selectedPuzzleConfig,
-      pieces: pieces,
+      pieces: this.activePuzzleConfig.pieces,
       boardWidth: width,
       boardHeight: height,
       filename: this.sourceImage.filename,

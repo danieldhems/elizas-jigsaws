@@ -353,106 +353,18 @@ export type ImageInfo = {
 }
 
 /**
- * Fix: This is where the puzzle piece HTML elements are created?
- * Should rename this and invoke it somewhere more logical, for example
- * in the same function that creates the puzzles.
- * 
- * The name 'impression' is semantically irrelevant to what this function
- * is actually doing; The ImpressionsOverlay merely displays the puzzles
- * as a small-scale preview, so it shouldn't be confused with this function's
- * purpose.
- */
-export const getPuzzlesForImpressionsOverlay = (puzzleConfigs: Puzzle[]): {
-  container: HTMLDivElement;
-  impressions: Puzzle[];
-} => {
-  const container = document.createElement("div");
-
-  const impressions = [];
-
-  // Assuming config set consists of either all rectangular or all square puzzles
-  const sampleConfig = puzzleConfigs[0];
-
-  // TODO: Could simplify this by just adding a property to each config that explicitly names it as either rectangular or square
-  // TODO: Impression id/label should be an enum
-  const configName = sampleConfig.numberOfPiecesHorizontal !== sampleConfig.numberOfPiecesVertical ? "rectangular-impressions" : "square-impressions";
-
-  container.id = configName;
-
-  for (let nConf = 0, lConf = puzzleConfigs.length; nConf < lConf; nConf++) {
-
-    const currentConfig = puzzleConfigs[nConf];
-    let pieces = generatePieces(currentConfig);
-
-    const element = document.createElement("div");
-    element.dataset.impressionIndex = nConf + '';
-    element.id = "puzzle-" + currentConfig.totalNumberOfPieces;
-
-    const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
-    svgElement.setAttribute("xmlns", SVG_NAMESPACE);
-    // svgElement.setAttribute("width", currentConfig.width + "");
-    // svgElement.setAttribute("height", currentConfig.height + "");
-    svgElement.setAttribute("fill", "none");
-    svgElement.setAttribute("stroke", "#000")
-    // svgElement.setAttribute("stroke-alignment", "inner")
-    svgElement.setAttribute("viewBox", "0 0 " + currentConfig.width + " " + currentConfig.height);
-
-    element.appendChild(svgElement)
-    container.appendChild(element)
-
-    const piecePosition = {
-      x: 0,
-      y: 0,
-    }
-
-    for (let n = 0, l = pieces.length; n < l; n++) {
-      const currentPiece = pieces[n];
-
-      const pathElement = document.createElementNS(SVG_NAMESPACE, "path");
-      pathElement.setAttribute("id", "piece-" + n);
-      svgElement.appendChild(pathElement);
-
-      const shape = getJigsawShapeSvgString(currentPiece);
-      pathElement.setAttribute("d", shape);
-
-      if (currentPiece.numPiecesFromLeftEdge === currentConfig.numberOfPiecesHorizontal - 1) {
-        // TODO: We can use the pieceBodySize from the current piece
-        // because the pieces all have the same size in a normal puzzle.
-        // 
-        // But, this won't work for wild pieces
-        piecePosition.y += currentPiece.pieceBodySize;
-        piecePosition.x = 0;
-      } else {
-        piecePosition.x += currentPiece.pieceBodySize;
-      }
-    }
-
-    impressions.push({
-      index: nConf,
-      puzzleConfig: currentConfig,
-      pieces,
-    })
-  }
-
-  return {
-    container,
-    impressions,
-  }
-}
-
-/**
-   * Calculate the maximum number of pieces we can have along a given edge
-   * by simple addition based on a known size.
-   *
-   * i.e. keep adding the known piece size while it still fits within the length
-   *
-   * Use this to get the number of pieces for the longer edge once we know
-   * the number of pieces and their sizes for the shorter egde.
-   *
-   * @param edgeLength number
-   * @param interval number
-   * @returns { numberOfPieces: number, totalLength: number }
-   */
+ * Calculate the maximum number of pieces we can have along a given edge
+ * by simple addition based on a known size.
+ *
+ * i.e. keep adding the known piece size while it still fits within the length
+ *
+ * Use this to get the number of pieces for the longer edge once we know
+ * the number of pieces and their sizes for the shorter egde.
+ *
+ * @param edgeLength number
+ * @param interval number
+ * @returns { numberOfPieces: number, totalLength: number }
+*/
 export function getNumberOfPiecesForAdjacentSideByPieceSize(
   edgeLength: number,
   pieceSize: number

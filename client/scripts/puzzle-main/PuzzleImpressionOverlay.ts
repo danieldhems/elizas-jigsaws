@@ -1,6 +1,7 @@
 import RestrictedDraggable from "./RestrictedDraggable";
-import { getPuzzleImpressions } from "../puzzle-creator/puzzleGenerator";
-import { MovementAxis, Puzzle } from "../types";
+import { MovementAxis, Orientation, Puzzle, PuzzleOrientation } from "../types";
+import { SVG_NAMESPACE } from "../constants";
+import { getJigsawShapeSvgString } from "../puzzle-creator/svg";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;
@@ -12,10 +13,8 @@ export default class PuzzleImpressionOverlay {
   svgElement: SVGSVGElement;
   draggable: RestrictedDraggable;
   targetElement: HTMLImageElement | HTMLDivElement;
-  container: HTMLElement;
   puzzles: Puzzle[] | null;
   selectedPuzzle: Puzzle;
-  pieceSvgGroups: HTMLOrSVGElement[];
   impressionsContainer: HTMLDivElement;
   impressions: Puzzle[];
   activeImpression: Puzzle | null;
@@ -27,18 +26,15 @@ export default class PuzzleImpressionOverlay {
   }
 
   initiate(args: PuzzleImpressionOverlayConstructorArgs) {
-    this.reset();
-
     this.targetElement = args.targetElement;
     this.selectedPuzzle = args.selectedPuzzle;
     this.puzzles = args.puzzles;
-    this.container = this.targetElement.parentElement as HTMLElement;
 
     const layout = this.getLayout(this.selectedPuzzle);
     this.setLayoutInternal(layout);
 
     this.draggable = new RestrictedDraggable({
-      containerElement: this.container,
+      containerElement: this.targetElement,
       layout,
       id: "puzzle-impression-overlay",
       restrictionBoundingBox: layout,
@@ -46,6 +42,63 @@ export default class PuzzleImpressionOverlay {
 
     this.setImpressions(this.puzzles);
     this.setActiveImpression(this.selectedPuzzle);
+  }
+
+  generateImpressions(puzzles: Puzzle[]) {
+    const impressions = [];
+
+    const containerElementForLandscapePuzzles = document.createElement("div");
+    containerElementForLandscapePuzzles.id = PuzzleOrientation.Landscape;
+
+    const containerElementForPortraitPuzzles = document.createElement("div");
+    containerElementForPortraitPuzzles.id = PuzzleOrientation.Portrait;
+
+    const containerElementForSquarePuzzles = document.createElement("div");
+    containerElementForSquarePuzzles.id = PuzzleOrientation.Square;
+
+    const landscapePuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Landscape);
+    const portraitPuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Portrait);
+    const squarePuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Square);
+
+    function generateSvgElementForImpressions(puzzles: Puzzle[]): HTMLDivElement {
+      const currentConfig = puzzles[n];
+
+      const element = document.createElement("div");
+      element.dataset.impressionIndex = n + '';
+      element.id = "puzzle-" + currentConfig.totalNumberOfPieces;
+
+      const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
+      svgElement.setAttribute("xmlns", SVG_NAMESPACE);
+      svgElement.setAttribute("fill", "none");
+      svgElement.setAttribute("stroke", "#000")
+      svgElement.setAttribute("viewBox", "0 0 " + currentConfig.width + " " + currentConfig.height);
+
+      element.appendChild(svgElement);
+      return element;
+    }
+
+    function generatePiecesForImpression(puzzle: Puzzle): HTMLOrSVGElement[] {
+      const svgElements: HTMLOrSVGElement[] = [];
+
+      for (let n = 0, l = puzzle.pieces.length; n < l; n++) {
+        const currentPiece = puzzle.pieces[n];
+
+        const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
+        svgElement.setAttribute("xmlns", SVG_NAMESPACE);
+        svgElement.setAttribute("fill", "none");
+        svgElement.setAttribute("stroke", "#000")
+        svgElement.setAttribute("viewBox", "0 0 " + currentPiece.width + " " + currentPiece.height);
+
+        const pathElement = document.createElementNS(SVG_NAMESPACE, "path");
+        pathElement.setAttribute("id", "piece-" + n);
+        svgElement.appendChild(pathElement);
+
+        const shape = getJigsawShapeSvgString(currentPiece);
+        pathElement.setAttribute("d", shape);
+      }
+
+      return svgElements;
+    }
   }
 
   reset() {
@@ -98,6 +151,7 @@ export default class PuzzleImpressionOverlay {
     };
   }
 
+  // TODO: Is this method necessary? Very poorly named...
   setLayoutInternal({ top, left }: { top: number; left: number }) {
     this.leftBoundary = left;
     this.topBoundary = top;
@@ -108,7 +162,7 @@ export default class PuzzleImpressionOverlay {
       this.impressionsContainer.remove();
     }
 
-    const { container, impressions } = getPuzzleImpressions(puzzles);
+    const { container, impressions } = getPuzzlesForImpressionsForOverlay(puzzles);
 
     this.impressionsContainer = container;
     this.impressions = impressions;
@@ -117,7 +171,7 @@ export default class PuzzleImpressionOverlay {
   }
 
   setActiveImpression(puzzleConfig: Puzzle) {
-    const { puzzleWidth, puzzleHeight } = puzzleConfig;
+    const { width, height } = puzzleConfig;
 
     const impressionElements =
       this.impressionsContainer.getElementsByTagName("div");
@@ -127,7 +181,7 @@ export default class PuzzleImpressionOverlay {
       if (impressionElement.id === id) {
         impressionElement.classList.remove("d-none");
 
-        if (puzzleWidth !== puzzleHeight) {
+        if (width !== height) {
           this.draggable.update(this.getLayout(puzzleConfig));
         }
 

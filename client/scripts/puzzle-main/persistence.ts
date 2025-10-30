@@ -2,7 +2,7 @@ import { EVENT_TYPES } from "../constants";
 import Puzzly from ".";
 import {
   GroupMovableSaveState,
-  JigsawPiece,
+  PuzzlePiece,
   LocalStorageKeys,
   SavedProgress,
   SaveOptions,
@@ -101,7 +101,7 @@ export default class PersistenceOperations {
     return this[key].replace(this.localStorageStringReplaceKey, this.puzzleId);
   }
 
-  saveToLocalStorage(data: JigsawPiece | JigsawPiece[] | GroupMovableSaveState) {
+  saveToLocalStorage(data: PuzzlePiece | PuzzlePiece[] | GroupMovableSaveState) {
     let time = Date.now();
 
     const progressKey = this.getUniqueLocalStorageKeyForPuzzle(
@@ -132,18 +132,18 @@ export default class PersistenceOperations {
     return urlParams.get("integration") === "true";
   }
 
-  async saveSinglePiece(piece: JigsawPiece, options: SaveOptions) {
+  async saveSinglePiece(piece: PuzzlePiece, options: SaveOptions) {
     // console.log("saveSinglePiece", piece);
 
     const useLocalStorage = false;
 
     const data: {
-      piece?: JigsawPiece,
+      piece?: PuzzlePiece,
     } = {};
     data.piece = piece;
 
     if (useLocalStorage) {
-      this.saveToLocalStorage(piece as JigsawPiece);
+      this.saveToLocalStorage(piece as PuzzlePiece);
     } else {
       // const isFirstSave = !payload[0]?._id;
       return fetch(UPDATE_PIECE_ENDPOINT, {
@@ -161,19 +161,19 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data.piece as JigsawPiece);
+          this.saveToLocalStorage(data.piece as PuzzlePiece);
         });
     }
   }
 
-  async saveMultiplePieces(pieces: JigsawPiece[], options?: SaveOptions) {
+  async saveMultiplePieces(pieces: PuzzlePiece[], options?: SaveOptions) {
     // console.log('saveMultiplePieces', pieces)
     const useLocalStorage = false;
 
     const data: {
       payload?: {
         puzzleId: string;
-        pieces: JigsawPiece[],
+        pieces: PuzzlePiece[],
       };
       options?: {}
     } = {};
