@@ -45,70 +45,39 @@ export default class PuzzleImpressionOverlay {
   }
 
   generateImpressions(puzzles: Puzzle[]) {
-    const containerElementForLandscapePuzzles = document.createElement("div");
-    containerElementForLandscapePuzzles.id = PuzzleOrientation.Landscape;
+    const fragment = document.createDocumentFragment();
 
-    const containerElementForPortraitPuzzles = document.createElement("div");
-    containerElementForPortraitPuzzles.id = PuzzleOrientation.Portrait;
-
-    const containerElementForSquarePuzzles = document.createElement("div");
-    containerElementForSquarePuzzles.id = PuzzleOrientation.Square;
-
-    const landscapePuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Landscape);
-    const portraitPuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Portrait);
-    const squarePuzzles = puzzles.filter((p) => p.orientation === PuzzleOrientation.Square);
-
-    const landscapePuzzleSVGElements = landscapePuzzles.map(generateSvgElementForPuzzleImpressions);
-    containerElementForLandscapePuzzles.append(...landscapePuzzleSVGElements);
-
-    const portraitPuzzleSVGElements = portraitPuzzles.map(generateSvgElementForPuzzleImpressions);
-    containerElementForPortraitPuzzles.append(...portraitPuzzleSVGElements);
-
-    const squarePuzzleSVGElements = squarePuzzles.map(generateSvgElementForPuzzleImpressions);
-    containerElementForSquarePuzzles.append(...squarePuzzleSVGElements);
-
-    function generateSvgElementForPuzzleImpressions(puzzle: Puzzle): HTMLDivElement {
-      const element = document.createElement("div");
-      element.id = "puzzle-" + puzzle.totalNumberOfPieces;
+    // Iterate puzzles
+    for (let n = 0, l = puzzles.length; n < l; n++) {
+      const currentPuzzle = puzzles[i];
 
       const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
       svgElement.setAttribute("xmlns", SVG_NAMESPACE);
       svgElement.setAttribute("fill", "none");
       svgElement.setAttribute("stroke", "#000")
-      svgElement.setAttribute("viewBox", "0 0 " + puzzle.width + " " + puzzle.height);
+      svgElement.setAttribute("viewBox", "0 0 " + currentPuzzle.width + " " + currentPuzzle.height);
 
-      element.appendChild(svgElement);
-
-      const puzzlePieces = generatePiecesForPuzzleImpression(puzzle);
-      puzzlePieces.map(p => element.appendChild(p));
-
-      return element;
-    }
-
-    function generatePiecesForPuzzleImpression(puzzle: Puzzle): HTMLOrSVGElement[] {
-      const svgElements: HTMLOrSVGElement[] = [];
-
-      for (let n = 0, l = puzzle.pieces.length; n < l; n++) {
-        const currentPiece = puzzle.pieces[n];
-
-        const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
-        svgElement.setAttribute("xmlns", SVG_NAMESPACE);
-        svgElement.setAttribute("fill", "none");
-        svgElement.setAttribute("stroke", "#000")
-        svgElement.setAttribute("viewBox", "0 0 " + currentPiece.width + " " + currentPiece.height);
-        svgElement.setAttribute("x", currentPiece.positionInPuzzle.x + "");
-        svgElement.setAttribute("y", currentPiece.positionInPuzzle.y + "");
+      // Iterate pieces for current puzzle
+      for (
+        let i = 0,
+        piecesLength = currentPuzzle.pieces.length;
+        i < piecesLength;
+        i++
+      ) {
+        const currentPiece = currentPuzzle.pieces[n];
 
         const pathElement = document.createElementNS(SVG_NAMESPACE, "path");
         pathElement.setAttribute("id", "piece-" + n);
-        svgElement.appendChild(pathElement);
 
         const shape = getJigsawShapeSvgString(currentPiece);
         pathElement.setAttribute("d", shape);
+        svgElement.appendChild(pathElement);
       }
 
-      return svgElements;
+      fragment.appendChild(svgElement);
     }
+
+    this.targetElement.appendChild(fragment);
   }
 
   reset() {
