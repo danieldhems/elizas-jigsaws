@@ -2,7 +2,7 @@ import GroupMovable from "./GroupMovable";
 import SingleMovable from "./SingleMovable";
 import { ELEMENT_IDS } from "../constants";
 import { getSvg } from "../puzzle-creator/svg";
-import { JigsawPieceData } from "../types";
+import { PuzzlePiece } from "../types";
 import Utils from "../utils";
 
 export default class SolvingArea {
@@ -11,7 +11,7 @@ export default class SolvingArea {
     width: number;
     height: number;
     imagePath: string;
-    pieces: JigsawPieceData[] = [];
+    pieces: PuzzlePiece[] = [];
 
     constructor(boardWidth: number, boardHeight: number, imagePath: string) {
         this.element = document.querySelector(
@@ -70,11 +70,11 @@ export default class SolvingArea {
      * 
      * This method allows us to avoid instantiating instances of SingleMovable when we don't need to. 
      * 
-     * @param {JigsawPieceData} pieces Collection of pieces by data only i.e. not an instance of SingleMovable
+     * @param {PuzzlePiece} pieces Collection of pieces by data only i.e. not an instance of SingleMovable
      * 
      * Question: Do we need this?
      */
-    addSolvedPieces(pieces: JigsawPieceData[]) {
+    addSolvedPieces(pieces: PuzzlePiece[]) {
         this.pieces.push(...pieces);
         this.render();
     }
@@ -97,7 +97,6 @@ export default class SolvingArea {
 
         const svgElementTemplate = getSvg(
             `svg-${Date.now()}`,
-            "",
             this.pieces,
             this.imagePath,
             svgOptions,

@@ -109,15 +109,15 @@ export default class GroupOperations {
   createGroup(sourceInstance: SingleMovable, targetInstance: SingleMovable) {
     console.log("target style top", parseInt(targetInstance.element.style.top));
     console.log("target style left", parseInt(targetInstance.element.style.left));
-    console.log("target solved top", targetInstance.pieceData.puzzleY);
-    console.log("target solved left", targetInstance.pieceData.puzzleX);
+    console.log("target solved top", targetInstance.pieceData.positionInPuzzle.y);
+    console.log("target solved left", targetInstance.pieceData.positionInPuzzle.x);
 
     const leftPos =
       parseInt(targetInstance.element.style.left) -
-      targetInstance.pieceData.puzzleX;
+      targetInstance.pieceData.positionInPuzzle.x;
     const topPos =
       parseInt(targetInstance.element.style.top) -
-      targetInstance.pieceData.puzzleY;
+      targetInstance.pieceData.positionInPuzzle.y;
 
     const position = { top: topPos, left: leftPos };
 
@@ -269,6 +269,7 @@ export default class GroupOperations {
     container.style.left = Utils.getPxString(left);
   }
 
+  // Deprecated? I'm now looking to manage each piece's connections via the 'connectors' array
   getConnectionsForPiece(element: MovableElement) {
     const connections: string[] = [];
     const p = {

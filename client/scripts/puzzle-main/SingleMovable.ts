@@ -13,7 +13,7 @@ import {
   Connector,
   ConnectorType,
   InstanceTypes,
-  JigsawPieceData,
+  PuzzlePiece,
   SingleMovableSaveState,
   XYCoordinate
 } from "../types";
@@ -22,7 +22,7 @@ import Utils from "../utils";
 export default class SingleMovable extends BaseMovable {
   instanceType = InstanceTypes.SingleMovable;
   shapeType = SHAPE_TYPES.PLAIN;
-  pieceData: JigsawPieceData;
+  pieceData: PuzzlePiece;
   connectors: Connector[];
   puzzleId: string;
   index: number;
@@ -45,7 +45,7 @@ export default class SingleMovable extends BaseMovable {
     pieceData,
   }: {
     puzzleData: Puzzly;
-    pieceData: JigsawPieceData;
+    pieceData: PuzzlePiece;
   }) {
     super(puzzleData);
 
@@ -85,7 +85,7 @@ export default class SingleMovable extends BaseMovable {
     }
   }
 
-  setPiece(pieceData: JigsawPieceData) {
+  setPiece(pieceData: PuzzlePiece) {
     this.pieceData = pieceData;
     // console.log(" setting piecedata", this.pieceData);
   }
@@ -350,7 +350,7 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getConnectingPieceIds(
-    data: Pick<JigsawPieceData, "index" | "numberOfPiecesHorizontal" | "type">
+    data: Pick<PuzzlePiece, "index" | "numberOfPiecesHorizontal" | "type">
   ) {
     const id = data.index;
     const pieceAboveId = id - data.numberOfPiecesHorizontal;

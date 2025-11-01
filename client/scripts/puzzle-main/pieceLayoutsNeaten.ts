@@ -1,5 +1,3 @@
-import SingleMovable from "./SingleMovable";
-import { EVENT_TYPES, LAYOUTS_NEATEN_SPACE_BETWEEN_PIECES_PERCENTAGE } from "../constants";
 import { MovableElement, SideNames } from "../types";
 import Utils from "../utils";
 
@@ -120,10 +118,6 @@ export default async function arrangePiecesAroundEdge() {
   while (i < piecesInPlay.length) {
     const currentPiece = piecesInPlay[i] as MovableElement;
     const pieceData = Utils.getPieceFromElement(currentPiece);
-
-    if (currentSide === "top" && pieceData.type[0] !== 1) {
-      // currentY += 20;
-    }
 
     const nextPiece = piecesInPlay[i + 1];
 

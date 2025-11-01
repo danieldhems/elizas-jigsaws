@@ -4,7 +4,7 @@ import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
 import Puzzly from ".";
 import SingleMovable from "./SingleMovable";
-import { BoundingBox, MovableElement, SingleMovableSaveState } from "../types";
+import { BoundingBox, MovableElement, PuzzlePiece } from "../types";
 import Utils from "../utils";
 
 class DragAndSelect extends BaseMovable {
@@ -284,7 +284,7 @@ class DragAndSelect extends BaseMovable {
       const groupPosition = Utils.getStyleBoundingBox(group.element);
 
       group.piecesInGroup.forEach((piece) => {
-        const piecePositionOnStageY = groupPosition.top + piece.pieceData.puzzleY;
+        const piecePositionOnStageY = groupPosition.top + piece.pieceData.positionInPuzzle.y;
         if (minY === 0 || piecePositionOnStageY < minY) {
           minY = piecePositionOnStageY;
         }
@@ -294,7 +294,7 @@ class DragAndSelect extends BaseMovable {
           maxY = pieceHeight;
         }
 
-        const piecePositionOnStageX = groupPosition.left + piece.pieceData.puzzleX;
+        const piecePositionOnStageX = groupPosition.left + piece.pieceData.positionInPuzzle.x;
         if (minX === 0 || piecePositionOnStageX < minX) {
           minX = piecePositionOnStageX;
         }
@@ -587,7 +587,7 @@ class DragAndSelect extends BaseMovable {
           return this.getMovableInstanceFromElement(piece.element);
         });
 
-        const pieceDataForSave: SingleMovableSaveState[] = [];
+        const pieceDataForSave: PuzzlePiece[] = [];
 
         pieces.forEach((piece: SingleMovable) => {
           pieceDataForSave.push(piece.getDataForSave());

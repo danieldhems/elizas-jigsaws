@@ -7,7 +7,7 @@ import {
   Connection,
   GroupMovableSaveState,
   InstanceTypes,
-  JigsawPieceData,
+  PuzzlePiece,
   MovableElement,
   TopLeftCoordinate,
 } from "../types";
@@ -43,7 +43,7 @@ export default class GroupMovable extends BaseMovable {
     isNew
   }: {
     pieceInstances?: SingleMovable[];
-    pieces?: JigsawPieceData[];
+    pieces?: PuzzlePiece[];
     _id?: string;
     id: string;
     position?: {
@@ -86,7 +86,7 @@ export default class GroupMovable extends BaseMovable {
       this.addPieces(pieceInstances);
       this.addToStage();
     } else if (Array.isArray(pieces)) {
-      const pieceInstances = pieces.map((piece: JigsawPieceData) => {
+      const pieceInstances = pieces.map((piece: PuzzlePiece) => {
         const instance = window.Puzzly.getSingleInstanceByIndex(piece.index);
         instance.setPositionAsGrouped();
         instance.hide();
@@ -264,7 +264,7 @@ export default class GroupMovable extends BaseMovable {
     // TODO: Enforce sequential order for piece rendering to prevent overlap issues
     // i.e. render in order 1, 2, 3, 4
 
-    const orderedPieces: JigsawPieceData[] = pieces.sort((a, b) => a.index - b.index);
+    const orderedPieces: PuzzlePiece[] = pieces.sort((a, b) => a.index - b.index);
 
     const svgElementTemplate = getSvg(
       `${Date.now()}`,
@@ -483,7 +483,7 @@ export default class GroupMovable extends BaseMovable {
     this.destroy();
   }
 
-  getPieceIdsFromServerResponse(pieceData: JigsawPieceData[]) {
+  getPieceIdsFromServerResponse(pieceData: PuzzlePiece[]) {
     const ids: string[] = [];
     pieceData.forEach((data) => ids.push(data.id + ""));
     return ids;
@@ -497,7 +497,7 @@ export default class GroupMovable extends BaseMovable {
 
   isServerResponseForThisGroup(data: {
     _id: string;
-    pieces: JigsawPieceData[];
+    pieces: PuzzlePiece[];
   }) {
     if (!data) return;
     const pieceIds: string[] = this.getPieceIdsFromServerResponse(data.pieces);

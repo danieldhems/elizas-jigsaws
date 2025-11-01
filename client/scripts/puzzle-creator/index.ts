@@ -380,9 +380,19 @@ export default class PuzzlyCreator {
       availableHeight: maxHeight,
     });
 
-    this.landscapePuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Landscape);
-    this.portraitPuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Portrait);
-    this.squarePuzzles = this.puzzleConfigs.filter((p) => p.orientation === PuzzleOrientation.Square);
+    this.puzzleConfigs.forEach((puzzle) => {
+      if (puzzle.orientation === PuzzleOrientation.Landscape) {
+        this.landscapePuzzles.push(puzzle)
+      }
+
+      if (puzzle.orientation === PuzzleOrientation.Portrait) {
+        this.portraitPuzzles.push(puzzle);
+      }
+
+      if (puzzle.orientation === PuzzleOrientation.Square) {
+        this.squarePuzzles.push(puzzle);
+      }
+    });
 
     console.log('puzzle configs', this.puzzleConfigs);
 

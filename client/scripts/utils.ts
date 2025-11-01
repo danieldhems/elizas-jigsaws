@@ -7,7 +7,7 @@ import {
   BoundingBox,
   ConnectorType,
   DomBoxWithoutDimensions,
-  JigsawPieceData,
+  PuzzlePiece,
   MovableElement,
   SideNames
 } from "./types";
@@ -101,17 +101,13 @@ const Utils = {
     });
   },
 
-  getPieceFromElement(el: HTMLDivElement): JigsawPieceData {
-    const data = {} as JigsawPieceData;
+  getPieceFromElement(el: HTMLDivElement): PuzzlePiece {
+    const data = {} as PuzzlePiece;
     // data.id = parseInt(el.dataset.pieceId as string);
-    data.id = el.dataset.id as string;
+    data.index = parseInt(el.dataset.index as string);
     data.puzzleId = el.dataset.puzzleId as string;
-    data.imgX = parseInt(el.dataset.imgx as string);
-    data.imgY = parseInt(el.dataset.imgy as string);
-    data.solvedX = parseInt(el.dataset.solvedx as string);
-    data.solvedY = parseInt(el.dataset.solvedy as string);
-    data.imgW = parseInt(el.dataset.imgw as string);
-    data.imgH = parseInt(el.dataset.imgh as string);
+    data.positionInPuzzle.x = parseInt(el.dataset.solvedx as string);
+    data.positionInPuzzle.y = parseInt(el.dataset.solvedy as string);
     data.numPiecesFromTopEdge = parseInt(
       el.dataset.numPiecesFromTopEdge as string
     );
@@ -119,27 +115,13 @@ const Utils = {
       el.dataset.numPiecesFromLeftEdge as string
     );
 
-    const type = el.dataset["jigsawType"];
-    if (type) {
-      data.type = type.split(",").map((n) => parseInt(n) as ConnectorType);
-    } else {
-      console.warn(`Can't get type for piece ${el.toString()}`);
-    }
-
-    const connections = el.dataset.connections as string;
-    data.connections = connections.split(",") as SideNames[];
-
-    data.connectsTo = JSON.parse(el.dataset["connectsTo"] as string);
-
     const isInnerPiece = el.dataset["isInnerPiece"];
     data.isInnerPiece = isInnerPiece == "true" ? true : false;
-
     data.isSolved = el.dataset.isSolved === "true";
     data.groupId = el.dataset.groupId as string;
-    data.pocketId = parseInt(el.dataset["pocketId"] as string);
-
-    data.pageX = parseInt(el.style.left);
-    data.pageY = parseInt(el.style.top);
+    data.pocketId = parseInt(el.dataset.pocketId as string);
+    data.currentPositionInPlay.x = parseInt(el.style.left);
+    data.currentPositionInPlay.y = parseInt(el.style.top);
 
     return data;
   },

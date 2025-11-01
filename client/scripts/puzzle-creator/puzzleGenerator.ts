@@ -29,6 +29,13 @@ export const getConnectorTolerance = (connectorSize: number) => {
   return connectorSize / 100 * CONNECTOR_TOLERANCE_AMOUNT;
 }
 
+/**
+ * Fn: generatePieces
+ * 
+ * NB: PUZZLE PIECES ARE GENERATED HERE!
+ * @param puzzle 
+ * @returns 
+ */
 export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
   let pieces: PuzzlePiece[] = [];
   let n = 0;
@@ -61,17 +68,13 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
     piece.index = n;
 
-    let pieceBodySize: number;
-
     if (height <= width || width == height) {
-      pieceBodySize = width / numberOfPiecesHorizontal;
+      piece.pieceBodySize = width / numberOfPiecesHorizontal;
     } else {
-      pieceBodySize = height / numberOfPiecesVertical;
+      piece.pieceBodySize = height / numberOfPiecesVertical;
     }
 
-    piece.pieceBodySize = pieceBodySize;
-
-    const connectorSize = getConnectorSize(pieceBodySize);
+    const connectorSize = getConnectorSize(piece.pieceBodySize);
 
     if (n === 0) {
       // First piece
@@ -258,6 +261,8 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
 /**
  * Generate configs for all possible puzzles that can be made 
  * given the available width and weight
+ * 
+ * NB: ALL PUZZLES AND THEIR RESPECTIVE PIECES ARE GENERATED HERE!
  * 
  * @param availableWidth The maximum available width
  * @param availableHeight The maximum available height

@@ -161,7 +161,7 @@ export interface PuzzlePiece {
   index: number; // Unique ID using simple index
   puzzleId: string; // Maps to puzzle's ObjectID
   groupId: string;
-  pocketId: string;
+  pocketId: number;
   connectors: Connector[];
   connectorSize: number;
   pieceBodySize: number;

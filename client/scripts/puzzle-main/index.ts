@@ -22,9 +22,9 @@ import PersistenceOperations from "./persistence";
 import arrangePiecesAroundEdge from "./pieceLayoutsNeaten";
 import {
   GroupData,
-  JigsawPieceData,
   MovableElement,
   PuzzleData,
+  PuzzlePiece,
   SolvedPuzzlePreviewType,
 } from "../types";
 import Utils from "../utils";
@@ -51,7 +51,7 @@ export default class Puzzly {
   pieces: PuzzleData['pieces'];
   boardWidth: PuzzleData['boardWidth'];
   puzzleId: string;
-  solvedPieces: JigsawPieceData[];
+  solvedPieces: PuzzlePiece[];
   groups: GroupData[];
   lastSaveDate: number;
   pieceSize: number;
@@ -125,10 +125,7 @@ export default class Puzzly {
 
     this.totalNumberOfPieces = puzzleData.totalNumberOfPieces;
 
-    this.pieces = puzzleData.pieces as JigsawPieceData[];
-
-    this.pieceSize = puzzleData.pieceSize;
-    this.shadowOffset = this.pieceSize / 100 * SHADOW_OFFSET_RATIO;
+    this.pieces = puzzleData.pieces as PuzzlePiece[];
 
     this.isComplete = puzzleData.isComplete;
 
@@ -252,7 +249,7 @@ export default class Puzzly {
     integrationTestDragHelper.style.height = "100px";
   }
 
-  restorePuzzleFromSavedState(pieces: JigsawPieceData[]) {
+  restorePuzzleFromSavedState(pieces: PuzzlePiece[]) {
     // console.log("Getting pieces from storage", storage)
     pieces.forEach((p) => {
       const pieceInstance = new SingleMovable({
@@ -282,7 +279,7 @@ export default class Puzzly {
     }
   }
 
-  renderNewPuzzle(pieces: JigsawPieceData[]) {
+  renderNewPuzzle(pieces: PuzzlePiece[]) {
     pieces.forEach((piece, index) => {
       const pieceInstance = new SingleMovable({
         puzzleData: this,
