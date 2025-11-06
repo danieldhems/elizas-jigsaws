@@ -147,12 +147,15 @@ export interface PuzzleCreatorOptions {
 }
 
 export type Connector = {
+  // Index for the puzzle piece this connector belongs to
   ownerIndex: number;
+  // Index for the puzzle piece this connector connects to
   targetPieceIndex: number;
-  connectorType: ConnectorType;
+  type: ConnectorType;
   // Where this connector lives on this piece
   // ('degrees' being the orientation of the side this connector is on) 
   atDegrees: number;
+  // Bounding box relative to the puzzle piece
   boundingBox?: BoundingBox;
   isConnected: boolean;
 };
@@ -162,17 +165,21 @@ export interface PuzzlePiece {
   puzzleId: string; // Maps to puzzle's ObjectID
   groupId: string;
   pocketId: number;
-  connectors: Connector[];
-  connectorSize: number;
   pieceBodySize: number;
+  connectorSize: number;
+  connectorDistanceFromCorner: number;
+  connectors: Connector[];
+  type: ConnectorType[];
+  connections: SideNames[];
+  connectsTo: number[];
   width: number;
   height: number;
-  connectorDistanceFromCorner: number;
   // Coordinate for this piece's position in the solved puzzle
   positionInPuzzle: {
     x: number;
     y: number;
   };
+  svgPath: string;
   // Current coordinate on the page while in play 
   // (will be ignored when this piece becomes sovled)
   currentPositionInPlay: {

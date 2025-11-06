@@ -38,12 +38,6 @@ export const getConnectorTolerance = (connectorSize: number) => {
  */
 export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
   let pieces: PuzzlePiece[] = [];
-  let n = 0;
-
-  let rightConnector: ConnectorType | null;
-  let bottomConnector: ConnectorType | null;
-  let leftConnector: ConnectorType | null;
-  let topConnector: ConnectorType | null;
 
   const {
     totalNumberOfPieces,
@@ -53,8 +47,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
     height
   } = puzzle;
 
-  let currentIndexFromLeftEdge = 0;
-  let currentIndexFromTopEdge = 0;
+  let currentRow = 0;
+  let currentColumn = 0;
 
   const connectorChoices: ConnectorChoices = [
     ConnectorType.Plug,
@@ -63,7 +57,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
   const allConnectors: Connector[] = [];
 
-  while (n < puzzle.totalNumberOfPieces) {
+  for (let n = 0; n < totalNumberOfPieces; n++) {
     const piece = {} as PuzzlePiece;
 
     piece.index = n;
@@ -76,132 +70,75 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
     const connectorSize = getConnectorSize(piece.pieceBodySize);
 
-    if (n === 0) {
-      // First piece
+    let topConnectorType: ConnectorType | null = null;
+    let rightConnectorType: ConnectorType | null = null;
+    let bottomConnectorType: ConnectorType | null = null;
+    let leftConnectorType: ConnectorType | null = null;
 
-      // TODO: top-right-bottom-left won't work for wild pieces
-      // expect to revisit this
-      topConnector = null;
-      rightConnector = Utils.getRandomConnector();
+    if (currentColumn > 0) {
+      const pieceBehind = pieces[n - 1];
+      leftConnectorType = Utils.getOppositeConnector(pieceBehind.connectors[1].type);
+    }
 
-      const rightAdjacentPieceIndex = n + 1;
-      const bottomAdjacentPieceIndex = n + numberOfPiecesHorizontal;
+    if (currentColumn < numberOfPiecesHorizontal - 1) {
+      rightConnectorType = Utils.getRandomConnector();
+    }
 
-      bottomConnector = Utils.getRandomConnector();
-      leftConnector = null;
+    if (currentRow > 0) {
+      const pieceAbove = pieces[n - numberOfPiecesHorizontal];
+      topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+    }
 
-      const connectors = [
-        {
-          ownerIndex: n,
-          targetPieceIndex: rightAdjacentPieceIndex,
-          connectorType: rightConnector,
-          isConnected: false,
-          atDegrees: 180,
-        },
-        {
-          ownerIndex: n,
-          targetPieceIndex: bottomAdjacentPieceIndex,
-          connectorType: bottomConnector,
-          isConnected: false,
-          atDegrees: 270,
-        },
-      ];
+    if (currentRow < numberOfPiecesVertical - 1) {
+      bottomConnectorType = Utils.getRandomConnector();
+    }
 
-      piece.connectors = connectors;
-      allConnectors.push(...connectors);
 
-      piece.numPiecesFromTopEdge = 0;
-      piece.numPiecesFromLeftEdge = 0;
-    } else {
-      // All other pieces
-      const pieceAbove = pieces[n - puzzle.numberOfPiecesHorizontal];
-      const previousPiece = pieces[n - 1];
+    piece.numPiecesFromLeftEdge = currentRow;
+    piece.numPiecesFromTopEdge = currentColumn;
 
-      // If we've reached the end of the current row of pieces
-      // start the next row
-      if (currentIndexFromLeftEdge + 1 === puzzle.numberOfPiecesHorizontal) {
-        currentIndexFromLeftEdge++;
-      } else {
-        currentIndexFromLeftEdge = 0;
-        currentIndexFromTopEdge++;
+    if (topConnectorType !== null) {
+      const connector = {
+        ownerIndex: n,
+        targetPieceIndex: n - numberOfPiecesHorizontal,
+        type: topConnectorType,
+        atDegrees: 90,
+        isConnected: false,
       }
+      piece.connectors.push(connector);
+    }
 
-      piece.numPiecesFromLeftEdge = currentIndexFromLeftEdge;
-      piece.numPiecesFromTopEdge = currentIndexFromTopEdge;
+    if (rightConnectorType !== null) {
+      const connector = {
+        ownerIndex: n,
+        targetPieceIndex: n + 1,
+        type: rightConnectorType,
+        atDegrees: 180,
+        isConnected: false
+      };
+      piece.connectors.push(connector);
+    }
 
-      if (pieceAbove) {
-        topConnector = Utils.getOppositeConnector(
-          pieceAbove.connectors[2].connectorType
-        );
-      } else {
-        topConnector = null;
-      }
+    if (bottomConnectorType !== null) {
+      const connector = {
+        ownerIndex: n,
+        targetPieceIndex: n + numberOfPiecesHorizontal,
+        type: bottomConnectorType,
+        atDegrees: 270,
+        isConnected: false
+      };
+      piece.connectors.push(connector);
+    }
 
-      if (currentIndexFromLeftEdge === 0) {
-        leftConnector = null;
-      } else {
-        leftConnector = Utils.getOppositeConnector(
-          previousPiece.connectors[1].connectorType
-        );
-      }
-
-      if ((n + 1) % puzzle.numberOfPiecesHorizontal === 0) {
-        // Right edge pieces
-        rightConnector = null;
-      } else {
-        rightConnector = connectorChoices[Utils.getRandomInt(0, 1)] as ConnectorType
-      }
-
-      if (n >= totalNumberOfPieces - numberOfPiecesHorizontal) {
-        // Last row
-        bottomConnector = null;
-      } else {
-        bottomConnector = connectorChoices[Utils.getRandomInt(0, 1)] as ConnectorType;
-      }
-
-      if (topConnector !== null) {
-        const connector = {
-          ownerIndex: n,
-          targetPieceIndex: n - numberOfPiecesHorizontal,
-          connectorType: topConnector,
-          atDegrees: 90,
-          isConnected: false,
-        }
-        piece.connectors.push(connector);
-      }
-
-      if (rightConnector !== null) {
-        const connector = {
-          ownerIndex: n,
-          targetPieceIndex: n + 1,
-          connectorType: rightConnector,
-          atDegrees: 180,
-          isConnected: false
-        };
-        piece.connectors.push(connector);
-      }
-
-      if (bottomConnector !== null) {
-        const connector = {
-          ownerIndex: n,
-          targetPieceIndex: n + numberOfPiecesHorizontal,
-          connectorType: bottomConnector,
-          atDegrees: 270,
-          isConnected: false
-        };
-        piece.connectors.push(connector);
-      }
-
-      if (leftConnector !== null) {
-        const connector = {
-          ownerIndex: n,
-          targetPieceIndex: n - 1,
-          connectorType: leftConnector,
-          atDegrees: 360,
-          isConnected: false
-        };
-        piece.connectors.push(connector);
-      }
+    if (leftConnectorType !== null) {
+      const connector = {
+        ownerIndex: n,
+        targetPieceIndex: n - 1,
+        type: leftConnectorType,
+        atDegrees: 360,
+        isConnected: false
+      };
+      piece.connectors.push(connector);
     }
 
     let pieceWidth = piece.pieceBodySize;
@@ -210,10 +147,10 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
     let xPos = pieceWidth * piece.numPiecesFromLeftEdge;
     let yPos = pieceHeight * piece.numPiecesFromTopEdge;
 
-    const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
-    const hasRightPlug = piece.connectors[1].connectorType === ConnectorType.Plug;
-    const hasBottomPlug = piece.connectors[2].connectorType === ConnectorType.Plug;
-    const hasLeftPlug = piece.connectors[3].connectorType === ConnectorType.Plug;
+    const hasTopPlug = topConnectorType === ConnectorType.Plug;
+    const hasRightPlug = rightConnectorType === ConnectorType.Plug;
+    const hasBottomPlug = bottomConnectorType === ConnectorType.Plug;
+    const hasLeftPlug = leftConnectorType === ConnectorType.Plug;
 
     if (hasTopPlug) {
       yPos -= connectorSize;
@@ -237,7 +174,12 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
     pieces.push(piece);
 
-    n++;
+    if (currentColumn === numberOfPiecesHorizontal - 1) {
+      currentColumn = 0;
+      currentRow++;
+    } else {
+      currentColumn++;
+    }
   }
 
   return pieces;

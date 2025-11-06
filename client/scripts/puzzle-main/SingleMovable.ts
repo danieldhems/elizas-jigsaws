@@ -92,30 +92,19 @@ export default class SingleMovable extends BaseMovable {
 
   createElement() {
     const {
-      id,
       index,
       groupId,
       width,
       height,
-      basePieceSize,
-      connectorDistanceFromCorner,
-      connectorSize,
-      connectorTolerance,
-      pageY,
-      pageX,
-      solvedY,
-      solvedX,
+      pieceBodySize,
       zIndex,
-      puzzleX,
-      puzzleY,
       isInnerPiece,
       isSolved,
       numPiecesFromTopEdge,
       numPiecesFromLeftEdge,
-      numberOfPiecesHorizontal,
-      numberOfPiecesVertical,
       pocketId,
-      type,
+      positionInPuzzle,
+      currentPositionInPlay,
       svgPath,
     } = this.pieceData;
 
@@ -132,37 +121,28 @@ export default class SingleMovable extends BaseMovable {
     el.style.height = height + shadowOffset + "px";
 
     if (pocketId === undefined || pocketId === null || pocketId === -1) {
-      el.style.top = (!!groupId ? solvedY : pageY) + "px";
-      el.style.left = (!!groupId ? solvedX : pageX) + "px";
+      el.style.top = (!!groupId ? positionInPuzzle.y : currentPositionInPlay.y) + "px";
+      el.style.left = (!!groupId ? positionInPuzzle.x : currentPositionInPlay.x) + "px";
     }
-    el.style.pointerEvents = "none";
-    el.style.zIndex = (zIndex || 1) + "";
 
-    el.setAttribute("data-jigsaw-type", type.join(","));
-    el.setAttribute("data-id", id);
-    el.setAttribute(
-      "data-connector-distance-from-corner",
-      connectorDistanceFromCorner + ""
-    );
-    el.setAttribute("data-connector-tolerance", connectorTolerance + "");
-    el.setAttribute("data-connector-size", connectorSize + "");
-    el.setAttribute("data-base-piece-size", basePieceSize + "");
+    el.style.pointerEvents = "none";
+    el.setAttribute("data-piece-body-size", pieceBodySize + "");
     el.setAttribute("data-shadow-offset", this.shadowOffset + "");
     el.setAttribute("data-piece-index", index + "");
     el.setAttribute("data-puzzle-id", this.puzzleId);
-    el.setAttribute("data-puzzle-x", puzzleX + "");
-    el.setAttribute("data-puzzle-y", puzzleY + "");
-    el.setAttribute("data-pageX", pageX + "");
-    el.setAttribute("data-pageY", pageY + "");
+    el.setAttribute("data-position-in-puzzle-x", positionInPuzzle.x + "");
+    el.setAttribute("data-position-in-puzzle-y", positionInPuzzle.y + "");
+    el.setAttribute("data-current-position-in-play-x", currentPositionInPlay.x + "");
+    el.setAttribute("data-current-position-in-play-y", currentPositionInPlay.y + "");
     el.setAttribute("data-svgPath", svgPath);
     el.setAttribute("data-is-inner-piece", isInnerPiece + "");
     el.setAttribute(
       "data-pieces-per-side-horizontal",
-      numberOfPiecesHorizontal + ""
+      window.window.Puzzly.numberOfPiecesHorizontal + ""
     );
     el.setAttribute(
       "data-pieces-per-side-vertical",
-      numberOfPiecesVertical + ""
+      window.Puzzly.numberOfPiecesVertical + ""
     );
     el.setAttribute('data-connects-to', JSON.stringify(this.getConnectingPieceIds(this.pieceData)));
     el.setAttribute(
@@ -202,12 +182,9 @@ export default class SingleMovable extends BaseMovable {
     const svgOptions = {
       svgWidth,
       svgHeight,
-      imageWidth: this.pieceData.puzzleWidth,
-      imageHeight: this.pieceData.puzzleHeight,
-      imagePosition: {
-        x: puzzleX,
-        y: puzzleY,
-      },
+      imageWidth: window.Puzzly.puzzleWidth,
+      imageHeight: window.Puzzly.puzzleHeight,
+      imagePosition: positionInPuzzle,
       shadowOffset: window.Puzzly.shadowOffset,
       viewbox: `0 0 ${width + shadowOffset} ${height + shadowOffset}`,
     }
@@ -299,12 +276,12 @@ export default class SingleMovable extends BaseMovable {
 
     if (this.groupInstance) {
       const groupBoundingBox = Utils.getStyleBoundingBox(this.groupInstance.element);
-      top = stagePosition.top + groupBoundingBox.top + this.pieceData.puzzleY;
-      left = stagePosition.left + groupBoundingBox.left + this.pieceData.puzzleX;
+      top = stagePosition.top + groupBoundingBox.top + this.pieceData.positionInPuzzle.y;
+      left = stagePosition.left + groupBoundingBox.left + this.pieceData.positionInPuzzle.x;
     } else if (this.isSolved) {
       const solvingAreaPosition = Utils.getStyleBoundingBox(window.Puzzly.SolvingArea.element as HTMLDivElement);
-      top = stagePosition.top + solvingAreaPosition.top + this.pieceData.puzzleY;
-      left = stagePosition.left + solvingAreaPosition.left + this.pieceData.puzzleX;
+      top = stagePosition.top + solvingAreaPosition.top + this.pieceData.positionInPuzzle.y;
+      left = stagePosition.left + solvingAreaPosition.left + this.pieceData.positionInPuzzle.x;
     } else {
       const boundingBox = Utils.getStyleBoundingBox(this.element);
       top = stagePosition.top + boundingBox.top;
@@ -330,8 +307,8 @@ export default class SingleMovable extends BaseMovable {
     const solvingAreaPosition = Utils.getStyleBoundingBox(window.Puzzly.SolvingArea.element as HTMLDivElement);
     const relativeBoundingBoxes = this.connectors.map((connector) => connector.boundingBox);
 
-    const anchorTop = stagePosition.top + solvingAreaPosition.top + this.pieceData.puzzleY;
-    const anchorLeft = stagePosition.left + solvingAreaPosition.left + this.pieceData.puzzleX;
+    const anchorTop = stagePosition.top + solvingAreaPosition.top + this.pieceData.positionInPuzzle.y;
+    const anchorLeft = stagePosition.left + solvingAreaPosition.left + this.pieceData.positionInPuzzle.x;
 
     return relativeBoundingBoxes.map((box: BoundingBox) => ({
       top: anchorTop + box.top,
@@ -350,11 +327,11 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getConnectingPieceIds(
-    data: Pick<PuzzlePiece, "index" | "numberOfPiecesHorizontal" | "type">
+    data: Pick<PuzzlePiece, "index" | "type">
   ) {
     const id = data.index;
-    const pieceAboveId = id - data.numberOfPiecesHorizontal;
-    const pieceBelowId = id + data.numberOfPiecesHorizontal;
+    const pieceAboveId = id - window.Puzzly.numberOfPiecesHorizontal;
+    const pieceBelowId = id + window.Puzzly.numberOfPiecesHorizontal;
 
     if (Utils.isTopLeftCorner(data.type)) {
       return [
@@ -584,8 +561,8 @@ export default class SingleMovable extends BaseMovable {
   }
 
   setPositionAsGrouped() {
-    this.element.style.top = this.pieceData.puzzleY + "px";
-    this.element.style.left = this.pieceData.puzzleX + "px";
+    this.element.style.top = this.pieceData.positionInPuzzle.y + "px";
+    this.element.style.left = this.pieceData.positionInPuzzle.x + "px";
   }
 
   hide() {
@@ -644,23 +621,20 @@ export default class SingleMovable extends BaseMovable {
 
   getDataForSave(): SingleMovableSaveState {
     return {
-      id: this.pieceData.id,
+      id: this.pieceData.index,
       index: this.pieceData.index,
-      basePieceSize: this.pieceData.basePieceSize,
+      basePieceSize: this.pieceData.pieceBodySize,
       connectorSize: this.pieceData.connectorSize,
-      connectorTolerance: this.pieceData.connectorTolerance,
       connectorDistanceFromCorner: this.pieceData.connectorDistanceFromCorner,
       connectors: this.connectors,
       width: this.pieceData.width,
       height: this.pieceData.height,
       pageX: this.element.offsetLeft,
       pageY: this.element.offsetTop,
-      numberOfPiecesHorizontal: this.pieceData.numberOfPiecesHorizontal,
-      numberOfPiecesVertical: this.pieceData.numberOfPiecesVertical,
-      puzzleX: this.pieceData.puzzleX,
-      puzzleY: this.pieceData.puzzleY,
-      puzzleWidth: this.pieceData.puzzleWidth,
-      puzzleHeight: this.pieceData.puzzleHeight,
+      puzzleX: this.pieceData.positionInPuzzle.x,
+      puzzleY: this.pieceData.positionInPuzzle.y,
+      puzzleWidth: window.Puzzly.puzzleWidth,
+      puzzleHeight: window.Puzzly.puzzleHeight,
       type: this.pieceData.type,
       zIndex: parseInt(this.element.style.zIndex),
       isSolved: this.isSolved,

@@ -269,7 +269,12 @@ export default class GroupOperations {
     container.style.left = Utils.getPxString(left);
   }
 
-  // Deprecated? I'm now looking to manage each piece's connections via the 'connectors' array
+  /**
+   * @deprecated
+   * 
+   * @param element 
+   * @returns 
+   */
   getConnectionsForPiece(element: MovableElement) {
     const connections: string[] = [];
     const p = {

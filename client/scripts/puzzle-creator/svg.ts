@@ -117,17 +117,17 @@ export const getJigsawShapeSvgString = (
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
     const { pieceBodySize, connectorSize, connectorDistanceFromCorner } = piece;
 
-    const hasTopPlug = piece.connectors[0].connectorType === ConnectorType.Plug;
-    const hasTopSocket = piece.connectors[0].connectorType === ConnectorType.Socket;
+    const hasTopPlug = piece.connectors[0].type === ConnectorType.Plug;
+    const hasTopSocket = piece.connectors[0].type === ConnectorType.Socket;
 
-    const hasRightPlug = piece.connectors[1].connectorType === ConnectorType.Plug;
-    const hasRightSocket = piece.connectors[1].connectorType === ConnectorType.Socket;
+    const hasRightPlug = piece.connectors[1].type === ConnectorType.Plug;
+    const hasRightSocket = piece.connectors[1].type === ConnectorType.Socket;
 
-    const hasBottomPlug = piece.connectors[2].connectorType === ConnectorType.Plug;
-    const hasBottomSocket = piece.connectors[2].connectorType === ConnectorType.Socket;
+    const hasBottomPlug = piece.connectors[2].type === ConnectorType.Plug;
+    const hasBottomSocket = piece.connectors[2].type === ConnectorType.Socket;
 
-    const hasLeftPlug = piece.connectors[3].connectorType === ConnectorType.Plug;
-    const hasLeftSocket = piece.connectors[3].connectorType === ConnectorType.Socket;
+    const hasLeftPlug = piece.connectors[3].type === ConnectorType.Plug;
+    const hasLeftSocket = piece.connectors[3].type === ConnectorType.Socket;
 
     let topBoundary = hasTopPlug ? y + connectorSize : y;
     let leftBoundary = hasLeftPlug ? x + connectorSize : x;
