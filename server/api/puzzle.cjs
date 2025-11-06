@@ -227,7 +227,7 @@ async function updatePieces(req, res) {
 
 async function solvePiece(req, res) {
   try {
-    const { pieceId, puzzleId, isComplete, integration } = req.body;
+    const { pieceIndex, puzzleId, isComplete, integration } = req.body;
     console.log('solvePiece')
 
     const dbConnection = await dbClient.connect();
@@ -249,7 +249,7 @@ async function solvePiece(req, res) {
         },
       },
       {
-        arrayFilters: [{ "elem.id": pieceId }],
+        arrayFilters: [{ "elem.index": pieceIndex }],
       }
     );
 

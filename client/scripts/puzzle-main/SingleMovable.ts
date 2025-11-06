@@ -537,7 +537,7 @@ export default class SingleMovable extends BaseMovable {
         "Content-Type": "Application/json",
       },
       body: JSON.stringify({
-        pieceId: this.id,
+        pieceIndex: this.index,
         puzzleId: this.puzzleId,
         isComplete: window.Puzzly.SolvingArea.pieces.length === window.Puzzly.selectedNumPieces,
       }),
