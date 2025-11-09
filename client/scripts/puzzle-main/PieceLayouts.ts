@@ -3,7 +3,7 @@ import randomisePiecePositions from "./pieceLayoutsShuffle";
 import Pockets from "./Pockets";
 import SingleMovable from "./SingleMovable";
 import SolvingArea from "./SolvingArea";
-import { MovableElement, PieceSectors, PuzzleData } from "../types";
+import { MovableElement, PieceSectors, PieceType, PuzzleData } from "../types";
 import Utils from "../utils";
 
 export interface PieceLayoutsProperties {
@@ -139,7 +139,7 @@ export default class PieceLayouts {
     if (piecesVisible) {
       Utils.getAllPieces().forEach((piece: MovableElement) => {
         const p = Utils.getPieceFromElement(piece);
-        if (Utils.isInnerPiece(p.type) && !p.isSolved && !p.groupId) {
+        if (p.pieceType === PieceType.Inner && !p.isSolved && !p.groupId) {
           window.Puzzly.hidePiece(piece);
         }
       });
@@ -149,7 +149,7 @@ export default class PieceLayouts {
     } else {
       Utils.getAllPieces().forEach((piece: MovableElement) => {
         const p = Utils.getPieceFromElement(piece);
-        if (Utils.isInnerPiece(p.type)) {
+        if (p.pieceType === PieceType.Inner) {
           window.Puzzly.showPiece(piece);
         }
       });

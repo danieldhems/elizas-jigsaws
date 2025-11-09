@@ -163,13 +163,12 @@ export type Connector = {
 export interface PuzzlePiece {
   index: number; // Unique ID using simple index
   puzzleId: string; // Maps to puzzle's ObjectID
-  groupId: string;
-  pocketId: number;
+  groupId?: string;
+  pocketId?: number;
   pieceBodySize: number;
   connectorSize: number;
   connectorDistanceFromCorner: number;
   connectors: Connector[];
-  type: ConnectorType[];
   connections: SideNames[];
   connectsTo: number[];
   width: number;
@@ -187,13 +186,32 @@ export interface PuzzlePiece {
     y: number;
   };
   zIndex: number;
-  isInnerPiece: boolean;
+  pieceType: PieceType;
   isVisible: boolean;
   isSolved: boolean;
   numPiecesFromTopEdge: number;
   numPiecesFromLeftEdge: number;
 }
 
+export interface PuzzlePieceSaveData {
+  currentPositionInPlay: PuzzlePiece['currentPositionInPlay'];
+  zIndex: PuzzlePiece['zIndex'];
+  pocketId: PuzzlePiece['pocketId'];
+  groupId: PuzzlePiece['groupId'];
+  isSolved: PuzzlePiece['isSolved'];
+}
+
+export enum PieceType {
+  TopLeftCorner = 'Top-left-corner',
+  TopSide = 'Top-side',
+  TopRightCorner = 'Top-right-corner',
+  RightSide = 'Right-side',
+  BottomRightCorner = 'Bottom-right-corner',
+  BottomSide = 'Bottom-side',
+  BottomLeftCorner = 'Bottom-left-corner',
+  LeftSide = 'Left-side',
+  Inner = 'Inner'
+}
 export interface Puzzle {
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
@@ -249,14 +267,18 @@ export enum LocalStorageKeys {
 
 export interface GroupMovableSaveState {
   id: string;
+  puzzleId: string;
   zIndex: number;
-  instanceType: InstanceTypes;
   integration?: boolean;
-  position: {
+  currentPositionInPlay: {
     x: number;
     y: number;
   };
-  pieces: PuzzlePiece[];
+  pieces: PuzzlePieceSaveData[];
+  // TODO: Do we need this?
+  // Groups should be automatically deleted when solved,
+  // so I'm not sure whether we'd need to hold on to this state locally.
+  isSolved?: boolean;
 }
 
 export type SaveStates = PuzzlePiece | PuzzlePiece[] | GroupMovableSaveState;

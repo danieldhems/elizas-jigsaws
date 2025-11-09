@@ -10,6 +10,7 @@ import {
   PuzzlePiece,
   MovableElement,
   TopLeftCoordinate,
+  PieceType,
 } from "../types";
 import Utils from "../utils";
 
@@ -137,8 +138,8 @@ export default class GroupMovable extends BaseMovable {
     const sourcePiece = pieces[0];
     const targetPiece = pieces[1];
 
-    const targetPiecePuzzleX = targetPiece.pieceData.puzzleX;
-    const targetPiecePuzzleY = targetPiece.pieceData.puzzleY;
+    const targetPiecePuzzleX = targetPiece.pieceData.positionInPuzzle.x;
+    const targetPiecePuzzleY = targetPiece.pieceData.positionInPuzzle.y;
 
     const targetPieceCurrentPosition = Utils.getStyleBoundingBox(targetPiece.element);
 
@@ -206,10 +207,10 @@ export default class GroupMovable extends BaseMovable {
     const position = { top: 0, left: 0 };
 
     const { top, left } = Utils.getStyleBoundingBox(movableInstance.element);
-    const { puzzleX, puzzleY } = movableInstance.pieceData;
+    const { positionInPuzzle } = movableInstance.pieceData;
 
-    position.top = top - puzzleY;
-    position.left = left - puzzleX;
+    position.top = top - positionInPuzzle.y;
+    position.left = left - positionInPuzzle.x;
 
     this.element.style.top = position.top + "px";
     this.element.style.left = position.left + "px";
@@ -268,7 +269,6 @@ export default class GroupMovable extends BaseMovable {
 
     const svgElementTemplate = getSvg(
       `${Date.now()}`,
-      this.id,
       orderedPieces,
       this.puzzleImage.src,
       svgOptions,
@@ -429,12 +429,18 @@ export default class GroupMovable extends BaseMovable {
 
     this.piecesInGroup.forEach((piece: SingleMovable) => {
       const connections = piece.connections;
-      const pieceType = piece.jigsawType;
+      const pieceType = piece.pieceType;
       const isSolved = piece.isSolved;
-      if (Utils.isInnerPiece(pieceType) && connections.length < 4) {
+
+      if (pieceType === PieceType.Inner && connections.length < 4) {
         candidates.push(piece);
       }
-      if (Utils.isSidePiece(pieceType) && connections.length < 3) {
+      if ([
+        PieceType.TopSide,
+        PieceType.LeftSide,
+        PieceType.RightSide,
+        PieceType.BottomSide
+      ].includes(pieceType) && connections.length < 3) {
         candidates.push(piece);
       }
       if (Utils.isCornerPiece(pieceType) && !isSolved) {
@@ -485,53 +491,27 @@ export default class GroupMovable extends BaseMovable {
 
   getPieceIdsFromServerResponse(pieceData: PuzzlePiece[]) {
     const ids: string[] = [];
-    pieceData.forEach((data) => ids.push(data.id + ""));
+    pieceData.forEach((data) => ids.push(data.index + ""));
     return ids;
   }
 
   arePieceIdsInThisGroup(pieceIds: string[]) {
     return this.piecesInGroup.every((piece) => {
-      return pieceIds.includes(piece.pieceData.id + "");
+      return pieceIds.includes(piece.pieceData.index + "");
     });
-  }
-
-  isServerResponseForThisGroup(data: {
-    _id: string;
-    pieces: PuzzlePiece[];
-  }) {
-    if (!data) return;
-    const pieceIds: string[] = this.getPieceIdsFromServerResponse(data.pieces);
-    return data._id === this._id || this.arePieceIdsInThisGroup(pieceIds);
-  }
-
-  onSaveResponse(result: any) {
-    if (this.isServerResponseForThisGroup(result.data)) {
-      window.dispatchEvent(
-        new CustomEvent(EVENT_TYPES.GROUP_CREATED, {
-          detail: {
-            groupId: this._id,
-          },
-        })
-      );
-
-      this.setLastPosition();
-    }
   }
 
   getDataForSave(): Partial<GroupMovableSaveState> {
     const elementPosition = {
-      top: parseInt(this.element.style.top),
-      left: parseInt(this.element.style.left),
+      y: parseInt(this.element.style.top),
+      x: parseInt(this.element.style.left),
     };
     const data: Partial<GroupMovableSaveState> = {
       id: this.id,
       pieces: this.piecesInGroup.map((piece) => piece.getDataForSave()),
       puzzleId: this.puzzleId,
-      puzzleWidth: this.puzzleWidth,
-      puzzleHeight: this.puzzleHeight,
-      position: elementPosition,
+      currentPositionInPlay: elementPosition,
       zIndex: parseInt(this.element.style.zIndex),
-      instanceType: this.instanceType,
     };
 
     if (this.isSolved) {

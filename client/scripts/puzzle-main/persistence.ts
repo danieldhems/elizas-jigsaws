@@ -6,6 +6,7 @@ import {
   LocalStorageKeys,
   SavedProgress,
   SaveOptions,
+  PuzzlePieceSaveData,
 } from "../types";
 
 const UPDATE_PIECE_ENDPOINT = "/api/puzzle/updatePiece";
@@ -101,7 +102,7 @@ export default class PersistenceOperations {
     return this[key].replace(this.localStorageStringReplaceKey, this.puzzleId);
   }
 
-  saveToLocalStorage(data: PuzzlePiece | PuzzlePiece[] | GroupMovableSaveState) {
+  saveToLocalStorage(data: PuzzlePieceSaveData | PuzzlePieceSaveData[] | GroupMovableSaveState) {
     let time = Date.now();
 
     const progressKey = this.getUniqueLocalStorageKeyForPuzzle(
@@ -132,18 +133,13 @@ export default class PersistenceOperations {
     return urlParams.get("integration") === "true";
   }
 
-  async saveSinglePiece(piece: PuzzlePiece, options: SaveOptions) {
+  async saveSinglePiece(pieceSaveData: PuzzlePieceSaveData, options: SaveOptions) {
     // console.log("saveSinglePiece", piece);
 
     const useLocalStorage = false;
 
-    const data: {
-      piece?: PuzzlePiece,
-    } = {};
-    data.piece = piece;
-
     if (useLocalStorage) {
-      this.saveToLocalStorage(piece as PuzzlePiece);
+      this.saveToLocalStorage(pieceSaveData);
     } else {
       // const isFirstSave = !payload[0]?._id;
       return fetch(UPDATE_PIECE_ENDPOINT, {
@@ -151,7 +147,7 @@ export default class PersistenceOperations {
         headers: {
           "Content-Type": "Application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(pieceSaveData),
       })
         .then((response) => response.json())
         .then((response) => {
@@ -161,19 +157,19 @@ export default class PersistenceOperations {
         })
         .catch((error) => {
           console.error(error);
-          this.saveToLocalStorage(data.piece as PuzzlePiece);
+          this.saveToLocalStorage(pieceSaveData);
         });
     }
   }
 
-  async saveMultiplePieces(pieces: PuzzlePiece[], options?: SaveOptions) {
+  async saveMultiplePieces(pieces: PuzzlePieceSaveData[], options?: SaveOptions) {
     // console.log('saveMultiplePieces', pieces)
     const useLocalStorage = false;
 
     const data: {
       payload?: {
         puzzleId: string;
-        pieces: PuzzlePiece[],
+        pieces: PuzzlePieceSaveData[],
       };
       options?: {}
     } = {};
@@ -182,6 +178,7 @@ export default class PersistenceOperations {
       puzzleId: window.Puzzly._id,
       pieces
     };
+
     data.options = options;
 
     if (useLocalStorage) {

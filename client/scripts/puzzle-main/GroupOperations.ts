@@ -1,5 +1,5 @@
 import SingleMovable from "./SingleMovable";
-import { MovableElement } from "../types";
+import { PieceType, MovableElement } from "../types";
 import Utils from "../utils";
 
 export interface GroupOperationsProperties {
@@ -279,20 +279,40 @@ export default class GroupOperations {
     const connections: string[] = [];
     const p = {
       id: parseInt(element.dataset.pieceId as string),
+      pieceType: element.dataset.pieceType as PieceType,
       type: Utils.getPieceType(element),
       group: this.getGroup(element),
     };
 
     const pieceTop =
-      !Utils.isTopEdgePiece(p.type) &&
+      ![
+        PieceType.TopLeftCorner,
+        PieceType.TopSide,
+        PieceType.TopRightCorner
+      ].includes(p.pieceType) &&
       Utils.getElementByPieceId(p.id - this.numberOfPiecesHorizontal);
+
     const pieceRight =
-      !Utils.isRightEdgePiece(p.type) && Utils.getElementByPieceId(p.id + 1);
+      ![
+        PieceType.TopRightCorner,
+        PieceType.RightSide,
+        PieceType.BottomRightCorner
+      ].includes(p.pieceType) && Utils.getElementByPieceId(p.id + 1);
+
     const pieceBottom =
-      !Utils.isBottomEdgePiece(p.type) &&
+      ![
+        PieceType.BottomRightCorner,
+        PieceType.BottomSide,
+        PieceType.BottomLeftCorner
+      ].includes(p.pieceType) &&
       Utils.getElementByPieceId(p.id + this.numberOfPiecesHorizontal);
+
     const pieceLeft =
-      !Utils.isLeftEdgePiece(p.type) && Utils.getElementByPieceId(p.id - 1);
+      ![
+        PieceType.BottomLeftCorner,
+        PieceType.LeftSide,
+        PieceType.TopLeftCorner
+      ].includes(p.pieceType) && Utils.getElementByPieceId(p.id - 1);
 
     const pieceTopGroup = pieceTop && this.getGroup(pieceTop);
     const pieceRightGroup = pieceRight && this.getGroup(pieceRight);

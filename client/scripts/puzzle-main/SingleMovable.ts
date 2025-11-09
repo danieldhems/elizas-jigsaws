@@ -12,10 +12,11 @@ import {
   Connection,
   Connector,
   ConnectorType,
+  PieceType,
   InstanceTypes,
   PuzzlePiece,
-  SingleMovableSaveState,
-  XYCoordinate
+  XYCoordinate,
+  PuzzlePieceSaveData
 } from "../types";
 import Utils from "../utils";
 
@@ -33,6 +34,7 @@ export default class SingleMovable extends BaseMovable {
   piecesPerSideVertical: number;
   totalNumberOfPieces: number;
   isSolved: boolean;
+  pieceType: PieceType;
   pocketId?: number | null;
   // Currently using piece index to minimise changes, for now
   connectsTo: number[];
@@ -51,13 +53,12 @@ export default class SingleMovable extends BaseMovable {
 
     this.connectsTo = this.getConnectingPieceIds(pieceData) as number[];
     this.connections = [];
-    this.jigsawType = pieceData.type;
 
     this.puzzleId = window.Puzzly.puzzleId;
-    this.id = pieceData.id;
     this.index = pieceData.index;
     this.totalNumberOfPieces = window.Puzzly.selectedNumPieces;
     this.isSolved = pieceData.isSolved;
+    this.pieceType = pieceData.pieceType;
 
     this.piecesPerSideHorizontal = window.Puzzly.piecesPerSideHorizontal;
     this.shadowOffset = puzzleData.shadowOffset;
@@ -98,7 +99,7 @@ export default class SingleMovable extends BaseMovable {
       height,
       pieceBodySize,
       zIndex,
-      isInnerPiece,
+      pieceType,
       isSolved,
       numPiecesFromTopEdge,
       numPiecesFromLeftEdge,
@@ -135,7 +136,7 @@ export default class SingleMovable extends BaseMovable {
     el.setAttribute("data-current-position-in-play-x", currentPositionInPlay.x + "");
     el.setAttribute("data-current-position-in-play-y", currentPositionInPlay.y + "");
     el.setAttribute("data-svgPath", svgPath);
-    el.setAttribute("data-is-inner-piece", isInnerPiece + "");
+    el.setAttribute("data-piece-type", pieceType + "");
     el.setAttribute(
       "data-pieces-per-side-horizontal",
       window.window.Puzzly.numberOfPiecesHorizontal + ""
@@ -327,71 +328,65 @@ export default class SingleMovable extends BaseMovable {
   }
 
   getConnectingPieceIds(
-    data: Pick<PuzzlePiece, "index" | "type">
+    data: Pick<PuzzlePiece, "index" | "pieceType">
   ) {
-    const id = data.index;
-    const pieceAboveId = id - window.Puzzly.numberOfPiecesHorizontal;
-    const pieceBelowId = id + window.Puzzly.numberOfPiecesHorizontal;
+    const { index, pieceType } = data
+    const pieceAboveId = index - window.Puzzly.numberOfPiecesHorizontal;
+    const pieceBelowId = index + window.Puzzly.numberOfPiecesHorizontal;
 
-    if (Utils.isTopLeftCorner(data.type)) {
-      return [
-        id + 1,
-        pieceBelowId,
-      ];
-    }
-    if (Utils.isTopSide(data.type)) {
-      return [
-        id - 1,
-        id + 1,
-        pieceBelowId,
-      ];
-    }
-    if (Utils.isTopRightCorner(data.type)) {
-      return [
-        id - 1,
-        pieceBelowId,
-      ];
-    }
-    if (Utils.isLeftSide(data.type)) {
-      return [
-        pieceAboveId,
-        id + 1,
-        pieceBelowId,
-      ];
-    }
-    if (Utils.isInnerPiece(data.type)) {
-      return [
-        pieceAboveId,
-        id + 1,
-        pieceBelowId,
-        id - 1,
-      ];
-    }
-    if (Utils.isRightSide(data.type)) {
-      return [
-        pieceAboveId,
-        id - 1,
-        pieceBelowId,
-      ];
-    }
-    if (Utils.isBottomLeftCorner(data.type)) {
-      return [
-        pieceAboveId,
-        id + 1,
-      ];
-    }
-    if (Utils.isBottomSide(data.type)) {
-      return [
-        pieceAboveId,
-        id - 1,
-        id + 1,
-      ];
-    }
-    if (Utils.isBottomRightCorner(data.type)) {
-      return [
-        pieceAboveId,
-        id - 1,
-      ];
+    switch (pieceType) {
+      case PieceType.TopLeftCorner:
+        return [
+          index + 1,
+          pieceBelowId,
+        ];
+      case PieceType.TopSide:
+        return [
+          index - 1,
+          index + 1,
+          pieceBelowId,
+        ];
+      case PieceType.TopRightCorner:
+        return [
+          index - 1,
+          pieceBelowId,
+        ];
+
+      case PieceType.LeftSide:
+        return [
+          pieceAboveId,
+          index + 1,
+          pieceBelowId,
+        ];
+      case PieceType.Inner:
+        return [
+          pieceAboveId,
+          index + 1,
+          pieceBelowId,
+          index - 1,
+        ];
+      case PieceType.RightSide:
+        return [
+          pieceAboveId,
+          index - 1,
+          pieceBelowId,
+        ];
+      case PieceType.BottomLeftCorner:
+        return [
+          pieceAboveId,
+          index + 1,
+        ];
+      case PieceType.BottomSide:
+        return [
+          pieceAboveId,
+          index - 1,
+          index + 1,
+        ];
+      case PieceType.BottomRightCorner:
+        return [
+          pieceAboveId,
+          index - 1,
+        ];
     }
   }
 
@@ -619,29 +614,16 @@ export default class SingleMovable extends BaseMovable {
     }
   }
 
-  getDataForSave(): SingleMovableSaveState {
+  getDataForSave(): PuzzlePieceSaveData {
     return {
-      id: this.pieceData.index,
-      index: this.pieceData.index,
-      basePieceSize: this.pieceData.pieceBodySize,
-      connectorSize: this.pieceData.connectorSize,
-      connectorDistanceFromCorner: this.pieceData.connectorDistanceFromCorner,
-      connectors: this.connectors,
-      width: this.pieceData.width,
-      height: this.pieceData.height,
-      pageX: this.element.offsetLeft,
-      pageY: this.element.offsetTop,
-      puzzleX: this.pieceData.positionInPuzzle.x,
-      puzzleY: this.pieceData.positionInPuzzle.y,
-      puzzleWidth: window.Puzzly.puzzleWidth,
-      puzzleHeight: window.Puzzly.puzzleHeight,
-      type: this.pieceData.type,
+      currentPositionInPlay: {
+        x: this.element.offsetLeft,
+        y: this.element.offsetTop,
+      },
       zIndex: parseInt(this.element.style.zIndex),
       isSolved: this.isSolved,
       groupId: this.groupInstance?.id,
-      puzzleId: this.puzzleId,
-      pocketId: this.pocketId as number,
-      instanceType: this.instanceType,
+      pocketId: this.pocketId || undefined,
     };
   }
 

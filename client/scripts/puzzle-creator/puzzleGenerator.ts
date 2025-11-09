@@ -4,9 +4,7 @@ import {
   MINIMUM_NUMBER_OF_PIECES_PER_SIDE,
   MINIMUM_PIECE_SIZE,
   SHOULDER_SIZE_PERC,
-  SVG_NAMESPACE
 } from "../constants";
-import { getJigsawShapeSvgString } from "./svg";
 import {
   ConnectorType,
   Puzzle,
@@ -14,6 +12,7 @@ import {
   PuzzlePiece,
   ConnectorChoices,
   PuzzleOrientation,
+  PieceType,
 } from "../types";
 import Utils from "../utils";
 
@@ -50,13 +49,6 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
   let currentRow = 0;
   let currentColumn = 0;
 
-  const connectorChoices: ConnectorChoices = [
-    ConnectorType.Plug,
-    ConnectorType.Socket
-  ];
-
-  const allConnectors: Connector[] = [];
-
   for (let n = 0; n < totalNumberOfPieces; n++) {
     const piece = {} as PuzzlePiece;
 
@@ -74,6 +66,36 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
     let rightConnectorType: ConnectorType | null = null;
     let bottomConnectorType: ConnectorType | null = null;
     let leftConnectorType: ConnectorType | null = null;
+
+    if (currentColumn === 0 && currentRow === 0) {
+      // TODO: What was my plan here?
+    }
+
+    if (currentRow === 0) {
+      if (currentColumn === 0) {
+        piece.pieceType = PieceType.TopLeftCorner;
+      } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+        piece.pieceType = PieceType.TopSide;
+      } else {
+        piece.pieceType = PieceType.TopRightCorner;
+      }
+    } else if (currentRow < numberOfPiecesVertical - 1) {
+      if (currentColumn === 0) {
+        piece.pieceType = PieceType.LeftSide;
+      } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+        piece.pieceType = PieceType.Inner;
+      } else {
+        piece.pieceType = PieceType.RightSide;
+      }
+    } else {
+      if (currentColumn === 0) {
+        piece.pieceType = PieceType.BottomLeftCorner;
+      } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+        piece.pieceType = PieceType.BottomSide;
+      } else {
+        piece.pieceType = PieceType.BottomRightCorner;
+      }
+    }
 
     if (currentColumn > 0) {
       const pieceBehind = pieces[n - 1];

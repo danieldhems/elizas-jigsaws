@@ -4,7 +4,7 @@ import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
 import Puzzly from ".";
 import SingleMovable from "./SingleMovable";
-import { BoundingBox, MovableElement, PuzzlePiece } from "../types";
+import { BoundingBox, MovableElement, PuzzlePiece, PuzzlePieceSaveData } from "../types";
 import Utils from "../utils";
 
 class DragAndSelect extends BaseMovable {
@@ -587,7 +587,7 @@ class DragAndSelect extends BaseMovable {
           return this.getMovableInstanceFromElement(piece.element);
         });
 
-        const pieceDataForSave: PuzzlePiece[] = [];
+        const pieceDataForSave: PuzzlePieceSaveData[] = [];
 
         pieces.forEach((piece: SingleMovable) => {
           pieceDataForSave.push(piece.getDataForSave());
