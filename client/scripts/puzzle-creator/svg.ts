@@ -1,4 +1,4 @@
-import { SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
+import { SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX, SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
 import jigsawPath from "../puzzle-main/jigsawPath";
 import { ConnectorType, PuzzlePiece } from "../types";
 
@@ -15,7 +15,6 @@ export function getSvg(
             x: number;
             y: number;
         },
-        shadowOffset: number;
         isGroup?: boolean;
         viewbox: string,
         imagePosition?: {
@@ -31,7 +30,6 @@ export function getSvg(
         imageHeight,
         viewbox,
         imagePosition,
-        shadowOffset,
     } = options;
 
     const imgPosition = {
@@ -57,7 +55,7 @@ export function getSvg(
 
         pathElementsForDefs += `<path id="path-${shapeId}" d="${pathString}"></path>`;
         useElementsForClip += `<use href="#path-${shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
-        useElementsForShadow += `<use id="shadow-${shapeId}" href="#path-${shapeId}" x="${xPosition + shadowOffset}" y="${yPosition + shadowOffset}" fill="${SVG_SHADOW_COLOR}"></use>`
+        useElementsForShadow += `<use id="shadow-${shapeId}" href="#path-${shapeId}" x="${xPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}" y="${yPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}" fill="${SVG_SHADOW_COLOR}"></use>`
         useElementsForStroke += `<use id="path-${shapeId}"   href="#path-${shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${piece.index}"></use>`
     }
 

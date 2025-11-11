@@ -1,9 +1,9 @@
 import BaseMovable from "./BaseMovable";
 import { checkConnections } from "./checkConnections";
-import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHAPE_TYPES } from "../constants";
+import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX, SHAPE_TYPES } from "../constants";
 import GroupMovable from "./GroupMovable";
 import PathOperations from "./pathOperations";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import { getJigsawShapeSvgString, getSvg } from "../puzzle-creator/svg";
 
 import { nanoid } from "nanoid";
@@ -111,15 +111,13 @@ export default class SingleMovable extends BaseMovable {
 
     // console.log("SingleMovable", this.pieceData)
 
-    const shadowOffset = window.Puzzly.shadowOffset;
-
     const el = document.createElement("div");
     el.classList.add("puzzle-piece");
     el.id = "piece-" + index;
 
     el.style.position = "absolute";
-    el.style.width = width + shadowOffset + "px";
-    el.style.height = height + shadowOffset + "px";
+    el.style.width = width + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX + "px";
+    el.style.height = height + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX + "px";
 
     if (pocketId === undefined || pocketId === null || pocketId === -1) {
       el.style.top = (!!groupId ? positionInPuzzle.y : currentPositionInPlay.y) + "px";
@@ -128,7 +126,7 @@ export default class SingleMovable extends BaseMovable {
 
     el.style.pointerEvents = "none";
     el.setAttribute("data-piece-body-size", pieceBodySize + "");
-    el.setAttribute("data-shadow-offset", this.shadowOffset + "");
+    el.setAttribute("data-shadow-offset", SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX + "");
     el.setAttribute("data-piece-index", index + "");
     el.setAttribute("data-puzzle-id", this.puzzleId);
     el.setAttribute("data-position-in-puzzle-x", positionInPuzzle.x + "");
@@ -177,8 +175,8 @@ export default class SingleMovable extends BaseMovable {
     const pathString = getJigsawShapeSvgString(this.pieceData);
     el.setAttribute(HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, pathString);
 
-    const svgWidth = width + shadowOffset;
-    const svgHeight = height + shadowOffset;
+    const svgWidth = width + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;
+    const svgHeight = height + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;
 
     const svgOptions = {
       svgWidth,
@@ -187,7 +185,7 @@ export default class SingleMovable extends BaseMovable {
       imageHeight: window.Puzzly.puzzleHeight,
       imagePosition: positionInPuzzle,
       shadowOffset: window.Puzzly.shadowOffset,
-      viewbox: `0 0 ${width + shadowOffset} ${height + shadowOffset}`,
+      viewbox: `0 0 ${width + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX} ${height + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}`,
     }
 
     el.innerHTML = getSvg(

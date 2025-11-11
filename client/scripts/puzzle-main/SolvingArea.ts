@@ -1,6 +1,6 @@
 import GroupMovable from "./GroupMovable";
 import SingleMovable from "./SingleMovable";
-import { ELEMENT_IDS } from "../constants";
+import { ELEMENT_IDS, SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX } from "../constants";
 import { getSvg } from "../puzzle-creator/svg";
 import { PuzzlePiece } from "../types";
 import Utils from "../utils";
@@ -80,10 +80,8 @@ export default class SolvingArea {
     }
 
     render() {
-        const shadowOffset = window.Puzzly.shadowOffset;
-
-        const svgWidth = this.width + shadowOffset;
-        const svgHeight = this.height + shadowOffset;
+        const svgWidth = this.width + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;
+        const svgHeight = this.height + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;
 
         const svgOptions = {
             svgWidth: svgWidth,
@@ -92,7 +90,6 @@ export default class SolvingArea {
             imageHeight: this.height,
             viewbox: `0 0 ${svgWidth} ${svgHeight}`,
             isGroup: true,
-            shadowOffset,
         }
 
         const svgElementTemplate = getSvg(

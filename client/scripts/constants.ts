@@ -153,6 +153,7 @@ export const SHAPE_TYPES = {
 };
 
 export const SHADOW_OFFSET_RATIO = 3;
+export const SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX = 2;
 export const FLOAT_TOLERANCE_AMOUNT = 20;
 
 export const SCREEN_MARGIN = 10;

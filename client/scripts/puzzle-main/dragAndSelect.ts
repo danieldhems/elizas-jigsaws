@@ -2,7 +2,7 @@ import BaseMovable from "./BaseMovable";
 import { EVENT_TYPES } from "../constants";
 import GroupMovable from "./GroupMovable";
 import Pockets from "./Pockets";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
 import { BoundingBox, MovableElement, PuzzlePiece, PuzzlePieceSaveData } from "../types";
 import Utils from "../utils";

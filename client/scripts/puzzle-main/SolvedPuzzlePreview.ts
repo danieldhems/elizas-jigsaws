@@ -1,5 +1,5 @@
 import { INITIAL_ZINDEX_FOR_PIECES } from '../constants';
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import { SolvedPuzzlePreviewType } from "../types";
 
 export default class SolvedPuzzlePreview {

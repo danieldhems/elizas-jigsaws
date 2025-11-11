@@ -1,6 +1,6 @@
 import BaseMovable from "./BaseMovable";
 import { EVENT_TYPES } from "../constants";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
 import { InstanceTypes, MovableElement } from "../types";
 import Utils from "../utils";

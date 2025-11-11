@@ -103,6 +103,7 @@ passport.use(new LocalStrategy(async function verify(username, password, next) {
 app.use("/uploads", express.static("./uploads"));
 app.use("/uploads_integration", express.static("./uploads_integration"));
 app.use("/common", express.static("./common"));
+app.use("/public", express.static("./dist"));
 
 // Configure API endpoints
 app.use("/api/puzzle", puzzleApi.router);
@@ -199,9 +200,5 @@ app.get("/", checkAuthorised, async function (req, res) {
   console.log("puzzle data", puzzles[0])
   res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
 });
-
-app.use(
-  express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
-);
 
 module.exports = app;

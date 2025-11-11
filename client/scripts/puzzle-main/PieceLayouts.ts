@@ -136,6 +136,7 @@ export default class PieceLayouts {
   }
 
   toggleInnerPieces(piecesVisible: boolean) {
+    // TODO: Repetative code
     if (piecesVisible) {
       Utils.getAllPieces().forEach((piece: MovableElement) => {
         const p = Utils.getPieceFromElement(piece);

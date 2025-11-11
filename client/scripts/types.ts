@@ -1,7 +1,6 @@
-import { nanoid } from "nanoid";
 import GroupMovable from "./puzzle-main/GroupMovable";
 import { PocketMovable } from "./puzzle-main/PocketMovable";
-import { DebugOptions } from "./puzzle-creator";
+import { DebugOptions } from "./puzzle-creator/PuzzlyCreator";
 import SingleMovable from "./puzzle-main/SingleMovable";
 
 declare global {

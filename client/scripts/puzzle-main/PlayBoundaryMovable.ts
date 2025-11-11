@@ -1,5 +1,5 @@
 import BaseMovable from "./BaseMovable";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import { EVENT_TYPES, MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED, SCREEN_MARGIN } from "../constants";
 import { InstanceTypes } from "../types";
 import Utils from "../utils";

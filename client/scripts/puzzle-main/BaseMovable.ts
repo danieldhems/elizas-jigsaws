@@ -8,7 +8,7 @@ import {
 } from "../types";
 import SingleMovable from "./SingleMovable";
 import GroupMovable from "./GroupMovable";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 
 export default class BaseMovable {
   instanceType: InstanceTypes;

@@ -1,7 +1,7 @@
 import BaseMovable from "./BaseMovable";
 import { ELEMENT_IDS, EVENT_TYPES, PIECE_SCALE_INSIDE_POCKETS } from "../constants";
 import { PocketMovable } from "./PocketMovable";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import SingleMovable from "./SingleMovable";
 import { BoundingBox, DomBox, MovableElement, Orientation } from "../types";
 import Utils from "../utils";

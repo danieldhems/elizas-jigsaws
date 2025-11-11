@@ -1,5 +1,5 @@
 import { EVENT_TYPES } from "../constants";
-import Puzzly from ".";
+import Puzzly from "./Puzzly";
 import {
   GroupMovableSaveState,
   PuzzlePiece,
