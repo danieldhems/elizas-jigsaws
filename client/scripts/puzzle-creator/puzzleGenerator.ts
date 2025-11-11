@@ -49,6 +49,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
   let currentRow = 0;
   let currentColumn = 0;
 
+  console.log("total number of pieces", totalNumberOfPieces);
+
   for (let n = 0; n < totalNumberOfPieces; n++) {
     const piece = {} as PuzzlePiece;
 
@@ -243,25 +245,25 @@ export function generatePuzzlesWithinConstraints(constraints: {
     availableHeight,
   } = constraints;
 
+  console.log("availableWidth", availableWidth);
+  console.log("availableHeight", availableHeight);
+
   const puzzleConfigs: Puzzle[] = [];
 
   let n: number = MINIMUM_NUMBER_OF_PIECES_PER_SIDE;
   let currentPieceSize: number;
 
   do {
-    let puzzle = {} as Puzzle;
-
-    currentPieceSize = length / n;
-
-    const connectorSize = getConnectorSize(currentPieceSize);
-    const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
-    const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
-
-    let numberOfPiecesOnLongSide: number;
-
     if (availableWidth < availableHeight) {
-      // Portrait puzzle
-      numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+      let puzzle = {} as Puzzle;
+
+      currentPieceSize = availableWidth / n;
+
+      const connectorSize = getConnectorSize(currentPieceSize);
+      const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
+      const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
+
+      const numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
         availableHeight,
         pieceSize
       );
@@ -269,27 +271,48 @@ export function generatePuzzlesWithinConstraints(constraints: {
       puzzle.orientation = PuzzleOrientation.Portrait;
       puzzle.numberOfPiecesHorizontal = n;
       puzzle.numberOfPiecesVertical = numberOfPiecesOnLongSide;
+      puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
       puzzle.width = pieceSize * n;
       puzzle.height = pieceSize * numberOfPiecesOnLongSide;
       puzzle.percentageOfImageUsedHorizontal = puzzle.width / availableWidth * 100;
       puzzle.percentageOfImageUsedVertical = puzzle.height / availableHeight * 100;
       puzzle.pieces = generatePieces(puzzle);
+
+      puzzleConfigs.push(puzzle);
     } else if (availableHeight < availableWidth) {
-      // Landscape puzzle
-      numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
-        availableWidth,
+      let puzzle = {} as Puzzle;
+
+      currentPieceSize = availableHeight / n;
+
+      const connectorSize = getConnectorSize(currentPieceSize);
+      const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
+      const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
+
+      const numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(
+        availableHeight,
         pieceSize
       );
 
       puzzle.orientation = PuzzleOrientation.Landscape;
       puzzle.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
       puzzle.numberOfPiecesVertical = n;
+      puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
       puzzle.width = pieceSize * numberOfPiecesOnLongSide;
       puzzle.height = pieceSize * n;
       puzzle.percentageOfImageUsedHorizontal = puzzle.width / availableWidth * 100;
       puzzle.percentageOfImageUsedVertical = puzzle.height / availableHeight * 100;
       puzzle.pieces = generatePieces(puzzle);
+
+      puzzleConfigs.push(puzzle);
     } else {
+      let puzzle = {} as Puzzle;
+
+      currentPieceSize = availableHeight / n;
+
+      const connectorSize = getConnectorSize(currentPieceSize);
+      const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
+      const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
+
       puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
 
       // Square puzzles
@@ -304,11 +327,9 @@ export function generatePuzzlesWithinConstraints(constraints: {
         percentageOfImageUsedVertical: 100,
         pieces: generatePieces(puzzle),
       };
+
+      puzzleConfigs.push(puzzle);
     }
-
-
-    puzzleConfigs.push(puzzle);
-
     n = n + 1;
   } while (currentPieceSize > MINIMUM_PIECE_SIZE);
 

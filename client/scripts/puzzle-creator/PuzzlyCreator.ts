@@ -160,6 +160,10 @@ export default class PuzzlyCreator {
       filename: "",
     };
 
+    this.landscapePuzzles = [];
+    this.portraitPuzzles = [];
+    this.squarePuzzles = [];
+
     this.debugOptions = {
       noDispersal: false,
       highlightConnectingPieces: false,
@@ -376,6 +380,8 @@ export default class PuzzlyCreator {
       availableHeight: maxHeight,
     });
 
+    // this.landscapePuzzles: Puzzle[] = [];
+
     this.puzzleConfigs.forEach((puzzle) => {
       if (puzzle.orientation === PuzzleOrientation.Landscape) {
         this.landscapePuzzles.push(puzzle)
@@ -409,6 +415,12 @@ export default class PuzzlyCreator {
       this.setPuzzleShapeInputsValue(PuzzleShapes.Rectangle);
     }
 
+    console.log("landscape puzzles", this.landscapePuzzles);
+    console.log("portrait puzzles", this.portraitPuzzles);
+    console.log("square puzzles", this.squarePuzzles);
+
+    console.log("active puzzle configs", this.activePuzzleConfig)
+
     this.selectedPuzzleConfig = this.activePuzzleConfigs[0];
 
     const puzzleImpressionOverlayConfig = {
@@ -416,6 +428,8 @@ export default class PuzzlyCreator {
       puzzles: this.activePuzzleConfigs,
       selectedPuzzle: this.selectedPuzzleConfig,
     };
+
+    console.log("puzzleImpressionOverlayConfig", puzzleImpressionOverlayConfig)
 
     if (this.PuzzleImpressionOverlay) {
       this.PuzzleImpressionOverlay.initiate(puzzleImpressionOverlayConfig)
