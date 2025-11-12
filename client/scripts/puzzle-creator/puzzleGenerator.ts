@@ -110,16 +110,20 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
     if (currentRow > 0) {
       const pieceAbove = pieces[n - numberOfPiecesHorizontal];
-      topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+      const pieceAboveBottomConnector = pieceAbove.pieceType === PieceType.Inner
+        ? pieceAbove.connectors[2]
+        : pieceAbove.connectors[1];
+      topConnectorType = Utils.getOppositeConnector(pieceAboveBottomConnector.type);
     }
 
     if (currentRow < numberOfPiecesVertical - 1) {
       bottomConnectorType = Utils.getRandomConnector();
     }
 
-
     piece.numPiecesFromLeftEdge = currentRow;
     piece.numPiecesFromTopEdge = currentColumn;
+
+    piece.connectors = [];
 
     if (topConnectorType !== null) {
       const connector = {

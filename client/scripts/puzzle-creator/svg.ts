@@ -1,6 +1,6 @@
 import { SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX, SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
 import jigsawPath from "../puzzle-main/jigsawPath";
-import { ConnectorType, PuzzlePiece } from "../types";
+import { ConnectorType, PieceType, PuzzlePiece } from "../types";
 
 export function getSvg(
     id: string,
@@ -115,17 +115,21 @@ export const getJigsawShapeSvgString = (
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
     const { pieceBodySize, connectorSize, connectorDistanceFromCorner } = piece;
 
-    const hasTopPlug = piece.connectors[0].type === ConnectorType.Plug;
-    const hasTopSocket = piece.connectors[0].type === ConnectorType.Socket;
+    const hasTopConnector = piece.connectors[0].atDegrees === 0;
+    const hasTopPlug = hasTopConnector && piece.connectors[0].type === ConnectorType.Plug;
+    const hasTopSocket = hasTopConnector && piece.connectors[0].type === ConnectorType.Socket;
 
-    const hasRightPlug = piece.connectors[1].type === ConnectorType.Plug;
-    const hasRightSocket = piece.connectors[1].type === ConnectorType.Socket;
+    const hasRightConnector = piece.connectors[1].atDegrees === 90;
+    const hasRightPlug = hasRightConnector && piece.connectors[1].type === ConnectorType.Plug;
+    const hasRightSocket = hasRightConnector && piece.connectors[1].type === ConnectorType.Socket;
 
-    const hasBottomPlug = piece.connectors[2].type === ConnectorType.Plug;
-    const hasBottomSocket = piece.connectors[2].type === ConnectorType.Socket;
+    const hasBottomConnector = piece.connectors[2].atDegrees === 180;
+    const hasBottomPlug = hasBottomConnector && piece.connectors[2].type === ConnectorType.Plug;
+    const hasBottomSocket = hasBottomConnector && piece.connectors[2].type === ConnectorType.Socket;
 
-    const hasLeftPlug = piece.connectors[3].type === ConnectorType.Plug;
-    const hasLeftSocket = piece.connectors[3].type === ConnectorType.Socket;
+    const hasLeftConnector = piece.connectors[3].atDegrees === 270;
+    const hasLeftPlug = hasLeftConnector && piece.connectors[3].type === ConnectorType.Plug;
+    const hasLeftSocket = hasLeftConnector && piece.connectors[3].type === ConnectorType.Socket;
 
     let topBoundary = hasTopPlug ? y + connectorSize : y;
     let leftBoundary = hasLeftPlug ? x + connectorSize : x;

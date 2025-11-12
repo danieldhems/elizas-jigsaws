@@ -380,8 +380,6 @@ export default class PuzzlyCreator {
       availableHeight: maxHeight,
     });
 
-    // this.landscapePuzzles: Puzzle[] = [];
-
     this.puzzleConfigs.forEach((puzzle) => {
       if (puzzle.orientation === PuzzleOrientation.Landscape) {
         this.landscapePuzzles.push(puzzle)
