@@ -1,5 +1,5 @@
 import { CONNECTOR_DIVISOR_FOR_CONTROL_POINT_HANDLE, CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE } from "../constants";
-import { ConnectorControlPoints } from "../types";
+import { ConnectorControlPoints, CubicBezierConnectorGeometry } from "../types";
 
 export default class JigsawPath {
   pieceSize: number;
@@ -17,13 +17,13 @@ export default class JigsawPath {
     // console.log("humpSize", this.humpSize);
     // console.log("halfConnectorSize", this.halfConnectorSize);
 
-    this.getPlug = this.getPlug.bind(this);
-    this.getSocket = this.getSocket.bind(this);
+    this.getPlugGeometry = this.getPlugGeometry.bind(this);
+    this.getSocketGeometry = this.getSocketGeometry.bind(this);
     this.rotate = this.rotate.bind(this);
-    this.getRotatedConnector = this.getRotatedConnector.bind(this);
+    this.getRotatedCubicBezierCurve = this.getRotatedCubicBezierCurve.bind(this);
   }
 
-  getPlug() {
+  getPlugGeometry() {
     // Assume 'top' is the default plug,
     // and all others are taken from the rotation of this one
     return {
@@ -42,7 +42,7 @@ export default class JigsawPath {
     };
   }
 
-  getSocket() {
+  getSocketGeometry() {
     // Assume 'top' is the default socket,
     // and all others are taken from the rotation of this one
     return {
@@ -84,14 +84,13 @@ export default class JigsawPath {
     };
   }
 
-  getRotatedConnector(connector: ConnectorControlPoints, deg: number) {
+  getRotatedCubicBezierCurve(connector: ConnectorControlPoints, deg: number): CubicBezierConnectorGeometry {
     const rotatedCp1 = this.rotate(connector.cp1, deg);
     const rotatedCp2 = this.rotate(connector.cp2, deg);
     const rotatedDest = this.rotate(connector.dest, deg);
     return {
-      cp1: rotatedCp1,
-      cp2: rotatedCp2,
-      dest: rotatedDest,
+      controlPoints: [rotatedCp1, rotatedCp2],
+      destinationPoint: rotatedDest,
     };
   }
 

@@ -10,7 +10,8 @@ import {
   PieceType,
   MovableElement,
   PuzzlePiece,
-  SideNames
+  SideNames,
+  Connector
 } from "./types";
 
 const Utils = {
@@ -552,6 +553,35 @@ const Utils = {
             tolerance,
         };
     }
+  },
+
+  hasTopConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.TopLeftCorner,
+      PieceType.TopSide,
+      PieceType.TopRightCorner
+    ].includes(pieceType);
+  },
+  hasRightConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.TopRightCorner,
+      PieceType.RightSide,
+      PieceType.BottomRightCorner
+    ].includes(pieceType);
+  },
+  hasBottomConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.BottomRightCorner,
+      PieceType.BottomSide,
+      PieceType.BottomLeftCorner
+    ].includes(pieceType);
+  },
+  hasLeftConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.BottomLeftCorner,
+      PieceType.LeftSide,
+      PieceType.TopLeftCorner
+    ].includes(pieceType);
   },
 
   getElementBoundingBoxForFloatDetection(

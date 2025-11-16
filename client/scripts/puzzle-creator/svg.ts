@@ -1,6 +1,7 @@
 import { SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX, SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
 import jigsawPath from "../puzzle-main/jigsawPath";
 import { ConnectorType, PieceType, PuzzlePiece } from "../types";
+import Utils from "../utils";
 
 export function getSvg(
     id: string,
@@ -90,7 +91,7 @@ export function getAttributesForPiece(
     return {
         index,
         shapeId: `shape-${index}`,
-        pathString: getJigsawShapeSvgString(piece),
+        // pathString: getJigsawShapeSvgString(piece),
         width,
         height,
         positionInPuzzleX: positionInPuzzle.x,
@@ -99,11 +100,11 @@ export function getAttributesForPiece(
 }
 
 /**
- * 
- * @param piece 
- * @param startingPosition 
- * @returns 
- */
+ *
+ * @param piece
+ * @param startingPosition
+ * @returns
+ *
 export const getJigsawShapeSvgString = (
     piece: PuzzlePiece,
 ) => {
@@ -113,74 +114,47 @@ export const getJigsawShapeSvgString = (
     let y = 0;
 
     // TODO: Assuming all pieces are square - might not work for irregular shapes / sizes
-    const { pieceBodySize, connectorSize, connectorDistanceFromCorner } = piece;
+    const { pieceType, pieceBodySize, connectorSize, connectorDistanceFromCorner } = piece;
 
-    const hasTopConnector = piece.connectors[0].atDegrees === 0;
-    const hasTopPlug = hasTopConnector && piece.connectors[0].type === ConnectorType.Plug;
-    const hasTopSocket = hasTopConnector && piece.connectors[0].type === ConnectorType.Socket;
+        const hasTopConnector = Utils.hasTopConnector(pieceType);
+    const hasRightConnector = Utils.hasRightConnector(pieceType);
+    const hasBottomConnector = Utils.hasBottomConnector(pieceType);
+    const hasLeftConnector = Utils.hasLeftConnector(pieceType);
 
-    const hasRightConnector = piece.connectors[1].atDegrees === 90;
-    const hasRightPlug = hasRightConnector && piece.connectors[1].type === ConnectorType.Plug;
-    const hasRightSocket = hasRightConnector && piece.connectors[1].type === ConnectorType.Socket;
+    const topConnector = piece.connectors[0];
+    const leftConnector = piece.connectors[piece.connectors.length - 1];
 
-    const hasBottomConnector = piece.connectors[2].atDegrees === 180;
-    const hasBottomPlug = hasBottomConnector && piece.connectors[2].type === ConnectorType.Plug;
-    const hasBottomSocket = hasBottomConnector && piece.connectors[2].type === ConnectorType.Socket;
-
-    const hasLeftConnector = piece.connectors[3].atDegrees === 270;
-    const hasLeftPlug = hasLeftConnector && piece.connectors[3].type === ConnectorType.Plug;
-    const hasLeftSocket = hasLeftConnector && piece.connectors[3].type === ConnectorType.Socket;
+    const hasTopPlug = topConnector.type === ConnectorType.Plug;
+    const hasLeftPlug = leftConnector.type === ConnectorType.Plug;
 
     let topBoundary = hasTopPlug ? y + connectorSize : y;
     let leftBoundary = hasLeftPlug ? x + connectorSize : x;
 
-    let topConnector = null,
-        rightConnector = null,
-        bottomConnector = null,
-        leftConnector = null;
-
-    const jigsawShapes = new jigsawPath(pieceBodySize, connectorSize);
-
-    const getRotatedConnector = jigsawShapes.getRotatedConnector;
-
     svgString += `M ${leftBoundary} ${topBoundary} `;
 
-    if (hasTopPlug) {
-        topConnector = getRotatedConnector(jigsawShapes.getPlug(), 0);
-    } else if (hasTopSocket) {
-        topConnector = getRotatedConnector(jigsawShapes.getSocket(), 0);
-    }
-
-    if (topConnector) {
+    if (hasTopConnector) {
+        const controlPoints = topConnector.geometry.controlPoints;
+        const destinationPoint = topConnector.geometry.destinationPoint;
         // left boundary = connector size
         // + connector distance from corner
         svgString += `h ${connectorDistanceFromCorner} `;
         // + connector size
-        svgString += `c ${topConnector.cp1.x} ${topConnector.cp1.y}, ${topConnector.cp2.x} ${topConnector.cp2.y}, ${topConnector.dest.x} ${topConnector.dest.y} `;
+        svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
         // should go to piece size - connector size
         svgString += `h ${connectorDistanceFromCorner} `;
     } else {
         svgString += `h ${pieceBodySize} `;
     }
 
-    if (hasRightPlug) {
-        rightConnector = getRotatedConnector(jigsawShapes.getPlug(), 90);
-    } else if (hasRightSocket) {
-        rightConnector = getRotatedConnector(jigsawShapes.getSocket(), 90);
-    }
+    if (hasRightConnector) {
+        const controlPoints = .geometry.controlPoints;
+        const destinationPoint = topConnector.geometry.destinationPoint;
 
-    if (rightConnector !== null) {
         svgString += `v ${connectorDistanceFromCorner} `;
         svgString += `c ${rightConnector.cp1.x} ${rightConnector.cp1.y}, ${rightConnector.cp2.x} ${rightConnector.cp2.y}, ${rightConnector.dest.x} ${rightConnector.dest.y} `;
         svgString += `v ${connectorDistanceFromCorner} `;
     } else {
         svgString += `v ${pieceBodySize} `;
-    }
-
-    if (hasBottomPlug) {
-        bottomConnector = getRotatedConnector(jigsawShapes.getPlug(), 180);
-    } else if (hasBottomSocket) {
-        bottomConnector = getRotatedConnector(jigsawShapes.getSocket(), 180);
     }
 
     if (bottomConnector) {
@@ -189,12 +163,6 @@ export const getJigsawShapeSvgString = (
         svgString += `h -${connectorDistanceFromCorner}`;
     } else {
         svgString += `h -${pieceBodySize}`;
-    }
-
-    if (hasLeftPlug) {
-        leftConnector = getRotatedConnector(jigsawShapes.getPlug(), 270);
-    } else if (hasLeftSocket) {
-        leftConnector = getRotatedConnector(jigsawShapes.getSocket(), 270);
     }
 
     if (leftConnector !== null) {
@@ -206,6 +174,7 @@ export const getJigsawShapeSvgString = (
 
     return svgString;
 };
+*/
 
 // export const getShapeForGroupPerimeter = (pieces: SingleMovable[]): string => {
 //     let pathString: string;

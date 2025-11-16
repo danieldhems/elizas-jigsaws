@@ -5,6 +5,7 @@ import {
   MINIMUM_PIECE_SIZE,
   SHOULDER_SIZE_PERC,
 } from "../constants";
+import JigsawPath from "../puzzle-main/jigsawPath";
 import {
   ConnectorType,
   Puzzle,
@@ -13,6 +14,8 @@ import {
   ConnectorChoices,
   PuzzleOrientation,
   PieceType,
+  ConnectorControlPoints,
+  CubicBezierConnectorGeometry,
 } from "../types";
 import Utils from "../utils";
 
@@ -28,10 +31,19 @@ export const getConnectorTolerance = (connectorSize: number) => {
   return connectorSize / 100 * CONNECTOR_TOLERANCE_AMOUNT;
 }
 
+function getRotatedCubicBezierCurve(connector: ConnectorControlPoints, deg: number): CubicBezierConnectorGeometry {
+  const rotatedCp1 = this.rotate(connector.cp1, deg);
+  const rotatedCp2 = this.rotate(connector.cp2, deg);
+  const rotatedDest = this.rotate(connector.dest, deg);
+  return {
+    controlPoints: [rotatedCp1, rotatedCp2],
+    destinationPoint: rotatedDest,
+  };
+}
+
 /**
  * Fn: generatePieces
  * 
- * NB: PUZZLE PIECES ARE GENERATED HERE!
  * @param puzzle 
  * @returns 
  */
@@ -63,6 +75,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
     }
 
     const connectorSize = getConnectorSize(piece.pieceBodySize);
+    const connectorDistanceFromCorner = piece.pieceBodySize / 100 * SHOULDER_SIZE_PERC;
 
     let topConnectorType: ConnectorType | null = null;
     let rightConnectorType: ConnectorType | null = null;
@@ -125,49 +138,126 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
     piece.connectors = [];
 
+    const path = new JigsawPath(piece.pieceBodySize, connectorSize);
+
+    // Initialise svg path string
+    const svgStringList = new SVGStringList();
+
     if (topConnectorType !== null) {
+      const geometry = topConnectorType === ConnectorType.Plug
+        ? path.getPlugGeometry() : path.getSocketGeometry();
+
       const connector = {
         ownerIndex: n,
         targetPieceIndex: n - numberOfPiecesHorizontal,
         type: topConnectorType,
         atDegrees: 90,
         isConnected: false,
-      }
+        connectorSize,
+        geometry: getRotatedCubicBezierCurve(geometry, 0),
+        distanceFromCorner: connectorDistanceFromCorner,
+      } as Connector;
+
       piece.connectors.push(connector);
+
+      const controlPoints = connector.geometry.controlPoints;
+      const destinationPoint = connector.geometry.destinationPoint;
+
+      let svgString = `h ${connectorDistanceFromCorner} `;
+      svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
+      svgString += `h ${connectorDistanceFromCorner} `;
+
+      svgStringList.appendItem(svgString);
+    } else {
+      svgStringList.appendItem(`h ${piece.pieceBodySize} `)
     }
 
     if (rightConnectorType !== null) {
+      const geometry = rightConnectorType === ConnectorType.Plug
+        ? path.getPlugGeometry() : path.getSocketGeometry();
+      const rotatedGeometry = getRotatedCubicBezierCurve(geometry, 90);
+
       const connector = {
         ownerIndex: n,
         targetPieceIndex: n + 1,
         type: rightConnectorType,
         atDegrees: 180,
-        isConnected: false
+        isConnected: false,
+        geometry: rotatedGeometry,
+        distanceFromCorner: connectorDistanceFromCorner,
       };
+
       piece.connectors.push(connector);
+
+      const controlPoints = rotatedGeometry.controlPoints;
+      const destinationPoint = rotatedGeometry.destinationPoint;
+
+      let svgString = `v ${connectorDistanceFromCorner} `;
+      svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
+      svgString += `v ${connectorDistanceFromCorner} `;
+
+      svgStringList.appendItem(svgString);
+    } else {
+      svgStringList.appendItem(`v ${piece.pieceBodySize} `);
     }
 
     if (bottomConnectorType !== null) {
+      const geometry = bottomConnectorType === ConnectorType.Plug
+        ? path.getPlugGeometry() : path.getSocketGeometry();
+      const rotatedGeometry = getRotatedCubicBezierCurve(geometry, 180);
+
       const connector = {
         ownerIndex: n,
         targetPieceIndex: n + numberOfPiecesHorizontal,
         type: bottomConnectorType,
         atDegrees: 270,
-        isConnected: false
+        isConnected: false,
+        geometry: rotatedGeometry,
+        distanceFromCorner: connectorDistanceFromCorner,
       };
+
       piece.connectors.push(connector);
+
+      const controlPoints = rotatedGeometry.controlPoints;
+      const destinationPoint = rotatedGeometry.destinationPoint;
+
+      let svgString = `h -${connectorDistanceFromCorner} `;
+      svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
+      svgString += `h -${connectorDistanceFromCorner}`;
+
+      svgStringList.appendItem(svgString);
+    } else {
+      svgStringList.appendItem(`h -${piece.pieceBodySize}`);
     }
 
     if (leftConnectorType !== null) {
+      const geometry = leftConnectorType === ConnectorType.Plug
+        ? path.getPlugGeometry() : path.getSocketGeometry();
+      const rotatedGeometry = getRotatedCubicBezierCurve(geometry, 270);
+
       const connector = {
         ownerIndex: n,
         targetPieceIndex: n - 1,
         type: leftConnectorType,
         atDegrees: 360,
-        isConnected: false
+        isConnected: false,
+        geometry: rotatedGeometry,
+        distanceFromCorner: connectorDistanceFromCorner,
       };
+
       piece.connectors.push(connector);
+
+      const controlPoints = rotatedGeometry.controlPoints;
+      const destinationPoint = rotatedGeometry.destinationPoint;
+
+      let svgString = `v -${connectorDistanceFromCorner} `;
+      svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
+
+      svgStringList.appendItem(svgString);
     }
+
+    svgStringList.appendItem("z");
+    piece.svgStringList = svgStringList;
 
     let pieceWidth = piece.pieceBodySize;
     let pieceHeight = piece.pieceBodySize;
@@ -181,7 +271,6 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
     const hasLeftPlug = leftConnectorType === ConnectorType.Plug;
 
     if (hasTopPlug) {
-      yPos -= connectorSize;
       pieceHeight += connectorSize;
     }
 
@@ -193,7 +282,6 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       pieceHeight += connectorSize;
     }
     if (hasLeftPlug) {
-      xPos -= connectorSize;
       pieceWidth += connectorSize;
     }
 

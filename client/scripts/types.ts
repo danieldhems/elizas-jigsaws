@@ -157,7 +157,26 @@ export type Connector = {
   // Bounding box relative to the puzzle piece
   boundingBox?: BoundingBox;
   isConnected: boolean;
+  geometry: CubicBezierConnectorGeometry;
+  distanceFromCorner: number;
 };
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface QuadraticConnectorGeometry {
+  // An array of x,y coords should allow quadratic and cubic bezier curves
+  controlPoints: Point;
+  destinationPoint: Point;
+}
+
+export interface CubicBezierConnectorGeometry {
+  // An array of x,y coords should allow quadratic and cubic bezier curves
+  controlPoints: [Point, Point];
+  destinationPoint: Point;
+}
 
 export interface PuzzlePiece {
   index: number; // Unique ID using simple index
@@ -170,6 +189,7 @@ export interface PuzzlePiece {
   connectors: Connector[];
   connections: SideNames[];
   connectsTo: number[];
+  svgStringList: SVGStringList;
   width: number;
   height: number;
   // Coordinate for this piece's position in the solved puzzle
