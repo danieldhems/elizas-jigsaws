@@ -1,7 +1,6 @@
 import RestrictedDraggable from "./RestrictedDraggable";
 import { MovementAxis, Puzzle } from "../types";
 import { SVG_NAMESPACE } from "../constants";
-import { getJigsawShapeSvgString } from "../puzzle-creator/svg";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;
@@ -11,7 +10,7 @@ export type PuzzleImpressionOverlayConstructorArgs = {
 
 export default class PuzzleImpressionOverlay {
   svgElement: SVGSVGElement;
-  element: RestrictedDraggable;
+  draggableElement: RestrictedDraggable;
   targetElement: HTMLImageElement | HTMLDivElement;
   puzzles: Puzzle[] | null;
   selectedPuzzle: Puzzle;
@@ -34,52 +33,60 @@ export default class PuzzleImpressionOverlay {
     this.leftBoundary = layout.left;
     this.topBoundary = layout.top;
 
-    this.generatePuzzleImpressions(this.puzzles);
-
-    this.element = new RestrictedDraggable({
+    this.draggableElement = new RestrictedDraggable({
       containerElement: this.targetElement,
       layout,
       id: "puzzle-impression-overlay",
       restrictionBoundingBox: layout,
     });
 
-    this.setActiveImpression(this.selectedPuzzle);
+    this.targetElement.appendChild(this.draggableElement.getElement());
+
+    this.generatePuzzleImpressions(this.puzzles);
+    // this.setActiveImpression(this.selectedPuzzle);
   }
 
   generatePuzzleImpressions(puzzles: Puzzle[]) {
     const fragment = document.createDocumentFragment();
 
+    const destinationElement = this.draggableElement.getElement();
+
     // Iterate puzzles
     for (let i = 0, l = puzzles.length; i < l; i++) {
-      const currentPuzzle = puzzles[i];
+      const p = puzzles[i];
 
       const svgElement = document.createElementNS(SVG_NAMESPACE, "svg");
       svgElement.setAttribute("xmlns", SVG_NAMESPACE);
       svgElement.setAttribute("fill", "none");
       svgElement.setAttribute("stroke", "#000")
-      svgElement.setAttribute("viewBox", "0 0 " + currentPuzzle.width + " " + currentPuzzle.height);
+      svgElement.setAttribute("viewBox", "0 0 " + p.width + " " + p.height);
+      svgElement.setAttribute("width", p.width + "");
+      svgElement.setAttribute("height", p.height + "");
+      svgElement.setAttribute("id", `puzzle-impression-${p.orientation.toLowerCase()}-${p.numberOfPiecesHorizontal}x${p.numberOfPiecesVertical}`);
+      svgElement.classList.add("absolute");
+      svgElement.classList.add("start-0");
+      svgElement.classList.add("top-0");
 
       // Iterate pieces for current puzzle
       for (
         let n = 0,
-        piecesLength = currentPuzzle.pieces.length;
+        piecesLength = p.pieces.length;
         n < piecesLength;
         n++
       ) {
-        const currentPiece = currentPuzzle.pieces[n];
+        const currentPiece = p.pieces[n];
 
         const pathElement = document.createElementNS(SVG_NAMESPACE, "path");
         pathElement.setAttribute("id", "piece-" + n);
-
-        const shape = getJigsawShapeSvgString(currentPiece);
-        pathElement.setAttribute("d", shape);
+        pathElement.setAttribute("d", currentPiece.svgString);
+        pathElement.setAttribute("transform", `translate(${currentPiece.positionInPuzzle.x},${currentPiece.positionInPuzzle.y})`);
         svgElement.appendChild(pathElement);
       }
 
       fragment.appendChild(svgElement);
     }
 
-    this.targetElement.appendChild(fragment);
+    destinationElement.appendChild(fragment);
   }
 
   reset() {
@@ -89,8 +96,8 @@ export default class PuzzleImpressionOverlay {
     if (this.activeImpression) {
       this.activeImpression = null;
     }
-    if (this.element) {
-      this.element.destroy();
+    if (this.draggableElement) {
+      this.draggableElement.destroy();
     }
     if (this.impressionsContainer) {
       this.impressionsContainer.remove();
@@ -144,7 +151,7 @@ export default class PuzzleImpressionOverlay {
         impressionElement.classList.remove("d-none");
 
         if (width !== height) {
-          this.element.update(this.getLayout(puzzleConfig));
+          this.draggableElement.update(this.getLayout(puzzleConfig));
         }
 
         const impressiongIndex = parseInt(
@@ -163,9 +170,9 @@ export default class PuzzleImpressionOverlay {
   }
 
   getPositionAndDimensions() {
-    const { offsetLeft, offsetTop } = this.element.element;
-    const width = parseInt(this.element.element.style.width);
-    const height = parseInt(this.element.element.style.height);
+    const { offsetLeft, offsetTop } = this.draggableElement.element;
+    const width = parseInt(this.draggableElement.element.style.width);
+    const height = parseInt(this.draggableElement.element.style.height);
 
     return {
       left: offsetLeft - this.leftBoundary,

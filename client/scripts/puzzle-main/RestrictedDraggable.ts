@@ -71,6 +71,10 @@ export default class RestrictedDraggable {
     return element;
   }
 
+  getElement(): HTMLElement {
+    return this.element;
+  }
+
   setDragBounds(
     restrictionBoundingBox:
       | { top: number; right: number; bottom: number; left: number }

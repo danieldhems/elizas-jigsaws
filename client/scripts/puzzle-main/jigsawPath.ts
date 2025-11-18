@@ -19,8 +19,6 @@ export default class JigsawPath {
 
     this.getPlugGeometry = this.getPlugGeometry.bind(this);
     this.getSocketGeometry = this.getSocketGeometry.bind(this);
-    this.rotate = this.rotate.bind(this);
-    this.getRotatedCubicBezierCurve = this.getRotatedCubicBezierCurve.bind(this);
   }
 
   getPlugGeometry() {
@@ -61,7 +59,7 @@ export default class JigsawPath {
     };
   }
 
-  rotate(point: { x: number; y: number }, deg: number) {
+  static rotate(point: { x: number; y: number }, deg: number) {
     if (deg < 0 || deg > 359) throw new Error("Invalid degree value provided");
 
     const rad = (deg * Math.PI) / 180;
@@ -84,10 +82,10 @@ export default class JigsawPath {
     };
   }
 
-  getRotatedCubicBezierCurve(connector: ConnectorControlPoints, deg: number): CubicBezierConnectorGeometry {
-    const rotatedCp1 = this.rotate(connector.cp1, deg);
-    const rotatedCp2 = this.rotate(connector.cp2, deg);
-    const rotatedDest = this.rotate(connector.dest, deg);
+  static getRotatedCubicBezierCurve(connector: ConnectorControlPoints, deg: number): CubicBezierConnectorGeometry {
+    const rotatedCp1 = JigsawPath.rotate(connector.cp1, deg);
+    const rotatedCp2 = JigsawPath.rotate(connector.cp2, deg);
+    const rotatedDest = JigsawPath.rotate(connector.dest, deg);
     return {
       controlPoints: [rotatedCp1, rotatedCp2],
       destinationPoint: rotatedDest,

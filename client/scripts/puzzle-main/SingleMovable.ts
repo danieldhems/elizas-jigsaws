@@ -4,7 +4,7 @@ import { EVENT_TYPES, HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, SHADOW_DISTANCE_FROM_
 import GroupMovable from "./GroupMovable";
 import PathOperations from "./pathOperations";
 import Puzzly from "./Puzzly";
-import { getJigsawShapeSvgString, getSvg } from "../puzzle-creator/svg";
+import { getSvg } from "../puzzle-creator/svg";
 
 import { nanoid } from "nanoid";
 import {
@@ -172,8 +172,7 @@ export default class SingleMovable extends BaseMovable {
     const { puzzleImagePath } = window.Puzzly;
 
     // TODO: svg.ts is already generating and rendering the svg string so this might not be needed, and could be confusing.
-    const pathString = getJigsawShapeSvgString(this.pieceData);
-    el.setAttribute(HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, pathString);
+    el.setAttribute(HTML_ATTRIBUTE_NAME_SVG_PATH_STRING, this.pieceData.svgString);
 
     const svgWidth = width + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;
     const svgHeight = height + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX;

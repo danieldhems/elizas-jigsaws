@@ -295,7 +295,7 @@ export default class PuzzlyCreator {
       if (this.puzzleConfigs) {
         this.puzzleSizeInputLabel.textContent =
           highlightedPuzzleSize.totalNumberOfPieces + "";
-        this.PuzzleImpressionOverlay.setActiveImpression(highlightedPuzzleSize);
+        // this.PuzzleImpressionOverlay.setActiveImpression(highlightedPuzzleSize);
         this.selectedPuzzleConfig = highlightedPuzzleSize;
       }
     });

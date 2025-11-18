@@ -189,7 +189,7 @@ export interface PuzzlePiece {
   connectors: Connector[];
   connections: SideNames[];
   connectsTo: number[];
-  svgStringList: SVGStringList;
+  svgString: string;
   width: number;
   height: number;
   // Coordinate for this piece's position in the solved puzzle
