@@ -7,9 +7,11 @@ import {
   BoundingBox,
   ConnectorType,
   DomBoxWithoutDimensions,
-  JigsawPieceData,
+  PieceType,
   MovableElement,
-  SideNames
+  PuzzlePiece,
+  SideNames,
+  Connector
 } from "./types";
 
 const Utils = {
@@ -81,69 +83,13 @@ const Utils = {
     return el.dataset.isSolved === "true";
   },
 
-  isTopSide(type: ConnectorType[]): boolean {
-    return type[0] === 0 && type[1] !== 0 && type[3] !== 0;
-  },
-
-  isTopRightCorner(type: ConnectorType[]) {
-    return type[0] === 0 && type[1] === 0;
-  },
-
-  isTopLeftCorner(type: ConnectorType[]) {
-    return type[0] === 0 && type[3] === 0;
-  },
-
-  isLeftSide(type: ConnectorType[]) {
-    return type[0] !== 0 && type[2] !== 0 && type[3] === 0;
-  },
-
-  isInnerPiece(type: ConnectorType[]) {
-    return type[0] !== 0 && type[1] !== 0 && type[2] !== 0 && type[3] !== 0;
-  },
-
-  isRightSide(type: ConnectorType[]) {
-    return type[0] !== 0 && type[1] === 0 && type[2] !== 0;
-  },
-
-  isTopEdgePiece(type: ConnectorType[]) {
-    return type[0] === 0;
-  },
-
-  isRightEdgePiece(type: ConnectorType[]) {
-    return type[1] === 0;
-  },
-
-  isBottomEdgePiece(type: ConnectorType[]) {
-    return type[2] === 0;
-  },
-
-  isLeftEdgePiece(type: ConnectorType[]) {
-    return type[3] === 0;
-  },
-
-  isBottomLeftCorner(type: ConnectorType[]) {
-    return type[2] === 0 && type[3] === 0;
-  },
-
-  isBottomSide(type: ConnectorType[]) {
-    return type[1] !== 0 && type[2] === 0 && type[3] !== 0;
-  },
-
-  isSidePiece(type: ConnectorType[]) {
-    return type.filter((t) => t === 0).length === 1;
-  },
-
-  isBottomRightCorner(type: ConnectorType[]) {
-    return type[1] === 0 && type[2] === 0;
-  },
-
-  isCornerPiece(type: ConnectorType[]) {
-    return (
-      Utils.isTopLeftCorner(type) ||
-      Utils.isTopRightCorner(type) ||
-      Utils.isBottomRightCorner(type) ||
-      Utils.isBottomLeftCorner(type)
-    );
+  isCornerPiece(pieceType: PieceType) {
+    return [
+      PieceType.TopLeftCorner,
+      PieceType.TopRightCorner,
+      PieceType.BottomRightCorner,
+      PieceType.BottomLeftCorner
+    ].includes(pieceType);
   },
 
   isCornerConnection(str: SideNames) {
@@ -153,10 +99,6 @@ const Utils = {
       str === "bottom-right" ||
       str === "bottom-left"
     );
-  },
-
-  isEdgePiece(pieceType: ConnectorType[]) {
-    return this.isSidePiece(pieceType) || this.isCornerPiece(pieceType);
   },
 
   getPieceType(element: HTMLDivElement): ConnectorType[] {
@@ -175,17 +117,19 @@ const Utils = {
     });
   },
 
-  getPieceFromElement(el: HTMLDivElement): JigsawPieceData {
-    const data = {} as JigsawPieceData;
+  getPieceFromElement(el: HTMLDivElement): PuzzlePiece {
+    const data = {} as PuzzlePiece;
     // data.id = parseInt(el.dataset.pieceId as string);
-    data.id = el.dataset.id as string;
+    data.index = parseInt(el.dataset.index as string);
     data.puzzleId = el.dataset.puzzleId as string;
-    data.imgX = parseInt(el.dataset.imgx as string);
-    data.imgY = parseInt(el.dataset.imgy as string);
-    data.solvedX = parseInt(el.dataset.solvedx as string);
-    data.solvedY = parseInt(el.dataset.solvedy as string);
-    data.imgW = parseInt(el.dataset.imgw as string);
-    data.imgH = parseInt(el.dataset.imgh as string);
+    // TODO: Fix redundancy - shouldn't need to distinguish between position
+    // in solved puzzle and position in source image as they should both be the same
+    data.positionInPuzzle.x = parseInt(el.dataset.imgx as string);
+    data.positionInPuzzle.y = parseInt(el.dataset.imgy as string);
+    data.positionInPuzzle.x = parseInt(el.dataset.solvedx as string);
+    data.positionInPuzzle.y = parseInt(el.dataset.solvedy as string);
+    data.width = parseInt(el.dataset.imgw as string);
+    data.height = parseInt(el.dataset.imgh as string);
     data.numPiecesFromTopEdge = parseInt(
       el.dataset.numPiecesFromTopEdge as string
     );
@@ -193,27 +137,17 @@ const Utils = {
       el.dataset.numPiecesFromLeftEdge as string
     );
 
-    const type = el.dataset["jigsawType"];
-    if (type) {
-      data.type = type.split(",").map((n) => parseInt(n) as ConnectorType);
-    } else {
-      console.warn(`Can't get type for piece ${el.toString()}`);
-    }
-
     const connections = el.dataset.connections as string;
     data.connections = connections.split(",") as SideNames[];
 
     data.connectsTo = JSON.parse(el.dataset["connectsTo"] as string);
 
-    const isInnerPiece = el.dataset["isInnerPiece"];
-    data.isInnerPiece = isInnerPiece == "true" ? true : false;
-
     data.isSolved = el.dataset.isSolved === "true";
     data.groupId = el.dataset.groupId as string;
     data.pocketId = parseInt(el.dataset["pocketId"] as string);
 
-    data.pageX = parseInt(el.style.left);
-    data.pageY = parseInt(el.style.top);
+    data.currentPositionInPlay.x = parseInt(el.style.left);
+    data.currentPositionInPlay.y = parseInt(el.style.top);
 
     return data;
   },
@@ -254,11 +188,8 @@ const Utils = {
     return Array.from(document.querySelectorAll(`[data-group='${groupId}']`));
   },
 
-  getCornerNameForPiece(pieceType: ConnectorType[]) {
-    if (pieceType[0] === 0 && pieceType[3] === 0) return SideNames.TopLeft;
-    if (pieceType[0] === 0 && pieceType[1] === 0) return SideNames.TopRight;
-    if (pieceType[1] === 0 && pieceType[2] === 0) return SideNames.BottomRight;
-    if (pieceType[2] === 0 && pieceType[3] === 0) return SideNames.BottomLeft;
+  getRandomConnector() {
+    return [ConnectorType.Plug, ConnectorType.Socket][Utils.getRandomInt(0, 1)];
   },
 
   getElementBoundingBox(element: MovableElement) {
@@ -452,9 +383,6 @@ const Utils = {
       connectorSize * CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE
       : elementBoundingBox.left;
 
-    const isTopSidePiece = piece.type[0] === 0;
-    const isLeftSidePiece = piece.type[3] === 0;
-
     // console.log("elementBoundingBox", elementBoundingBox);
 
     const halfSideLength = basePieceSize / 2;
@@ -627,6 +555,35 @@ const Utils = {
     }
   },
 
+  hasTopConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.TopLeftCorner,
+      PieceType.TopSide,
+      PieceType.TopRightCorner
+    ].includes(pieceType);
+  },
+  hasRightConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.TopRightCorner,
+      PieceType.RightSide,
+      PieceType.BottomRightCorner
+    ].includes(pieceType);
+  },
+  hasBottomConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.BottomRightCorner,
+      PieceType.BottomSide,
+      PieceType.BottomLeftCorner
+    ].includes(pieceType);
+  },
+  hasLeftConnector(pieceType: PuzzlePiece['pieceType']): boolean {
+    return ![
+      PieceType.BottomLeftCorner,
+      PieceType.LeftSide,
+      PieceType.TopLeftCorner
+    ].includes(pieceType);
+  },
+
   getElementBoundingBoxForFloatDetection(
     element: HTMLDivElement,
     drawBoundingBox = false
@@ -723,7 +680,7 @@ const Utils = {
   },
 
   removeAllBoundingBoxIndicators() {
-    
+
     const elements = document.querySelectorAll(".bounding-box-indicator");
     if (elements.length > 0) {
       elements.forEach((el) => el.remove());
@@ -1003,8 +960,7 @@ const Utils = {
   },
 
   getOppositeConnector(connector: ConnectorType) {
-    if (connector === -1) return 1 as ConnectorType;
-    if (connector === 1) return -1 as ConnectorType;
+    return connector === ConnectorType.Plug ? ConnectorType.Socket : ConnectorType.Plug;
   },
 
   /**

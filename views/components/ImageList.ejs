@@ -1,0 +1,10 @@
+<div class="row justify-content-start">
+  <% if(images.length) { images.forEach(image=> { %>
+    <div class="col-4 ">
+      <img src="<%= image.galleryImagePath %>">
+      <%- include("ImageActions", image); %>
+    </div>
+    <% }) } else { %>
+      You haven't uploaded any images yet.
+      <% } %>
+</div>

@@ -1,0 +1,22 @@
+<h1>Log in</h1>
+<form action="/login" method="post" class="w-25">
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="inputUsername">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" id="input-password">
+    </div>
+    <div class="col-auto">
+        <button type="submit" id="button-submit" class="btn btn-primary mb-3">Log in</button>
+    </div>
+    <a href="/create-account" id="create-account-link">Create an account</a>
+</form>
+
+<style>
+    body {
+        background-color: black;
+        color: yellow;
+    }
+</style>

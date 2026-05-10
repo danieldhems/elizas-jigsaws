@@ -1,51 +1,35 @@
 var path = require("path");
 var express = require("express");
 var session = require("express-session");
-var MongoDBStore = require('connect-mongodb-session')(session);
+var passport = require("passport");
+var expressLayouts = require("express-ejs-layouts");
+var LocalStrategy = require("passport-local");
+var bcrypt = require("bcrypt");
+var methodOverride = require("method-override");
 var bodyParser = require("body-parser");
 var puzzleApi = require("./api/puzzle.cjs");
-var upload = require("./api/upload.cjs");
+var puzzleCreatorUpload = require("./api/puzzleCreatorImageUpload.cjs");
+var imageUpload = require("./api/imageUpload.cjs");
 var createAccount = require("./api/create-account.cjs");
 var users = require("./api/users.cjs");
-var login = require("./api/login.cjs");
+var getImagesForAuthenticatedUser = require("./api/getImagesForAuthenticatedUser.cjs");
+var getImageByIdForAuthenticatedUser = require("./api/getImageByIdForAuthenticatedUser.cjs");
+var sessionController = require("./api/session.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
-var bcrypt = require("bcrypt");
-const { dbUrl } = require('./database.cjs');
-const cookieParser = require('cookie-parser');
+const MongoDBStore = require("connect-mongodb-session")(session);
+const { connUrl } = require("./database.cjs");
+const dbClient = require('./database.cjs').default;
+const { PUZZLES_DEV_COLLECTION } = require("./constants.cjs");
 var app = express();
 
-app.use(cookieParser());
+require("dotenv").config();
 
-console.log("dbUrl", dbUrl)
-const store = new MongoDBStore({
-  uri: dbUrl,
-  databaseName: 'puzzly',
-  collection: 'sessions',
-}, function(error) {
-  console.error(error);
-});
+app.set("view engine", "ejs");
+app.use(expressLayouts);
 
-store.on('error', function(error) {
-  console.log(error);
-});
-
-app.use(session({
-  secret: 'Elizas secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: true },
-  store,
-}));
-
-app.use(
-  "/",
-  express.static(process?.ENV?.mode === "production" ? "./dist" : "./client")
-);
-app.use("/uploads", express.static("./uploads"));
-app.use("/uploads_integration", express.static("./uploads_integration"));
-app.use("/common", express.static("./common"));
+const db = dbClient.db("puzzly");
 
 app.use(
   bodyParser.urlencoded({
@@ -57,37 +41,131 @@ app.use(
 );
 
 app.use(bodyParser.json({ limit: "50mb" }));
+app.use(methodOverride("_method"))
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store: new MongoDBStore({
+    uri: connUrl,
+    databaseName: "puzzly",
+    collection: "sessions",
+  }),
+  cookie: {},
+}));
+
+passport.serializeUser((user, done) => {
+  return done(null, user._id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const db = dbClient.db("puzzly");
+    const collection = db.collection("users");
+
+    const user = await collection.findOne({ _id: id });
+
+    if (user) {
+      return done(null, user);
+    }
+
+    return done(null, false)
+  } catch (err) {
+    return done(err);
+  }
+});
+
+app.use(passport.session());
+
+passport.use(new LocalStrategy(async function verify(username, password, next) {
+  try {
+    const conn = await dbClient.connect();
+    const db = conn.db("puzzly");
+    const collection = db.collection("users");
+
+    const user = await collection.findOne({ username });
+
+    if (user) {
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (passwordMatch) {
+        return next(null, user);
+      }
+    }
+
+    return next(null, false);
+  } catch (err) {
+    return next(err);
+  }
+}));
+
+app.use("/uploads", express.static("./uploads"));
+app.use("/uploads_integration", express.static("./uploads_integration"));
+app.use("/common", express.static("./common"));
+app.use("/public", express.static("./dist"));
 
 // Configure API endpoints
 app.use("/api/puzzle", puzzleApi.router);
-app.use("/api/upload", upload);
+app.use("/api/upload", puzzleCreatorUpload);
+app.use("/api/image-upload", imageUpload);
 app.use("/api/users", users);
+app.use("/api/getImagesForAuthenticatedUser", getImagesForAuthenticatedUser.router);
+app.use("/api/getImageByIdForAuthenticatedUser", getImageByIdForAuthenticatedUser.router);
 app.use("/api/create-account", createAccount);
-app.use("/api/login", login);
+app.use("/api/session", sessionController);
 app.use("/api/uploadPuzzleSprite", uploadPuzzleSprite);
 app.use("/api/makePuzzleImage", makePuzzleImage);
 app.use("/api/generator-test", generatorTest);
 app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
-// Configure base URL for home page
-app.get("/", function (req, res) {
-  if(!req.session.isAuth){
+app.post('/login',
+  function (req, res, next) {
+    passport.authenticate('local', {
+      successRedirect: "/",
+      failureRedirect: "/login",
+      failureMessage: true
+    })(req, res, next)
+  });
+
+app.delete("/logout", function (req, res, next) {
+  req.session.destroy(function (err) {
+    if (err) {
+      return next(err);
+    }
+
     res.redirect("/login");
-  } else {
-    res.sendFile(path.join(__dirname, "../client/index.html"));
-  }
+  });
 });
 
+function checkAuthorised(req, res, next) {
+  if (req.user) {
+    next(null, req.user);
+  } else {
+    res.redirect("/login");
+  }
+}
+
+// app.set("unauth-layout", "unauth/layout.ejs");
+
 app.get("/create-account", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/routes/create-account/create-account.html"));
+  res.render("unauth/create-account", { layout: "unauth/layout" });
 });
 
 app.get("/login", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/routes/login/login.html"));
+  res.render("unauth/login", { layout: "unauth/layout" });
 });
 
-app.get("/gallery", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/puzzleGallery.html"));
+app.get("/new-image", checkAuthorised, function (req, res) {
+  res.render("auth/new-image", { user: req.user, layout: "auth/layout" });
+});
+
+app.get("/new-puzzle", checkAuthorised, async function (req, res) {
+  res.render("auth/new-puzzle", { user: req.user, layout: "auth/layout" });
+});
+
+app.get("/puzzle", checkAuthorised, async function (req, res) {
+  res.render("auth/puzzle", { user: req.user, layout: false });
 });
 
 app.get("/exp", function (req, res) {
@@ -102,10 +180,6 @@ app.get("/unsolvePiece", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/unsolvePiece.html"));
 });
 
-app.get("/new", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/new.html"));
-});
-
 app.get("/puzzle-piece", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/puzzle-piece.html"));
 });
@@ -116,6 +190,15 @@ app.get("/generator", function (req, res) {
 
 app.get("/test", function (req, res) {
   res.sendFile(path.join(__dirname, "../client/path-test.html"));
+});
+
+app.get("/", checkAuthorised, async function (req, res) {
+  const imagesCollection = db.collection("images");
+  const images = await imagesCollection.find({ userId: req.user._id }).toArray();
+  const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
+  const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
+  console.log("puzzle data", puzzles[0])
+  res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
 });
 
 module.exports = app;

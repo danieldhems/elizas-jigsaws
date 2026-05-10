@@ -29,6 +29,13 @@ export const SquareShapedPuzzleDefinitions = [
 
 export const MINIMUM_PIECE_SIZE = 40;
 export const MINIMUM_PIECE_SIZE_AS_PERCENTAGE_OF_VIEWPORT = 5;
+
+/**
+ * The minimum number of pieces per side.
+ * This is derived from the square root of the minimum number of pieces a puzzle 
+ * should have. For example, if the minimum number of pieces is 9 then the minimum 
+ * number of pieces per side will be three because 3x3=9. 
+ */
 export const MINIMUM_NUMBER_OF_PIECES_PER_SIDE = 5;
 
 export const MINIMUM_VIEWPORT_LENGTH_FOR_OUTOFBOUNDS_TO_BE_USED = 1024;
@@ -146,6 +153,7 @@ export const SHAPE_TYPES = {
 };
 
 export const SHADOW_OFFSET_RATIO = 3;
+export const SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX = 2;
 export const FLOAT_TOLERANCE_AMOUNT = 20;
 
 export const SCREEN_MARGIN = 10;

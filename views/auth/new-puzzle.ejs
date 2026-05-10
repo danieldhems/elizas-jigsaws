@@ -1,0 +1,52 @@
+<div id="puzzle-setup" class="container m-0">
+  <div class="row">
+    <div id="puzzle-setup--options" class="col-4">
+      <div id="puzzle-setup--select-number-of-pieces" class="mb-3">
+        <label>Number of pieces <span id="puzzle-size-input-label"></span></label>
+        <input type="range" min="0" max="10" id="puzzle-size-input-field">
+      </div>
+      <div id="puzzle-setup--puzzle-shape" class="mb-3">
+        <span>Puzzle shape</span>
+        <div class="field-container columns">
+          <div>
+            <label for="input-puzzle_shape--rectangle">Rectangle</label>
+            <input type="radio" id="input-puzzle_shape--rectangle" name="input-puzzle_shape" value="rectangle"
+              checked="checked" disabled="disabled" />
+          </div>
+          <div>
+            <label for="input-puzzle_shape--square">Square</label>
+            <input type="radio" id="input-puzzle_shape--square" name="input-puzzle_shape" value="square"
+              disabled="disabled" />
+          </div>
+        </div>
+      </div>
+      <div class="puzzle-setup--option-row js-admin-only">
+        <div id="puzzle-setup--debug-no-disperse" class="align-content-row">
+          <label for="chk-no-disperse">Don' t disperse pieces?</label>
+          <input type="checkbox" id="chk-no-disperse" />
+        </div>
+      </div>
+    </div>
+    <div class="col-8">
+      <div id="puzzle-setup--image">
+        <div id="puzzle-setup--image_preview" class="mb-3">
+          <div id="puzzle-setup--image_preview_inner" class="position-relative js-impressions-overlay">
+            <img id="puzzle-setup--image_preview-imgEl" class="position-absolute top-0 start-0" />
+          </div>
+        </div>
+        <div id="puzzle-setup--image_input" class="mb-3">
+          <input name="image" id="upload-fld" type="file" value="No file chosen" />
+        </div>
+      </div>
+      <div id="puzzle-setup--add-to-library" class="mb-3">
+        <label for="chk-add-to-library">Add this image to your library?</label>
+        <input type="checkbox" id="chk-add-to-library" />
+      </div>
+      <div class="puzzle-setup--option-row centered">
+        <input type="submit" id="start-btn" value="Start" disabled>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="public/puzzle-creator.bundle.js"></script>

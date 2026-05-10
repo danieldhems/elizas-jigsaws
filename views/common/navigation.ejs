@@ -1,0 +1,52 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav">
+        <a class="nav-link active" aria-current="page" href="/">Dashboard</a>
+        <a class="nav-link" href="/new-puzzle">New puzzle</a>
+        <a class="nav-link" href="/new-image">Upload an image</a>
+        <button id="btn-logout" class="btn btn-outline-warning" type="submit">Log out</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<style>
+  #navigation {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+  }
+
+  #navigation a {
+    text-decoration: none;
+  }
+
+  #navigation li {
+    padding: .5rem;
+  }
+
+  #navigation li:not(last) {
+    margin-right: .5rem;
+  }
+</style>
+
+<script type="module">
+  const btn = document.getElementById("btn-logout");
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    fetch("/logout?_method=delete", {
+      method: 'POST',
+    }).then(response => {
+      if (response.redirected) {
+        window.location.href = response.url
+      }
+    });
+  });
+</script>

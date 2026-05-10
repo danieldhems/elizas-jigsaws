@@ -1,0 +1,113 @@
+import { CONNECTOR_DIVISOR_FOR_CONTROL_POINT_HANDLE, CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE } from "../constants";
+import { ConnectorControlPoints, CubicBezierConnectorGeometry } from "../types";
+
+export default class JigsawPath {
+  pieceSize: number;
+  connectorSize: number;
+  humpSize: number;
+  halfConnectorSize: number;
+
+  constructor(pieceSize: number, connectorSize: number) {
+    this.pieceSize = pieceSize;
+    this.connectorSize = connectorSize;
+    this.humpSize = parseInt((this.connectorSize * CONNECTOR_MULTIPLIER_FOR_HUMP_SIZE).toFixed());
+    this.halfConnectorSize = parseInt((this.connectorSize / CONNECTOR_DIVISOR_FOR_CONTROL_POINT_HANDLE).toFixed());
+
+    // console.log("connectorSize", this.connectorSize);
+    // console.log("humpSize", this.humpSize);
+    // console.log("halfConnectorSize", this.halfConnectorSize);
+
+    this.getPlugGeometry = this.getPlugGeometry.bind(this);
+    this.getSocketGeometry = this.getSocketGeometry.bind(this);
+  }
+
+  getPlugGeometry() {
+    // Assume 'top' is the default plug,
+    // and all others are taken from the rotation of this one
+    return {
+      cp1: {
+        x: 0 - this.halfConnectorSize,
+        y: 0 - this.humpSize,
+      },
+      cp2: {
+        x: this.connectorSize + this.halfConnectorSize,
+        y: 0 - this.humpSize,
+      },
+      dest: {
+        x: this.connectorSize,
+        y: 0,
+      },
+    };
+  }
+
+  getSocketGeometry() {
+    // Assume 'top' is the default socket,
+    // and all others are taken from the rotation of this one
+    return {
+      cp1: {
+        x: 0 - this.halfConnectorSize,
+        y: this.humpSize,
+      },
+      cp2: {
+        x: this.connectorSize + this.halfConnectorSize,
+        y: this.humpSize,
+      },
+      dest: {
+        x: this.connectorSize,
+        y: 0,
+      },
+    };
+  }
+
+  static rotate(point: { x: number; y: number }, deg: number) {
+    if (deg < 0 || deg > 359) throw new Error("Invalid degree value provided");
+
+    const rad = (deg * Math.PI) / 180;
+
+    const origin = { x: 0, y: 0 };
+    const { x: px, y: py } = point;
+
+    const qx =
+      origin.x +
+      Math.cos(rad) * (px - origin.x) -
+      Math.sin(rad) * (py - origin.y);
+    const qy =
+      origin.y +
+      Math.sin(rad) * (px - origin.x) +
+      Math.cos(rad) * (py - origin.y);
+
+    return {
+      x: qx,
+      y: qy,
+    };
+  }
+
+  static getRotatedCubicBezierCurve(connector: ConnectorControlPoints, deg: number): CubicBezierConnectorGeometry {
+    const rotatedCp1 = JigsawPath.rotate(connector.cp1, deg);
+    const rotatedCp2 = JigsawPath.rotate(connector.cp2, deg);
+    const rotatedDest = JigsawPath.rotate(connector.dest, deg);
+    return {
+      controlPoints: [rotatedCp1, rotatedCp2],
+      destinationPoint: rotatedDest,
+    };
+  }
+
+  drawConnectorGuides(
+    ctx: CanvasRenderingContext2D,
+    connector: ConnectorControlPoints
+  ) {
+    ctx.fillStyle = "black";
+    ctx.beginPath();
+    ctx.arc(connector.cp1.x, connector.cp1.y, 2, 0, 2 * Math.PI); // Control point one
+    ctx.fill();
+
+    // ctx.fillStyle = 'brown';
+    ctx.beginPath();
+    ctx.arc(connector.cp2.x, connector.cp2.y, 2, 0, 2 * Math.PI); // Control point one
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(connector.dest.x, connector.dest.y, 2, 0, 2 * Math.PI); // Control point one
+    ctx.fill();
+  }
+}

@@ -1,8 +1,7 @@
-import { nanoid } from "nanoid";
-import GroupMovable from "./GroupMovable";
-import { PocketMovable } from "./PocketMovable";
-import { DebugOptions } from "./puzzlyCreator";
-import SingleMovable from "./SingleMovable";
+import GroupMovable from "./puzzle-main/GroupMovable";
+import { PocketMovable } from "./puzzle-main/PocketMovable";
+import { DebugOptions } from "./puzzle-creator/PuzzlyCreator";
+import SingleMovable from "./puzzle-main/SingleMovable";
 
 declare global {
   interface Window {
@@ -18,6 +17,20 @@ export enum InstanceTypes {
   GroupMovable = "GroupMovable",
   PocketMovable = "PocketMovable",
   PlayBoundaryMovable = "PlayBoundaryMovable",
+}
+
+export interface PuzzleData {
+  numberOfPiecesHorizontal: number;
+  numberOfPiecesVertical: number;
+  totalNumberOfPieces: number;
+  boardWidth: number;
+  boardHeight: number;
+  pieces: PuzzlePiece[];
+  puzzleId: string;
+  zIndex?: number;
+  puzzleImagePath: string;
+  isComplete?: boolean;
+  noDispersal?: boolean;
 }
 
 export type SingleMovableElement = HTMLDivElement;
@@ -40,7 +53,13 @@ export interface Connection {
   isSolving: boolean;
 }
 
-export type ConnectorType = -1 | 0 | 1;
+export enum ConnectorType {
+  Plug = 1,
+  Socket = -1
+};
+
+export type ConnectorChoices = [ConnectorType.Plug, ConnectorType.Socket];
+
 export enum ConnectorNames {
   Plug = "plug",
   Socket = "socket",
@@ -73,59 +92,13 @@ export enum SideNames {
 }
 export type CurrentConnections = [SideNames, SideNames, SideNames, SideNames];
 export type ConnectsTo = Record<string, number>;
-export interface JigsawPieceData {
-  id: string;
-  index: number;
-  puzzleId: string;
-  groupId: string;
-  pocketId: number;
-  imgX: number;
-  imgY: number;
-  puzzleX: number;
-  puzzleY: number,
-  width: number;
-  height: number;
-  basePieceSize: number;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorTolerance: number;
-  connectors: Connector[];
-  shadowOffset: number;
-  puzzleWidth: number;
-  puzzleHeight: number;
-  imgW: number;
-  imgH: number;
-  pageX: number;
-  pageY: number;
-  size: number;
-  zIndex: number;
-  type: ConnectorType[];
-  spriteX: number;
-  spriteY: number;
-  spritePath: string;
-  spriteShadowX: number;
-  spriteShadowY: number;
-  solvedX: number;
-  solvedY: number;
-  isInnerPiece: boolean;
-  isVisible: boolean;
-  isSolved: boolean;
-  connections: SideNames[];
-  connectsTo: ConnectsTo;
-  numPiecesFromTopEdge: number;
-  numPiecesFromLeftEdge: number;
-  numberOfPiecesHorizontal: number;
-  numberOfPiecesVertical: number;
-  selectedNumPieces: number;
-  svgPath: string;
-  scale: number;
-}
+
 
 export interface GroupData {
   _id: string;
   id: string;
   puzzleId: string;
-  pieces: JigsawPieceData[];
+  pieces: PuzzlePiece[];
   position: {
     top: number;
     left: number;
@@ -173,136 +146,135 @@ export interface PuzzleCreatorOptions {
 }
 
 export type Connector = {
-  id: ReturnType<typeof nanoid>;
+  // Index for the puzzle piece this connector belongs to
   ownerIndex: number;
-  // The unique ID for the connector on the adjacecnt piece that connects to this one
-  targetConnectorID?: ReturnType<typeof nanoid>;
+  // Index for the puzzle piece this connector connects to
   targetPieceIndex: number;
-  type: ConnectorType,
+  type: ConnectorType;
   // Where this connector lives on this piece
   // ('degrees' being the orientation of the side this connector is on) 
-  atDegrees: number,
-  boundingBox?: BoundingBox,
+  atDegrees: number;
+  // Bounding box relative to the puzzle piece
+  boundingBox?: BoundingBox;
   isConnected: boolean;
+  geometry: CubicBezierConnectorGeometry;
+  distanceFromCorner: number;
 };
 
-// FIX: JigsawPieceData and SkeletonPiece describe the same entity
-// at different stages of puzzle generation lifecycle.
-// Very confusing.
+export interface Point {
+  x: number;
+  y: number;
+}
 
-// Using 'pieceAbove' and 'pieceBehind' won't scale for wild piece shapes:
-// adjacentPieces[] would be more flexible...
-export type SkeletonPiece = Pick<
-  JigsawPieceData,
-  "type" | "numPiecesFromLeftEdge" | "numPiecesFromTopEdge"
-> & {
-  id: string;
-  connectorDistanceFromCorner: number;
+export interface QuadraticConnectorGeometry {
+  // An array of x,y coords should allow quadratic and cubic bezier curves
+  controlPoints: Point;
+  destinationPoint: Point;
+}
+
+export interface CubicBezierConnectorGeometry {
+  // An array of x,y coords should allow quadratic and cubic bezier curves
+  controlPoints: [Point, Point];
+  destinationPoint: Point;
+}
+
+export interface PuzzlePiece {
+  index: number; // Unique ID using simple index
+  puzzleId: string; // Maps to puzzle's ObjectID
+  groupId?: string;
+  pocketId?: number;
+  pieceBodySize: number;
   connectorSize: number;
-  connectorTolerance: number;
+  connectorDistanceFromCorner: number;
   connectors: Connector[];
-  numberOfPiecesHorizontal: number;
-  numberOfPiecesVertical: number;
-  pieceAbove: {
-    type: ConnectorType[],
+  connections: SideNames[];
+  connectsTo: number[];
+  svgString: string;
+  width: number;
+  height: number;
+  // Coordinate for this piece's position in the solved puzzle
+  positionInPuzzle: {
+    x: number;
+    y: number;
   };
-  pieceBehind: {
-    type: ConnectorType[],
+  svgPath: string;
+  // Current coordinate on the page while in play 
+  // (will be ignored when this piece becomes sovled)
+  currentPositionInPlay: {
+    x: number;
+    y: number;
   };
-  puzzleWidth: number;
-  puzzleHeight: number;
-  // Need this for generating the SVG path to the correct proportions
-  basePieceSize?: number;
-  width?: number;
-  height?: number;
-  puzzleX?: number;
-  puzzleY?: number;
-  pageX?: number;
-  pageY?: number;
-};
+  zIndex: number;
+  pieceType: PieceType;
+  isVisible: boolean;
+  isSolved: boolean;
+  numPiecesFromTopEdge: number;
+  numPiecesFromLeftEdge: number;
+}
 
-export interface PuzzleConfig {
+export interface PuzzlePieceSaveData {
+  currentPositionInPlay: PuzzlePiece['currentPositionInPlay'];
+  zIndex: PuzzlePiece['zIndex'];
+  pocketId: PuzzlePiece['pocketId'];
+  groupId: PuzzlePiece['groupId'];
+  isSolved: PuzzlePiece['isSolved'];
+}
+
+export enum PieceType {
+  TopLeftCorner = 'Top-left-corner',
+  TopSide = 'Top-side',
+  TopRightCorner = 'Top-right-corner',
+  RightSide = 'Right-side',
+  BottomRightCorner = 'Bottom-right-corner',
+  BottomSide = 'Bottom-side',
+  BottomLeftCorner = 'Bottom-left-corner',
+  LeftSide = 'Left-side',
+  Inner = 'Inner'
+}
+export interface Puzzle {
   numberOfPiecesHorizontal: number;
   numberOfPiecesVertical: number;
   totalNumberOfPieces: number;
-  pieceSize: number;
   percentageOfImageUsedHorizontal: number;
   percentageOfImageUsedVertical: number;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorTolerance: number;
   /** 
    * Width and height of the puzzle based on how much of the image it includes
    * (This will almost never match the image's dimensions exactly unless the user
    * uploads a perfectly square image, or one who's dimensions just-so-happen to match
    * a given puzzle config)
    */
-  puzzleWidth: number;
-  puzzleHeight: number;
+  width: number;
+  height: number;
   /**
    * True width and height of the uploaded image
    */
   // imageWidth: number;
   // imageHeight: number;
-  aspectRatio?: number;
+  pieces: PuzzlePiece[];
+  orientation: PuzzleOrientation;
 }
+
+export enum PuzzleOrientation {
+  Landscape = "Landscape",
+  Portrait = "Portrait",
+  Square = "Square"
+};
 
 export enum PuzzleAxis {
   Horizontal = "Horizontal",
   Vertical = "Vertical",
 }
 
-export type PuzzleGenerator = {
-  connectorRatio: number;
-  piecesPerSideHorizontal: number;
-  piecesPerSideVertical: number;
-  selectedNumberOfPieces: number;
-  pieceSize: number;
-  connectorDistanceFromCorner: number;
-  connectorSize: number;
-  connectorLateralControlPointDistance: number;
-  largestPieceSpan: number;
-  strokeWidth: number;
-  strokeColor: string;
-  spriteSpacing: number;
-  stageWidth: number;
-  stageHeight: number;
-  debugOptions?: {
-    noDispersal: boolean;
-  };
-  image: HTMLImageElement;
-  shadowColor: string;
-  strokeStyle: string;
-  generateDataForPuzzlePieces: () => Promise<{
-    spriteEncodedString: string;
-    pieces: JigsawPieceData[];
-  }>;
-  getJigsawShapeSvgString: (
-    piece: SkeletonPiece,
-    position?: {
-      x: number;
-      y: number
-    }
-  ) => string;
-  generatePuzzleSprite: (
-    imagePath: string,
-    pieces: JigsawPieceData[]
-  ) => Promise<HTMLImageElement>;
-  puzzleSizes: PuzzleConfig[];
-};
-
 export type PuzzleCreationResponse = PuzzleCreatorOptions & {
   _id: string;
   complete?: boolean;
   zIndex?: number;
-  pieceSize: number;
   previewPath: string;
   puzzleImagePath: string;
-  connectorDistanceFromCorner: number;
 };
 
 export interface SavedProgress {
-  pieces: JigsawPieceData[];
+  pieces: PuzzlePiece[];
   groups: GroupData[];
   latestSave: number;
 }
@@ -312,53 +284,23 @@ export enum LocalStorageKeys {
   LastSave = "LOCAL_STORAGE_PUZZLY_LAST_SAVE_KEY",
 }
 
-export interface SingleMovableSaveState {
-  _id?: string;
-  id: string;
-  index: number;
-  width: number;
-  height: number;
-  basePieceSize: number;
-  connectorSize: number;
-  connectorTolerance: number;
-  connectorDistanceFromCorner: number;
-  connectors: Connector[];
-  groupId?: string;
-  pageX: number;
-  pageY: number;
-  puzzleX: number;
-  puzzleY: number;
-  puzzleWidth: number;
-  puzzleHeight: number;
-  numberOfPiecesHorizontal: number;
-  numberOfPiecesVertical: number;
-  type: ConnectorType[];
-  zIndex: number;
-  isSolved: boolean;
-  puzzleId: string;
-  pocketId: number | null;
-  instanceType: InstanceTypes;
-  integration?: boolean;
-}
-
 export interface GroupMovableSaveState {
   id: string;
   puzzleId: string;
-  puzzleWidth: number;
-  puzzleHeight: number;
   zIndex: number;
-  instanceType: InstanceTypes;
   integration?: boolean;
-  isSolved: boolean;
-  position: {
-    top: number;
-    left: number;
+  currentPositionInPlay: {
+    x: number;
+    y: number;
   };
-  remove?: boolean;
-  pieces: SingleMovableSaveState[];
+  pieces: PuzzlePieceSaveData[];
+  // TODO: Do we need this?
+  // Groups should be automatically deleted when solved,
+  // so I'm not sure whether we'd need to hold on to this state locally.
+  isSolved?: boolean;
 }
 
-export type SaveStates = SingleMovableSaveState | SingleMovableSaveState[] | GroupMovableSaveState;
+export type SaveStates = PuzzlePiece | PuzzlePiece[] | GroupMovableSaveState;
 
 export type PathPartHorizontalRelative = `h ${number}`;
 export type PathPartVerticalRelative = `v ${number}`;
@@ -376,6 +318,7 @@ export type TopLeftCoordinate = { top: number; left: number; };
 export enum Orientation {
   Landscape = "Landscape",
   Portrait = "Portrait",
+  Square = "Square",
 }
 
 export type PieceSectors = {
@@ -392,25 +335,17 @@ export enum SolvedPuzzlePreviewType {
   Toggle = "Toggle",
 }
 
-export type PuzzleImpression = {
-  index: number;
-  puzzleConfig: PuzzleConfig;
-  impressionWidth?: number;
-  impressionHeight?: number;
-  pieces: SkeletonPiece[]
-};
-
 export interface SaveOptions {
   isIntegration: boolean;
   isComplete: boolean;
 }
 
 export interface SinglePieceSavePayload {
-  data: SingleMovableSaveState;
+  data: PuzzlePiece;
 }
 
 export interface MultiplePieceSavePayload {
-  data: SingleMovableSaveState[];
+  data: PuzzlePiece[];
 }
 
 export interface GroupSavePayload {

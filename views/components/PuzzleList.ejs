@@ -1,0 +1,24 @@
+<div class="row justify-evenly mb-3">
+  <% if(puzzles.length) {%>
+    <% puzzles.forEach(puzzle=> { %>
+      <div class="col-4">
+        <div class="puzzle-image w-full">
+          <a href="/puzzle?id=<%= puzzle._id %>">
+            <img src="<%= puzzle.puzzleImagePath %>" class="max-w-full" />
+          </a>
+        </div>
+        <div class="puzzle-number-of-pieces">
+          <%= puzzle.totalNumberOfPieces %> pieces
+        </div>
+        <div class="puzzle-dimensions">
+          <%= puzzle.puzzleWidth %> x <%= puzzle.puzzleHeight %>
+        </div>
+        <div class="puzzle-image-name">
+          Image name <%= puzzle.filename %>
+        </div>
+      </div>
+      <% }) %>
+        <% } else { %>
+          <p>You haven't created any puzzles yet.</p>
+          <% } %>
+</div>

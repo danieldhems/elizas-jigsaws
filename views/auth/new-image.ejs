@@ -1,0 +1,92 @@
+<h1>Upload an image</h1>
+
+<form enctype="multipart/form-data">
+  <div id="image-upload" class="form-page">
+    <img id="image-preview" />
+    <input name="image" id="file-input" type="file" value="No file chosen" />
+  </div>
+</form>
+<div id="new-puzzle-button" class="d-none">
+  <a href="" id="new-puzzle-link">Create a new puzzle from this image</a>
+</div>
+
+<style>
+  #image-preview {
+    max-width: 50%;
+    max-height: 50%;
+  }
+</style>
+
+<script>
+  const fileInput = document.getElementById(
+    "file-input"
+  );
+
+  const imagePreview = document.getElementById(
+    "image-preview"
+  );
+
+  const newPuzzleButton = document.getElementById(
+    "new-puzzle-button"
+  );
+
+  function upload() {
+    const files = fileInput.files;
+
+    let image;
+
+    if (files.length > 0) {
+      image = files[0];
+    }
+
+    const fd = new FormData();
+
+    if (image) {
+      fd.append("files[]", image);
+      fd.append("viewportWidth", window.innerWidth);
+      fd.append("viewportHeight", window.innerHeight);
+    }
+
+    return fetch("/api/image-upload", {
+      body: fd,
+      method: "POST",
+    }).then((response) => response.json());
+  }
+
+  function onUploadSuccess(response) {
+    console.log("onUploadSuccess", response);
+
+    if (response.data) {
+      imagePreview.src = response.data.galleryImagePath;
+      newPuzzleButton.classList.remove("js-hidden");
+
+      const newPuzzleLink = document.getElementById("new-puzzle-link");
+      newPuzzleLink.setAttribute("href", `/new-puzzle?img_id=${response.data.imageId}`)
+    }
+  }
+
+  function onUploadFailure(response) {
+    console.log("onUploadFailure", response);
+    imagePreview.textContent = response;
+  }
+
+  function onImageUploadChange(e) {
+    // e.preventDefault();
+    upload()
+      .then(
+        function (d) {
+          onUploadSuccess(d);
+        }
+      )
+      .catch(
+        function (err) {
+          onUploadFailure(err);
+        }
+      );
+  }
+
+  fileInput.addEventListener(
+    "change",
+    onImageUploadChange
+  );
+</script>

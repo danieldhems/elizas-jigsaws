@@ -1,16 +1,19 @@
 var router = require("express").Router();
 const assert = require("assert");
+const { ObjectId } = require("mongodb");
 const {
+  PUZZLES_DEV_COLLECTION,
   PUZZLES_PROD_COLLECTION,
   PUZZLES_INTEGRATION_COLLECTION,
+  UPLOADS_DIR_INTEGRATION,
+  UPLOADS_DIR_PROD,
 } = require("../constants.cjs");
+const Sharp = require("sharp");
 const dbClient = require('../database.cjs').default;
 
 const dbName = "puzzly";
 
 const getDatabaseCollections = require("./getDatabaseCollections.cjs").default;
-
-let db;
 
 module.exports.clean = function () {
   dbClient.connect().then((client, err) => {
@@ -27,22 +30,55 @@ module.exports.clean = function () {
 };
 
 async function createPuzzle(req, res) {
-  console.log('createPuzzle', req.body)
+  // console.log('createPuzzle payload', req.body)
   try {
-    const dbConnection = await dbClient.connect();
-    const db = dbConnection.db(dbName);
-
     const data = req.body;
-
-    const { puzzles } = getDatabaseCollections(db, data);
+    const db = dbClient.db(dbName);
+    const puzzles = db.collection(PUZZLES_DEV_COLLECTION);
 
     data.numberOfSolvedPieces = 0;
     data.dateCreated = new Date();
     data.elapsedTime = 0;
 
-    const puzzleDBResponse = await puzzles.insertOne(data);
+    if (data.addToLibrary) {
+      const db = dbClient.db(dbName);
+      const images = db.collection("images");
 
-    res.status(200).send({ message: "ok" });
+      const isIntegration = req.body.integration === 'true';
+      const uploadDir = isIntegration
+        ? UPLOADS_DIR_INTEGRATION
+        : UPLOADS_DIR_PROD;
+
+      const galleryImagePath = `${uploadDir}gallery_${req.user._id}_${data.filename}`;
+
+      const imgInstance = Sharp(data.sourceImagePath);
+      const { width, height } = await imgInstance.metadata();
+
+      await imgInstance
+        .resize(200)
+        .toFile(galleryImagePath);
+
+      const insertResult = await images.insertOne({
+        userId: req.user._id,
+        filename: data.filename,
+        width,
+        height,
+        sourceImagePath: data.sourceImagePath,
+        galleryImagePath,
+        creatorImagePath: data.creatorImagePath,
+        createdOn: Date.now(),
+      });
+    }
+
+    const response = await puzzles.insertOne({
+      userId: req.user._id,
+      ...data
+    });
+
+    res.status(200).send({
+      ...data,
+      _id: response.insertedId,
+    });
   } catch (e) {
     console.error("createPuzzle error", e)
     res.status(500).send(e);
@@ -51,7 +87,7 @@ async function createPuzzle(req, res) {
 
 async function createPieces(req, res) {
   try {
-    // console.log("createPieces -> pieces", req.body.pieces.toString());
+    console.log("createPieces -> pieces", req.body.pieces.toString());
     console.log("createPieces -> puzzleId", req.body.puzzleId);
 
     const { pieces, puzzleId, integration } = req.body;
@@ -191,7 +227,7 @@ async function updatePieces(req, res) {
 
 async function solvePiece(req, res) {
   try {
-    const { pieceId, puzzleId, isComplete, integration } = req.body;
+    const { pieceIndex, puzzleId, isComplete, integration } = req.body;
     console.log('solvePiece')
 
     const dbConnection = await dbClient.connect();
@@ -213,7 +249,7 @@ async function solvePiece(req, res) {
         },
       },
       {
-        arrayFilters: [{ "elem.id": pieceId }],
+        arrayFilters: [{ "elem.index": pieceIndex }],
       }
     );
 
@@ -484,17 +520,14 @@ async function deleteGroup(req, res) {
 
 async function getPuzzle(req, res) {
   try {
-    // console.log('getPuzzle', req.body)
-    const { puzzleId, integration } = req.body;
+    const { puzzleId } = req.params;
 
-    const dbConnection = await dbClient.connect();
-    const db = dbConnection.db(dbName);
-
-    const puzzlesCollection = integration
-      ? db.collection(PUZZLES_INTEGRATION_COLLECTION)
-      : db.collection(PUZZLES_PROD_COLLECTION);
-
-    const puzzle = await puzzlesCollection.findOne({ id: puzzleId });
+    const db = dbClient.db(dbName);
+    const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
+    const puzzle = await puzzlesCollection.findOne({
+      _id: new ObjectId(puzzleId),
+      userId: req.user._id,
+    });
 
     res.status(200).send(puzzle);
   } catch (e) {
@@ -565,7 +598,7 @@ async function updateTimePlayed(req, res) {
 // Set API CRUD endpoints
 router.post("/createPuzzle", createPuzzle);
 router.post("/getPuzzles", getPuzzles);
-router.post("/getPuzzle", getPuzzle);
+router.get("/:puzzleId", getPuzzle);
 router.post("/createPieces", createPieces);
 router.put("/updatePiece", updatePiece);
 router.put("/updatePieces", updatePieces);
