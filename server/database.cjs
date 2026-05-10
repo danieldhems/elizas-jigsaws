@@ -18,6 +18,6 @@ const dbConfig = {
 
 const dbUrl = `${dbConfig.protocol}${dbConfig.username}:${dbConfig.password}@${dbConfig.url}/?${dbConfig.queryParams}`;
 
-module.exports.connUrl = url;
+module.exports.connUrl = dbUrl;
 module.exports.dbName = 'puzzly';
-module.exports.default = new MongoClient(url);
+module.exports.default = new MongoClient(dbUrl);
