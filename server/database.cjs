@@ -16,6 +16,7 @@ const dbConfig = {
 //     password: 'admin'
 // }
 
-const url = `${dbConfig.protocol}${dbConfig.username}:${dbConfig.password}@${dbConfig.url}/?${dbConfig.queryParams}`;
+const dbUrl = `${dbConfig.protocol}${dbConfig.username}:${dbConfig.password}@${dbConfig.url}/?${dbConfig.queryParams}`;
 
-module.exports.default = new MongoClient(url);
+module.exports.dbUrl = dbUrl;
+module.exports.default = new MongoClient(dbUrl);

@@ -1,6 +1,7 @@
 var path = require("path");
 var express = require("express");
 var session = require("express-session");
+var MongoDBStore = require('connect-mongodb-session')(session);
 var bodyParser = require("body-parser");
 var puzzleApi = require("./api/puzzle.cjs");
 var upload = require("./api/upload.cjs");
@@ -10,12 +11,32 @@ var login = require("./api/login.cjs");
 var uploadPuzzleSprite = require("./api/uploadPuzzleSprite.cjs");
 var makePuzzleImage = require("./api/makePuzzleImage.cjs");
 var generatorTest = require("./api/generator-test.cjs");
+var bcrypt = require("bcrypt");
+const { dbUrl } = require('./database.cjs');
+const cookieParser = require('cookie-parser');
 var app = express();
 
+app.use(cookieParser());
+
+console.log("dbUrl", dbUrl)
+const store = new MongoDBStore({
+  uri: dbUrl,
+  databaseName: 'puzzly',
+  collection: 'sessions',
+}, function(error) {
+  console.error(error);
+});
+
+store.on('error', function(error) {
+  console.log(error);
+});
+
 app.use(session({
-  secret: 'secret',
-  resave: true,
-  saveUninitialized: true,
+  secret: 'Elizas secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true },
+  store,
 }));
 
 app.use(
@@ -50,7 +71,11 @@ app.use("/api/toggleVisibility", require("./api/pieceFiltering.cjs"));
 
 // Configure base URL for home page
 app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, "../client/index.html"));
+  if(!req.session.isAuth){
+    res.redirect("/login");
+  } else {
+    res.sendFile(path.join(__dirname, "../client/index.html"));
+  }
 });
 
 app.get("/create-account", function (req, res) {
