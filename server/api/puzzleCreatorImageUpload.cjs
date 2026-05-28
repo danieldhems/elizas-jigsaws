@@ -23,6 +23,15 @@ async function upload(req, res) {
   } else {
     //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
     let image = req.files["files[]"];
+
+    const {
+      viewportWidth,
+      viewportHeight,
+      previewWidth,
+      previewHeight
+    } = req.body;
+
+    console.log("request body", req.body)
     let vWidth = req.body.viewportWidth ? parseInt(req.body.viewportWidth) : null;
     let vHeight = req.body.viewportHeight ? parseInt(req.body.viewportHeight) : null;
 
@@ -44,8 +53,8 @@ async function upload(req, res) {
 
     const { width: actualW, height: actualH } = await imgInstance.metadata();
 
-    const imgW = parseInt(req.body.previewWidth);
-    const imgH = parseInt(req.body.previewHeight);
+    const imgW = previewWidth === '0' || previewWidth === 0 ? null : parseInt(previewWidth);
+    const imgH = previewHeight === '0' || previewHeight === 0 ? null : parseInt(previewHeight);
 
     await imgInstance
       .resize(imgW, imgH, { fit: 'inside' })

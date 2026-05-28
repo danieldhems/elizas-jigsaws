@@ -1,7 +1,4 @@
 import GeneratorSteps from "../../sandbox/generatorSteps";
-import {
-  generatePuzzlesWithinConstraints,
-} from "./puzzleGenerator";
 import PuzzleImpressionOverlay from "../puzzle-main/PuzzleImpressionOverlay";
 import Puzzly from "../puzzle-main/Puzzly";
 import {
@@ -10,6 +7,9 @@ import {
   PuzzleShapes,
 } from "../types";
 import Utils from "../utils";
+import {
+  generatePuzzlesWithinConstraints,
+} from "./puzzleGenerator";
 
 export interface SourceImage {
   width: number;
