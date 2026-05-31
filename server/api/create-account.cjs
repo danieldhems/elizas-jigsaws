@@ -10,8 +10,8 @@ async function createAccount(req, res) {
     try {
         dbClient.connect().then(async (client, err) => {
             if (!err) {
-                const { username, password } = req.body;
-                // console.log("form data", username, password)
+                const { username, password, isAdmin } = req.body;
+                console.log("form data", username, password, isAdmin)
 
                 var salt = await bcrypt.genSalt();
                 var hashedPassword = await bcrypt.hash(password, salt);
@@ -19,7 +19,11 @@ async function createAccount(req, res) {
                 const db = client.db(dbName);
                 const users = db.collection("users");
 
-                const result = await users.insertOne({ username, password: hashedPassword });
+                const result = await users.insertOne({ 
+                    username, 
+                    password: hashedPassword,
+                    isAdmin,
+                 });
                 console.log("user result", result)
                 res.status(200).send({
                     message: "ok"

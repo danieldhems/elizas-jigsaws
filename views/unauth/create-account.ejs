@@ -2,11 +2,15 @@
 <form>
     <div class="mb-3">
         <label for="exampleFormControlInput1" class="form-label">Username</label>
-        <input type="text" name="username" class="form-control" id="inputUsername">
+        <input type="text" name="username" class="form-control" id="input-username">
     </div>
     <div class="mb-3">
         <label for="exampleFormControlTextarea1" class="form-label">Password</label>
         <input type="password" name="password" class="form-control" id="input-password">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlTextarea1" class="form-label">Is Admin?</label>
+        <input type="checkbox" name="isadmin" class="" id="checkbox-isadmin">
     </div>
     <div class="col-auto">
         <button type="submit" id="button-submit" class="btn btn-primary mb-3">Submit</button>
@@ -24,12 +28,14 @@
     submitBtn.addEventListener("click", async (e) => {
         e.preventDefault();
 
-        const emailInput = document.getElementById("email-input");
-        const passwordInput = document.getElementById("password-input");
+        const emailInput = document.getElementById("input-username");
+        const passwordInput = document.getElementById("input-password");
+        const checkboxIsAdmin = document.getElementById("checkbox-isadmin");
 
         const data = {
             username: emailInput.value,
             password: passwordInput.value,
+            isAdmin: checkboxIsAdmin.checked,
         };
 
         const request = await fetch("/api/create-account", {
