@@ -21,12 +21,14 @@
           </div>
         </div>
       </div>
+      <% if(user.isAdmin) { %>
       <div class="puzzle-setup--option-row js-admin-only">
         <div id="puzzle-setup--debug-no-disperse" class="align-content-row">
           <label for="chk-no-disperse">Don' t disperse pieces?</label>
           <input type="checkbox" id="chk-no-disperse" />
         </div>
       </div>
+      <% } %>
     </div>
     <!-- Main panel: Puzzle image and preview -->
     <div class="col-8">
