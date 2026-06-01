@@ -1,6 +1,6 @@
-import RestrictedDraggable from "./RestrictedDraggable";
-import { MovementAxis, Puzzle } from "../types";
 import { SVG_NAMESPACE } from "../constants";
+import { MovementAxis, Puzzle } from "../types";
+import RestrictedDraggable from "./RestrictedDraggable";
 
 export type PuzzleImpressionOverlayConstructorArgs = {
   targetElement: HTMLImageElement | HTMLDivElement;

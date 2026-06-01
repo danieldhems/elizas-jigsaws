@@ -7,14 +7,12 @@ import {
 } from "../constants";
 import JigsawPath from "../puzzle-main/jigsawPath";
 import {
-  ConnectorType,
-  Puzzle,
   Connector,
-  PuzzlePiece,
-  PuzzleOrientation,
+  ConnectorType,
   PieceType,
-  ConnectorControlPoints,
-  CubicBezierConnectorGeometry,
+  Puzzle,
+  PuzzleOrientation,
+  PuzzlePiece
 } from "../types";
 import Utils from "../utils";
 
@@ -282,8 +280,17 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       currentX = 0;
       currentY += hasBottomSocket ? piece.height - connectorSize : piece.height;
     } else {
+      
+      if(currentRow > 0){
+        if(hasTopPlug) {
+          currentY -= connectorSize;
+        } else {
+          currentY += connectorSize;
+        }
+      }
+
       currentColumn++;
-      currentX += hasRightSocket ? piece.pieceBodySize - connectorSize : piece.pieceBodySize;
+      currentX += piece.width - connectorSize;
     }
   }
 
@@ -317,7 +324,7 @@ export const getPieceSize = (puzzleDimensions: { width: number; height: number }
  *  @constant MINIMUM_PIECE_SIZE
  *  @constant MINIMUM_NUMBER_OF_PIECES_PER_SIDE
  */
-export function generatePuzzlesWithinConstraints(constraints: {
+export function generatePuzzleConfigsWithinConstraints(constraints: {
   availableWidth: number,
   availableHeight: number,
 }): Puzzle[] {
@@ -326,6 +333,7 @@ export function generatePuzzlesWithinConstraints(constraints: {
     availableHeight,
   } = constraints;
 
+  console.log("generatePuzzlesWithinConstraints")
   console.log("availableWidth", availableWidth);
   console.log("availableHeight", availableHeight);
 
@@ -336,9 +344,12 @@ export function generatePuzzlesWithinConstraints(constraints: {
 
   do {
     if (availableWidth < availableHeight) {
+      console.log("fn: generatePuzzlesWithinConstraints -> Generating portrait puzzles");
       let puzzle = {} as Puzzle;
 
       currentPieceSize = availableWidth / n;
+      console.log("currentPieceSize", currentPieceSize);
+      console.log("minimum piece size", MINIMUM_PIECE_SIZE)
 
       const connectorSize = getConnectorSize(currentPieceSize);
       const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
@@ -361,9 +372,13 @@ export function generatePuzzlesWithinConstraints(constraints: {
 
       puzzleConfigs.push(puzzle);
     } else if (availableHeight < availableWidth) {
+      console.log("fn: generatePuzzlesWithinConstraints -> Generating landscape puzzles");
       let puzzle = {} as Puzzle;
 
       currentPieceSize = availableHeight / n;
+
+      console.log("currentPieceSize", currentPieceSize);
+      console.log("minimum piece size", MINIMUM_PIECE_SIZE);
 
       const connectorSize = getConnectorSize(currentPieceSize);
       const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
@@ -386,14 +401,17 @@ export function generatePuzzlesWithinConstraints(constraints: {
 
       puzzleConfigs.push(puzzle);
     } else {
+      console.log("fn: generatePuzzlesWithinConstraints -> Generating a square puzzle ");
       let puzzle = {} as Puzzle;
-
+      
       currentPieceSize = availableHeight / n;
-
+      console.log("currentPieceSize", currentPieceSize);
+      console.log("minimum piece size", MINIMUM_PIECE_SIZE);
+      
       const connectorSize = getConnectorSize(currentPieceSize);
       const connectorDistanceFromCorner = getConnectorDistanceFromCorner(currentPieceSize);
       const pieceSize = connectorDistanceFromCorner * 2 + connectorSize;
-
+      
       puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
 
       // Square puzzles

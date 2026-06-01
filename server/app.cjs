@@ -161,7 +161,6 @@ app.get("/new-image", checkAuthorised, function (req, res) {
 });
 
 app.get("/new-puzzle", checkAuthorised, async function (req, res) {
-  console.log("logged in user: ", req.user)
   res.render("auth/new-puzzle", { user: req.user, layout: "auth/layout" });
 });
 

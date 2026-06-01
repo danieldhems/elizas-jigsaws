@@ -7,9 +7,7 @@ import {
   PuzzleShapes,
 } from "../types";
 import Utils from "../utils";
-import {
-  generatePuzzlesWithinConstraints,
-} from "./puzzleGenerator";
+import { generatePuzzleConfigsWithinConstraints } from "./puzzleGenerator";
 
 export interface SourceImage {
   width: number;
@@ -258,11 +256,18 @@ export default class PuzzlyCreator {
             this.activePuzzleConfigs = this.puzzleConfigs.squarePuzzleConfigs;
           }
 
-          this.PuzzleImpressionOverlay.setImpressions(
-            this.activePuzzleConfigs
-          );
-          this.PuzzleImpressionOverlay.setActiveImpression(
-            this.activePuzzleConfigs[0]
+          // salmon
+
+          const puzzleImpressionOverlayConfig = {
+            targetElement: document.querySelector(".js-impressions-overlay") as HTMLDivElement,
+            puzzles: this.activePuzzleConfigs,
+            selectedPuzzle: this.selectedPuzzleConfig,
+          };
+
+          console.log("puzzleImpressionOverlayConfig", puzzleImpressionOverlayConfig)
+
+          this.PuzzleImpressionOverlay = new PuzzleImpressionOverlay(
+            puzzleImpressionOverlayConfig
           );
           this.updatePuzzleSizeField(this.activePuzzleConfigs);
         }.bind(this)
@@ -309,12 +314,14 @@ export default class PuzzlyCreator {
     //   }.bind(this)
     // );
 
-    this.chkNoDispersal.addEventListener(
-      "input",
-      function (e: InputEvent) {
-        this.debugOptions.noDispersal = (e.target as HTMLInputElement).checked;
-      }.bind(this)
-    );
+    if(this.chkNoDispersal) {
+      this.chkNoDispersal.addEventListener(
+        "input",
+        function (e: InputEvent) {
+          this.debugOptions.noDispersal = (e.target as HTMLInputElement).checked;
+        }.bind(this)
+      );
+    }
 
     window.addEventListener(
       "PuzzlyPuzzleImpressionMoved",
@@ -375,7 +382,7 @@ export default class PuzzlyCreator {
       innerWidth, innerHeight, width, height,
     );
 
-    this.puzzleConfigs = generatePuzzlesWithinConstraints({
+    this.puzzleConfigs = generatePuzzleConfigsWithinConstraints({
       availableWidth: maxWidth,
       availableHeight: maxHeight,
     });
@@ -429,13 +436,9 @@ export default class PuzzlyCreator {
 
     console.log("puzzleImpressionOverlayConfig", puzzleImpressionOverlayConfig)
 
-    if (this.PuzzleImpressionOverlay) {
-      this.PuzzleImpressionOverlay.initiate(puzzleImpressionOverlayConfig)
-    } else {
-      this.PuzzleImpressionOverlay = new PuzzleImpressionOverlay(
-        puzzleImpressionOverlayConfig
-      );
-    }
+    this.PuzzleImpressionOverlay = new PuzzleImpressionOverlay(
+      puzzleImpressionOverlayConfig
+    );
 
     this.imagePreviewEl.classList.remove("d-none");
 
