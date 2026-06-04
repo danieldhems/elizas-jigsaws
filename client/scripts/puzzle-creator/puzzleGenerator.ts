@@ -59,15 +59,15 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       if (currentRow === 0) {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.TopLeftCorner;
-         } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
             piece.pieceType = PieceType.TopSide;
          } else {
             piece.pieceType = PieceType.TopRightCorner;
          }
-      } else if (currentRow < numberOfPiecesVertical - 1) {
+      } else if (currentRow > 0 && currentRow < numberOfPiecesVertical - 2) {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.LeftSide;
-         } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
             piece.pieceType = PieceType.Inner;
          } else {
             piece.pieceType = PieceType.RightSide;
@@ -75,7 +75,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       } else {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.BottomLeftCorner;
-         } else if (currentColumn < numberOfPiecesHorizontal - 1) {
+         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
             piece.pieceType = PieceType.BottomSide;
          } else {
             piece.pieceType = PieceType.BottomRightCorner;
@@ -254,8 +254,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       const pieceAbove = pieces[n - numberOfPiecesHorizontal];
 
       piece.positionInPuzzle = {
-         x: currentColumn * piece.pieceBodySize - (hasLeftPlug ? connectorSize : 0),
-         y: currentRow * piece.pieceBodySize - (hasTopPlug ? connectorSize : 0)
+         x: currentColumn * piece.pieceBodySize,
+         y: currentRow * piece.pieceBodySize
       };
 
       pieces.push(piece);
@@ -269,7 +269,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          numberOfPiecesHorizontal === currentColumn + 1
       );
 
-      if (numberOfPiecesHorizontal === currentColumn + 1) {
+      if (numberOfPiecesHorizontal === currentColumn) {
          currentColumn = 0;
          currentRow++;
       } else {
