@@ -59,26 +59,26 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       if (currentRow === 0) {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.TopLeftCorner;
-         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
-            piece.pieceType = PieceType.TopSide;
-         } else {
+         } else if (currentColumn === numberOfPiecesHorizontal - 1) {
             piece.pieceType = PieceType.TopRightCorner;
+         } else {
+            piece.pieceType = PieceType.TopSide;
          }
       } else if (currentRow > 0 && currentRow < numberOfPiecesVertical - 2) {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.LeftSide;
-         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
-            piece.pieceType = PieceType.Inner;
-         } else {
+         } else if (currentColumn === numberOfPiecesHorizontal - 1) {
             piece.pieceType = PieceType.RightSide;
+         } else {
+            piece.pieceType = PieceType.Inner;
          }
       } else {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.BottomLeftCorner;
-         } else if (currentColumn > 0 && currentColumn < numberOfPiecesHorizontal - 2) {
-            piece.pieceType = PieceType.BottomSide;
-         } else {
+         } else if (currentColumn === numberOfPiecesHorizontal - 1) {
             piece.pieceType = PieceType.BottomRightCorner;
+         } else {
+            piece.pieceType = PieceType.BottomSide;
          }
       }
 
@@ -253,6 +253,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
       const pieceAbove = pieces[n - numberOfPiecesHorizontal];
 
+      console.log('0 * piece.pieceBodySize', 0 * piece.pieceBodySize);
       piece.positionInPuzzle = {
          x: currentColumn * piece.pieceBodySize,
          y: currentRow * piece.pieceBodySize
@@ -263,13 +264,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       console.log('currentColumn', currentColumn);
       console.log('currentRow', currentRow);
       console.log('numberOfPiecesHorizontal', numberOfPiecesHorizontal);
-      console.log('n', n);
-      console.log(
-         'modulo numberOfPiecesHorizontal === (currentColumn + 1)',
-         numberOfPiecesHorizontal === currentColumn + 1
-      );
 
-      if (numberOfPiecesHorizontal === currentColumn) {
+      if (numberOfPiecesHorizontal - 1 === currentColumn) {
          currentColumn = 0;
          currentRow++;
       } else {
