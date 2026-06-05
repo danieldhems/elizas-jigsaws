@@ -40,6 +40,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
    for (let n = 0; n < totalNumberOfPieces; n++) {
       const piece = {} as PuzzlePiece;
 
+      const bodySize = piece.pieceBodySize;
+
       piece.index = n;
 
       if (height <= width || width == height) {
@@ -93,9 +95,18 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
       if (currentRow > 0) {
          const pieceAbove = pieces[n - numberOfPiecesHorizontal];
-         const pieceAboveBottomConnector =
-            pieceAbove.pieceType === PieceType.Inner ? pieceAbove.connectors[2] : pieceAbove.connectors[1];
-         topConnectorType = Utils.getOppositeConnector(pieceAboveBottomConnector.type);
+         let pieceAboveBottomConnector;
+
+         if (pieceAbove.pieceType === PieceType.TopLeftCorner || pieceAbove.pieceType === PieceType.TopSide) {
+            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[1].type);
+         } else if (pieceAbove.pieceType === PieceType.TopRightCorner) {
+            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[0].type);
+         } else if (pieceAbove.pieceType === PieceType.LeftSide || pieceAbove.pieceType === PieceType.Inner) {
+            console.log('pieceAbove', pieceAbove);
+            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+         } else if (pieceAbove.pieceType === PieceType.RightSide) {
+            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+         }
       }
 
       if (currentRow < numberOfPiecesVertical - 1) {
@@ -251,12 +262,9 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       piece.width = pieceWidth;
       piece.height = pieceHeight;
 
-      const pieceAbove = pieces[n - numberOfPiecesHorizontal];
-
-      console.log('0 * piece.pieceBodySize', 0 * piece.pieceBodySize);
       piece.positionInPuzzle = {
-         x: currentColumn * piece.pieceBodySize,
-         y: currentRow * piece.pieceBodySize
+         y: currentRow * piece.pieceBodySize,
+         x: currentColumn * piece.pieceBodySize
       };
 
       pieces.push(piece);
