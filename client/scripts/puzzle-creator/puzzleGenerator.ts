@@ -66,7 +66,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          } else {
             piece.pieceType = PieceType.TopSide;
          }
-      } else if (currentRow > 0 && currentRow < numberOfPiecesVertical - 2) {
+      } else if (currentRow > 0 && currentRow < numberOfPiecesVertical - 1) {
          if (currentColumn === 0) {
             piece.pieceType = PieceType.LeftSide;
          } else if (currentColumn === numberOfPiecesHorizontal - 1) {
@@ -84,33 +84,37 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          }
       }
 
-      if (currentColumn > 0) {
-         const pieceBehind = pieces[n - 1];
-         leftConnectorType = Utils.getOppositeConnector(pieceBehind.connectors[currentRow === 0 ? 0 : 1].type);
-      }
-
       if (currentColumn < numberOfPiecesHorizontal - 1) {
          rightConnectorType = Utils.getRandomConnector();
       }
 
-      if (currentRow > 0) {
-         const pieceAbove = pieces[n - numberOfPiecesHorizontal];
-         let pieceAboveBottomConnector;
+      if (currentRow < numberOfPiecesVertical - 1) {
+         bottomConnectorType = Utils.getRandomConnector();
+      }
 
-         if (pieceAbove.pieceType === PieceType.TopLeftCorner || pieceAbove.pieceType === PieceType.TopSide) {
-            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[1].type);
-         } else if (pieceAbove.pieceType === PieceType.TopRightCorner) {
-            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[0].type);
-         } else if (pieceAbove.pieceType === PieceType.LeftSide || pieceAbove.pieceType === PieceType.Inner) {
-            console.log('pieceAbove', pieceAbove);
-            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
-         } else if (pieceAbove.pieceType === PieceType.RightSide) {
-            pieceAboveBottomConnector = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+      if (currentColumn > 0) {
+         const pieceBehind = pieces[n - 1];
+
+         if (currentRow === 0) {
+            leftConnectorType = Utils.getOppositeConnector(pieceBehind.connectors[0].type);
+         } else {
+            leftConnectorType = Utils.getOppositeConnector(pieceBehind.connectors[1].type);
          }
       }
 
-      if (currentRow < numberOfPiecesVertical - 1) {
-         bottomConnectorType = Utils.getRandomConnector();
+      if (currentRow > 0) {
+         const pieceAbove = pieces[n - numberOfPiecesHorizontal];
+
+         if (pieceAbove.pieceType === PieceType.TopLeftCorner || pieceAbove.pieceType === PieceType.TopSide) {
+            topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[1].type);
+         } else if (pieceAbove.pieceType === PieceType.TopRightCorner) {
+            topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[0].type);
+         } else if (pieceAbove.pieceType === PieceType.LeftSide || pieceAbove.pieceType === PieceType.Inner) {
+            console.log('pieceAbove', pieceAbove);
+            topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+         } else if (pieceAbove.pieceType === PieceType.RightSide) {
+            topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
+         }
       }
 
       piece.numPiecesFromLeftEdge = currentRow;
@@ -141,6 +145,9 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
          const controlPoints = connector.geometry.controlPoints;
          const destinationPoint = connector.geometry.destinationPoint;
+
+         // FIX: Incomplete / missing logic for SVG path starting point based on connector presence and type...
+         // Need to account for presence of left connector if current piece is not a left side piece.
 
          svgString += `M ${connectorSize} ${connectorSize} `;
          svgString += `h ${connectorDistanceFromCorner} `;
@@ -235,13 +242,9 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       let pieceHeight = piece.pieceBodySize;
 
       const hasTopPlug = topConnectorType === ConnectorType.Plug;
-      const hasTopSocket = topConnectorType === ConnectorType.Socket;
       const hasRightPlug = rightConnectorType === ConnectorType.Plug;
-      const hasRightSocket = rightConnectorType === ConnectorType.Socket;
       const hasBottomPlug = bottomConnectorType === ConnectorType.Plug;
-      const hasBottomSocket = bottomConnectorType === ConnectorType.Socket;
       const hasLeftPlug = leftConnectorType === ConnectorType.Plug;
-      const hasLeftSocket = leftConnectorType === ConnectorType.Socket;
 
       if (hasTopPlug) {
          pieceHeight += connectorSize;
@@ -263,8 +266,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       piece.height = pieceHeight;
 
       piece.positionInPuzzle = {
-         y: currentRow * piece.pieceBodySize,
-         x: currentColumn * piece.pieceBodySize
+         x: currentColumn * piece.pieceBodySize,
+         y: currentRow * piece.pieceBodySize
       };
 
       pieces.push(piece);
@@ -272,6 +275,9 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       console.log('currentColumn', currentColumn);
       console.log('currentRow', currentRow);
       console.log('numberOfPiecesHorizontal', numberOfPiecesHorizontal);
+      console.log('numberOfPiecesVertical', numberOfPiecesVertical);
+      console.log('totalNumberOfPieces', totalNumberOfPieces);
+      console.log('n', n);
 
       if (numberOfPiecesHorizontal - 1 === currentColumn) {
          currentColumn = 0;
