@@ -148,13 +148,29 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
          // FIX: Incomplete / missing logic for SVG path starting point based on connector presence and type...
          // Need to account for presence of left connector if current piece is not a left side piece.
+         let initialX = 0;
+         let initialY = 0;
 
-         svgString += `M ${connectorSize} ${connectorSize} `;
+         if (leftConnectorType === ConnectorType.Plug) {
+            initialX += connectorSize;
+         }
+
+         if (topConnectorType === ConnectorType.Plug) {
+            initialY += connectorSize;
+         }
+
+         svgString += `M ${initialX} ${initialY} `;
          svgString += `h ${connectorDistanceFromCorner} `;
          svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
          svgString += `h ${connectorDistanceFromCorner} `;
       } else {
-         svgString += `M 0 0 `;
+         let initialX = 0;
+
+         if (leftConnectorType === ConnectorType.Plug) {
+            initialX += connectorSize;
+         }
+
+         svgString += `M ${initialX} 0 `;
          svgString += `h ${piece.pieceBodySize} `;
       }
 
@@ -265,9 +281,21 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       piece.width = pieceWidth;
       piece.height = pieceHeight;
 
+      let positionInPuzzleX = currentColumn * piece.pieceBodySize;
+      let positionInPuzzleY = currentRow * piece.pieceBodySize;
+
+      console.log('connectors', piece.connectors);
+      if (currentColumn > 0 && piece.connectors[piece.connectors.length - 1].type === ConnectorType.Plug) {
+         positionInPuzzleX -= connectorSize;
+      }
+
+      if (currentRow > 0 && piece.connectors[0].type === ConnectorType.Plug) {
+         positionInPuzzleY -= connectorSize;
+      }
+
       piece.positionInPuzzle = {
-         x: currentColumn * piece.pieceBodySize,
-         y: currentRow * piece.pieceBodySize
+         x: positionInPuzzleX,
+         y: positionInPuzzleY
       };
 
       pieces.push(piece);

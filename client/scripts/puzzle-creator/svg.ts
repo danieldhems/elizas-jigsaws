@@ -1,66 +1,66 @@
-import { SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX, SVG_NAMESPACE, SVG_SHADOW_COLOR, SVG_STROKE_COLOR, SVG_STROKE_WIDTH } from "../constants";
-import jigsawPath from "../puzzle-main/jigsawPath";
-import { ConnectorType, PieceType, PuzzlePiece } from "../types";
-import Utils from "../utils";
+import {
+   SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX,
+   SVG_NAMESPACE,
+   SVG_SHADOW_COLOR,
+   SVG_STROKE_COLOR,
+   SVG_STROKE_WIDTH
+} from '../constants';
+import { PuzzlePiece } from '../types';
 
 export function getSvg(
-    id: string,
-    pieces: PuzzlePiece[],
-    imagePath: string,
-    options: {
-        svgWidth: number,
-        svgHeight: number,
-        imageWidth: number;
-        imageHeight: number;
-        svgPosition?: {
-            x: number;
-            y: number;
-        },
-        isGroup?: boolean;
-        viewbox: string,
-        imagePosition?: {
-            x: number;
-            y: number;
-        },
-    }
+   id: string,
+   pieces: PuzzlePiece[],
+   imagePath: string,
+   options: {
+      svgWidth: number;
+      svgHeight: number;
+      imageWidth: number;
+      imageHeight: number;
+      svgPosition?: {
+         x: number;
+         y: number;
+      };
+      isGroup?: boolean;
+      viewbox: string;
+      imagePosition?: {
+         x: number;
+         y: number;
+      };
+   }
 ): string {
-    const {
-        svgWidth,
-        svgHeight,
-        imageWidth,
-        imageHeight,
-        viewbox,
-        imagePosition,
-    } = options;
+   const { svgWidth, svgHeight, imageWidth, imageHeight, viewbox, imagePosition } = options;
 
-    const imgPosition = {
-        x: imagePosition?.x || 0,
-        y: imagePosition?.y || 0,
-    };
+   const imgPosition = {
+      x: imagePosition?.x || 0,
+      y: imagePosition?.y || 0
+   };
 
-    // TODO Bad name
-    const clipId = `clip-${id}`;
+   // TODO Bad name
+   const clipId = `clip-${id}`;
 
-    let pathElementsForDefs: string = "";
-    let useElementsForClip: string = "";
-    let useElementsForShadow: string = "";
-    let useElementsForStroke: string = "";
+   let pathElementsForDefs: string = '';
+   let useElementsForClip: string = '';
+   let useElementsForShadow: string = '';
+   let useElementsForStroke: string = '';
+   let guideLine: string = '';
 
-    for (let i = 0, l = pieces.length; i < l; i++) {
-        const piece = pieces[i];
-        const { positionInPuzzle, pathString } = this.getAttributesForPiece(piece);
+   for (let i = 0, l = pieces.length; i < l; i++) {
+      const piece = pieces[i];
+      const { positionInPuzzle, pathString } = this.getAttributesForPiece(piece);
 
-        const shapeId = `shape-${i}`;
-        const xPosition = pieces.length > 1 ? positionInPuzzle.x : 0;
-        const yPosition = pieces.length > 1 ? positionInPuzzle.y : 0;
+      const shapeId = `shape-${i}`;
+      const xPosition = pieces.length > 1 ? positionInPuzzle.x : 0;
+      const yPosition = pieces.length > 1 ? positionInPuzzle.y : 0;
 
-        pathElementsForDefs += `<path id="path-${shapeId}" d="${pathString}"></path>`;
-        useElementsForClip += `<use href="#path-${shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
-        useElementsForShadow += `<use id="shadow-${shapeId}" href="#path-${shapeId}" x="${xPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}" y="${yPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}" fill="${SVG_SHADOW_COLOR}"></use>`
-        useElementsForStroke += `<use id="path-${shapeId}"   href="#path-${shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${piece.index}"></use>`
-    }
+      pathElementsForDefs += `<path id="path-${shapeId}" d="${pathString}"></path>`;
+      useElementsForClip += `<use href="#path-${shapeId}" x="${xPosition}" y="${yPosition}"></use>`;
+      useElementsForShadow += `<use id="shadow-${shapeId}" href="#path-${shapeId}" x="${
+         xPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX
+      }" y="${yPosition + SHADOW_DISTANCE_FROM_PUZZLE_PIECE_IN_PX}" fill="${SVG_SHADOW_COLOR}"></use>`;
+      useElementsForStroke += `<use id="path-${shapeId}"   href="#path-${shapeId}" fill="none" stroke="${SVG_STROKE_COLOR}" stroke-width="${SVG_STROKE_WIDTH}" x="${xPosition}" y="${yPosition}" pointer-events="visibleFill" data-piece-index="${piece.index}"></use>`;
+   }
 
-    return `
+   return `
       <svg xmlns="${SVG_NAMESPACE}" width="${svgWidth}" height="${svgHeight}" viewBox="${viewbox}" class="puzzle-piece-group-svg">
         <defs>
             ${pathElementsForDefs}
@@ -83,20 +83,18 @@ export function getSvg(
     `;
 }
 
-export function getAttributesForPiece(
-    piece: PuzzlePiece,
-) {
-    const { index, positionInPuzzle, width, height } = piece;
+export function getAttributesForPiece(piece: PuzzlePiece) {
+   const { index, positionInPuzzle, width, height } = piece;
 
-    return {
-        index,
-        shapeId: `shape-${index}`,
-        // pathString: getJigsawShapeSvgString(piece),
-        width,
-        height,
-        positionInPuzzleX: positionInPuzzle.x,
-        positionInPuzzley: positionInPuzzle.y,
-    };
+   return {
+      index,
+      shapeId: `shape-${index}`,
+      // pathString: getJigsawShapeSvgString(piece),
+      width,
+      height,
+      positionInPuzzleX: positionInPuzzle.x,
+      positionInPuzzley: positionInPuzzle.y
+   };
 }
 
 /**
