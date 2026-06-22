@@ -42,7 +42,6 @@ export function getSvg(
    let useElementsForClip: string = '';
    let useElementsForShadow: string = '';
    let useElementsForStroke: string = '';
-   let guideLine: string = '';
 
    for (let i = 0, l = pieces.length; i < l; i++) {
       const piece = pieces[i];

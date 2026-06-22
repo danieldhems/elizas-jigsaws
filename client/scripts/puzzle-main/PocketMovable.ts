@@ -1,277 +1,254 @@
-import BaseMovable from "./BaseMovable";
-import { EVENT_TYPES } from "../constants";
-import Puzzly from "./Puzzly";
-import SingleMovable from "./SingleMovable";
-import { InstanceTypes, MovableElement } from "../types";
-import Utils from "../utils";
+import { EVENT_TYPES } from '../constants';
+import { InstanceTypes, MovableElement } from '../types';
+import Utils from '../utils';
+import BaseMovable from './BaseMovable';
+import Puzzly from './Puzzly';
+import SingleMovable from './SingleMovable';
 
 export class PocketMovable extends BaseMovable {
-  instanceType = InstanceTypes.PocketMovable;
-  piecesInPocket: SingleMovable[];
-  activePocket?: HTMLDivElement;
-  activePocketInnerElement = null;
-  diffX: number;
-  diffY: number;
+   instanceType = InstanceTypes.PocketMovable;
+   piecesInPocket: SingleMovable[];
+   declare activePocket?: HTMLDivElement;
+   activePocketInnerElement = null;
+   declare diffX: number;
+   declare diffY: number;
 
-  constructor(puzzleData: Puzzly) {
-    super(puzzleData);
+   constructor(puzzleData: Puzzly) {
+      super(puzzleData);
 
-    this.puzzleId = puzzleData.puzzleId;
+      this.puzzleId = puzzleData.puzzleId;
 
-    window.Puzzly.Pockets.container.addEventListener(
-      "mousedown",
-      this.onMouseDown.bind(this)
-    );
+      window.Puzzly.Pockets.container.addEventListener('mousedown', this.onMouseDown.bind(this));
 
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-  }
+      this.onMouseMove = this.onMouseMove.bind(this);
+      this.onMouseUp = this.onMouseUp.bind(this);
+   }
 
-  onMouseDown(event: MouseEvent) {
-    if (event.button === 0) {
-      const element = Utils.getPuzzlePieceElementFromEvent(event);
-      if (element) {
-        this.active = true;
-        this.activePocket = this.getPocketByCollision(Utils.getEventBox(event));
+   onMouseDown(event: MouseEvent) {
+      if (event.button === 0) {
+         const element = Utils.getPuzzlePieceElementFromEvent(event);
+         if (element) {
+            this.active = true;
+            this.activePocket = this.getPocketByCollision(Utils.getEventBox(event));
 
-        if (this.activePocket) {
-          this.piecesInPocket =
-            this.getPiecesInActivePocket();
-          if (this.piecesInPocket.length > 0) {
-            this.element = this.getMovingElementForActivePocket(event);
+            if (this.activePocket) {
+               this.piecesInPocket = this.getPiecesInActivePocket();
+               if (this.piecesInPocket.length > 0) {
+                  this.element = this.getMovingElementForActivePocket(event);
 
-            this.piecesInPocket.forEach((piece) => piece.element.style.scale = "1")
+                  this.piecesInPocket.forEach(piece => (piece.element.style.scale = '1'));
 
-            const mousePosition = {
-              top: event.clientY,
-              left: event.clientX,
-            };
+                  const mousePosition = {
+                     top: event.clientY,
+                     left: event.clientX
+                  };
 
-            // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
-            // TODO: Shouldn't be accessing the zoomLevel on a global like this.
-            this.diffX =
-              mousePosition.left -
-              parseInt(this.element.style.left) * window.Zoom.zoomLevel;
-            this.diffY =
-              mousePosition.top -
-              parseInt(this.element.style.top) * window.Zoom.zoomLevel;
+                  // Apply the zoomLevel to everything except for the play boundary (all other movables are children of this)
+                  // TODO: Shouldn't be accessing the zoomLevel on a global like this.
+                  this.diffX = mousePosition.left - parseInt(this.element.style.left) * window.Zoom.zoomLevel;
+                  this.diffY = mousePosition.top - parseInt(this.element.style.top) * window.Zoom.zoomLevel;
 
-            window.Puzzly.keepOnTop(this.element);
+                  window.Puzzly.keepOnTop(this.element);
 
-            (
-              this.activePocket.querySelector(".pocket-inner") as HTMLDivElement
-            ).prepend(this.element);
-          }
-        }
+                  (this.activePocket.querySelector('.pocket-inner') as HTMLDivElement).prepend(this.element);
+               }
+            }
 
-        this.element.addEventListener('mousemove', this.onMouseMove)
-        this.element.addEventListener('mouseup', this.onMouseUp)
+            this.element.addEventListener('mousemove', this.onMouseMove);
+            this.element.addEventListener('mouseup', this.onMouseUp);
+         }
       }
-    }
-  }
+   }
 
-  onMouseMove(event: MouseEvent) {
-    let newPosTop, newPosLeft;
+   onMouseMove(event: MouseEvent) {
+      let newPosTop, newPosLeft;
 
-    newPosTop =
-      event.clientY / window.Zoom.zoomLevel -
-      this.diffY / window.Zoom.zoomLevel;
-    newPosLeft =
-      event.clientX / window.Zoom.zoomLevel -
-      this.diffX / window.Zoom.zoomLevel;
+      newPosTop = event.clientY / window.Zoom.zoomLevel - this.diffY / window.Zoom.zoomLevel;
+      newPosLeft = event.clientX / window.Zoom.zoomLevel - this.diffX / window.Zoom.zoomLevel;
 
-    this.element.style.top = newPosTop + "px";
-    this.element.style.left = newPosLeft + "px";
-  }
+      this.element.style.top = newPosTop + 'px';
+      this.element.style.left = newPosLeft + 'px';
+   }
 
-  onMouseUp(event: MouseEvent) {
-    if (this.active) {
-      if (this.isInsidePlayArea() && !this.isOverPockets(event)) {
-        this.addToStage();
-      } else if (this.isOverPockets(event)) {
-        const pocket = this.getPocketByCollision(Utils.getEventBox(event));
-        window.Puzzly.Pockets.addManyToPocket(pocket as HTMLDivElement, this);
+   onMouseUp(event: MouseEvent) {
+      if (this.active) {
+         if (this.isInsidePlayArea() && !this.isOverPockets(event)) {
+            this.addToStage();
+         } else if (this.isOverPockets(event)) {
+            const pocket = this.getPocketByCollision(Utils.getEventBox(event));
+            window.Puzzly.Pockets.addManyToPocket(pocket as HTMLDivElement, this);
 
-        fetch('/api/puzzle/updatePieces', {
-          method: 'PUT',
-          headers: {
-            "Content-Type": "Application/json",
-          },
-          body: JSON.stringify({
-            pieces: this.piecesInPocket.map((piece) => piece.getDataForSave()),
-            puzzleId: this.puzzleId,
-          }),
-        }).then(res => res.json())
-          .then((response) => {
-            // console.log('/api/puzzle/createPieces response', response);
-          });
-      } else if (!this.isInsidePlayArea() && !this.isOverPockets(event)) {
-        window.Puzzly.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
+            fetch('/api/puzzle/updatePieces', {
+               method: 'PUT',
+               headers: {
+                  'Content-Type': 'Application/json'
+               },
+               body: JSON.stringify({
+                  pieces: this.piecesInPocket.map(piece => piece.getDataForSave()),
+                  puzzleId: this.puzzleId
+               })
+            })
+               .then(res => res.json())
+               .then(response => {
+                  // console.log('/api/puzzle/createPieces response', response);
+               });
+         } else if (!this.isInsidePlayArea() && !this.isOverPockets(event)) {
+            window.Puzzly.Pockets.addManyToPocket(this.activePocket as HTMLDivElement, this);
+         }
+
+         this.element.removeEventListener('mousemove', this.onMouseMove);
+         this.element.removeEventListener('mouseup', this.onMouseUp);
+
+         this.save();
       }
+   }
 
-      this.element.removeEventListener('mousemove', this.onMouseMove);
-      this.element.removeEventListener('mouseup', this.onMouseUp);
+   // Create a container for all the pieces in a given pocket with the pieces arranged in a grid.
+   // This container will be set as the movingElement.
+   getMovingElementForActivePocket(event: MouseEvent) {
+      const container = document.createElement('div');
+      container.id = 'active-pieces-container';
+      // container.style.border = "1px solid white";
+      container.style.position = 'absolute';
 
-      this.save();
-    }
-  }
+      const rowLength = this.piecesInPocket.length > 2 ? Math.ceil(Math.sqrt(this.piecesInPocket.length)) : 2;
 
-  // Create a container for all the pieces in a given pocket with the pieces arranged in a grid.
-  // This container will be set as the movingElement.
-  getMovingElementForActivePocket(event: MouseEvent) {
-    const container = document.createElement("div");
-    container.id = "active-pieces-container";
-    // container.style.border = "1px solid white";
-    container.style.position = "absolute";
+      let currX = 0,
+         currY = 0;
+      let colNumber = 1;
+      let numRows = 0;
+      let maxX = 0,
+         maxY = 0,
+         nextRowY = 0;
 
-    const rowLength =
-      this.piecesInPocket.length > 2
-        ? Math.ceil(Math.sqrt(this.piecesInPocket.length))
-        : 2;
+      let firstPieceOnRow = this.piecesInPocket[0].element;
 
-    let currX = 0,
-      currY = 0;
-    let colNumber = 1;
-    let numRows = 0;
-    let maxX = 0,
-      maxY = 0,
-      nextRowY = 0;
+      for (let i = 0, l = this.piecesInPocket.length; i < l; i++) {
+         const el = this.piecesInPocket[i].element;
 
-    let firstPieceOnRow = this.piecesInPocket[0].element;
+         el.style.top = currY + 'px';
+         el.style.left = currX + 'px';
 
-    for (let i = 0, l = this.piecesInPocket.length; i < l; i++) {
-      const el = this.piecesInPocket[i].element;
+         // const box = el.getBoundingClientRect();
+         // const box = Utils.getStyleBoundingBox(el);
+         const box = {
+            top: el.offsetTop,
+            right: el.offsetLeft + el.offsetWidth,
+            bottom: el.offsetTop + el.offsetHeight,
+            left: el.offsetLeft,
+            width: el.offsetWidth,
+            height: el.offsetHeight
+         };
 
-      el.style.top = currY + "px";
-      el.style.left = currX + "px";
+         if (currX + box.width > maxX) {
+            maxX = currX + box.width;
+         }
 
-      // const box = el.getBoundingClientRect();
-      // const box = Utils.getStyleBoundingBox(el);
-      const box = {
-        top: el.offsetTop,
-        right: el.offsetLeft + el.offsetWidth,
-        bottom: el.offsetTop + el.offsetHeight,
-        left: el.offsetLeft,
-        width: el.offsetWidth,
-        height: el.offsetHeight,
-      };
+         if (maxY === 0) {
+            maxY = box.height;
+         }
 
-      if (currX + box.width > maxX) {
-        maxX = currX + box.width;
-      }
+         if (currY + box.height > maxY) {
+            maxY = currY + box.height;
+         }
 
-      if (maxY === 0) {
-        maxY = box.height;
-      }
+         currX += box.width + (box.width / 100) * 2;
 
-      if (currY + box.height > maxY) {
-        maxY = currY + box.height;
-      }
+         if (currY + box.height > nextRowY) {
+            nextRowY = currY + box.height + (box.height / 100) * 2;
+         }
 
-      currX += box.width + (box.width / 100) * 2;
+         if (colNumber === rowLength) {
+            currY = nextRowY;
+            currX = 0;
+            colNumber = 1;
+            numRows++;
 
-      if (currY + box.height > nextRowY) {
-        nextRowY = currY + box.height + (box.height / 100) * 2;
+            firstPieceOnRow = el;
+         } else {
+            colNumber++;
+         }
+
+         container.appendChild(el);
       }
 
-      if (colNumber === rowLength) {
-        currY = nextRowY;
-        currX = 0;
-        colNumber = 1;
-        numRows++;
+      container.style.width = maxX + 'px';
+      container.style.height = maxY + 'px';
 
-        firstPieceOnRow = el;
-      } else {
-        colNumber++;
-      }
+      const pocketBox = (this.activePocket as HTMLDivElement).getBoundingClientRect();
 
-      container.appendChild(el);
-    }
+      const x = event.clientX - pocketBox.left - maxX / 2;
+      const y = event.clientY - pocketBox.top - maxY / 2;
 
-    container.style.width = maxX + "px";
-    container.style.height = maxY + "px";
+      container.style.top = y + 'px';
+      container.style.left = x + 'px';
 
-    const pocketBox = (
-      this.activePocket as HTMLDivElement
-    ).getBoundingClientRect();
+      return container;
+   }
 
-    const x = event.clientX - pocketBox.left - maxX / 2;
-    const y = event.clientY - pocketBox.top - maxY / 2;
+   getPiecesInActivePocket() {
+      const pieceElements = (this.activePocket as HTMLDivElement).querySelectorAll('.pocket-inner .puzzle-piece');
 
-    container.style.top = y + "px";
-    container.style.left = x + "px";
+      const instances = Array.from(pieceElements).map(el =>
+         this.getMovableInstanceFromElement(el as MovableElement)
+      ) as SingleMovable[];
 
-    return container;
-  }
+      return instances;
+   }
 
-  getPiecesInActivePocket() {
-    const pieceElements = (this.activePocket as HTMLDivElement).querySelectorAll(
-      ".pocket-inner .puzzle-piece"
-    );
+   addToStage() {
+      this.piecesInPocket.forEach((instance: SingleMovable) => {
+         const element = instance.element;
+         const playboundaryRect = (window.Puzzly.piecesContainer as HTMLDivElement).getBoundingClientRect();
+         const elRect = element.getBoundingClientRect();
 
-    const instances = Array
-      .from(pieceElements)
-      .map(el => this.getMovableInstanceFromElement(el as MovableElement)) as SingleMovable[];
+         const pos = {
+            x: elRect.left - playboundaryRect.left,
+            y: elRect.top - playboundaryRect.top
+         };
 
-    return instances;
-  }
+         element.style.top = pos.y + 'px';
+         element.style.left = pos.x + 'px';
 
-  addToStage() {
-    this.piecesInPocket.forEach((instance: SingleMovable) => {
-      const element = instance.element;
-      const playboundaryRect = (
-        window.Puzzly.piecesContainer as HTMLDivElement
-      ).getBoundingClientRect();
-      const elRect = element.getBoundingClientRect();
+         element.classList.remove('in-pocket');
+         element.style.pointerEvents = 'auto';
 
-      const pos = {
-        x: elRect.left - playboundaryRect.left,
-        y: elRect.top - playboundaryRect.top,
-      };
-
-      element.style.top = pos.y + "px";
-      element.style.left = pos.x + "px";
-
-      element.classList.remove("in-pocket");
-      element.style.pointerEvents = "auto";
-
-      instance.pocketId = null;
-      instance.addToStage();
-      instance.setLastPosition();
-      instance.startListening();
-    });
-
-    fetch('/api/puzzle/updatePieces', {
-      method: 'PUT',
-      headers: {
-        "Content-Type": "Application/json",
-      },
-      body: JSON.stringify({
-        pieces: this.piecesInPocket.map((piece) => piece.getDataForSave()),
-        puzzleId: this.puzzleId,
-      }),
-    }).then(res => res.json())
-      .then((response) => {
-        // console.log('/api/puzzle/createPieces response', response);
+         instance.pocketId = null;
+         instance.addToStage();
+         instance.setLastPosition();
+         instance.startListening();
       });
-  }
 
-  getDataForSave() {
-    return this.piecesInPocket.map((instance: SingleMovable) => instance.getDataForSave());
-  }
+      fetch('/api/puzzle/updatePieces', {
+         method: 'PUT',
+         headers: {
+            'Content-Type': 'Application/json'
+         },
+         body: JSON.stringify({
+            pieces: this.piecesInPocket.map(piece => piece.getDataForSave()),
+            puzzleId: this.puzzleId
+         })
+      })
+         .then(res => res.json())
+         .then(response => {
+            // console.log('/api/puzzle/createPieces response', response);
+         });
+   }
 
-  save() {
-    if (this.active) {
-      window.dispatchEvent(
-        new CustomEvent(EVENT_TYPES.SAVE, { detail: this.getDataForSave() })
-      );
-      this.destroy();
-    }
-  }
+   getDataForSave() {
+      return this.piecesInPocket.map((instance: SingleMovable) => instance.getDataForSave());
+   }
 
-  destroy() {
-    this.element.remove();
-    this.active = false;
-    this.piecesInPocket = [];
-  }
+   save() {
+      if (this.active) {
+         window.dispatchEvent(new CustomEvent(EVENT_TYPES.SAVE, { detail: this.getDataForSave() }));
+         this.destroy();
+      }
+   }
+
+   destroy() {
+      this.element.remove();
+      this.active = false;
+      this.piecesInPocket = [];
+   }
 }

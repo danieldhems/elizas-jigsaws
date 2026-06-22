@@ -30,28 +30,29 @@ export const getConnectorTolerance = (connectorSize: number) => {
 export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
    let pieces: PuzzlePiece[] = [];
 
-   const { totalNumberOfPieces, numberOfPiecesHorizontal, numberOfPiecesVertical, width, height } = puzzle;
+   const {
+      totalNumberOfPieces,
+      numberOfPiecesHorizontal,
+      numberOfPiecesVertical,
+      pieceBodySize,
+      connectorSize,
+      connectorDistanceFromCorner,
+      width,
+      height
+   } = puzzle;
+
+   console.log('puzzle data', puzzle);
 
    let currentRow = 0;
    let currentColumn = 0;
 
    console.log('total number of pieces', totalNumberOfPieces);
 
+   // salmon
    for (let n = 0; n < totalNumberOfPieces; n++) {
       const piece = {} as PuzzlePiece;
 
-      const bodySize = piece.pieceBodySize;
-
       piece.index = n;
-
-      if (height <= width || width == height) {
-         piece.pieceBodySize = width / numberOfPiecesHorizontal;
-      } else {
-         piece.pieceBodySize = height / numberOfPiecesVertical;
-      }
-
-      const connectorSize = getConnectorSize(piece.pieceBodySize);
-      const connectorDistanceFromCorner = (piece.pieceBodySize / 100) * SHOULDER_SIZE_PERC;
 
       let topConnectorType: ConnectorType | null = null;
       let rightConnectorType: ConnectorType | null = null;
@@ -110,7 +111,6 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          } else if (pieceAbove.pieceType === PieceType.TopRightCorner) {
             topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[0].type);
          } else if (pieceAbove.pieceType === PieceType.LeftSide || pieceAbove.pieceType === PieceType.Inner) {
-            console.log('pieceAbove', pieceAbove);
             topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
          } else if (pieceAbove.pieceType === PieceType.RightSide) {
             topConnectorType = Utils.getOppositeConnector(pieceAbove.connectors[2].type);
@@ -122,7 +122,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
       piece.connectors = [];
 
-      const path = new JigsawPath(piece.pieceBodySize, connectorSize);
+      const path = new JigsawPath(pieceBodySize, connectorSize);
 
       // Initialise svg path string
       let svgString = '';
@@ -136,7 +136,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
             type: topConnectorType,
             atDegrees: 90,
             isConnected: false,
-            connectorSize,
+            connectorSize: connectorSize,
             geometry: JigsawPath.getRotatedCubicBezierCurve(geometry, 0),
             distanceFromCorner: connectorDistanceFromCorner
          } as Connector;
@@ -171,7 +171,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          }
 
          svgString += `M ${initialX} 0 `;
-         svgString += `h ${piece.pieceBodySize} `;
+         svgString += `h ${pieceBodySize} `;
       }
 
       if (rightConnectorType !== null) {
@@ -197,7 +197,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
          svgString += `v ${connectorDistanceFromCorner} `;
       } else {
-         svgString += `v ${piece.pieceBodySize} `;
+         svgString += `v ${pieceBodySize} `;
       }
 
       if (bottomConnectorType !== null) {
@@ -224,7 +224,7 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
          svgString += `c ${controlPoints[0].x} ${controlPoints[0].y}, ${controlPoints[1].x} ${controlPoints[1].y}, ${destinationPoint.x} ${destinationPoint.y} `;
          svgString += `h -${connectorDistanceFromCorner}`;
       } else {
-         svgString += `h -${piece.pieceBodySize}`;
+         svgString += `h -${pieceBodySize}`;
       }
 
       if (leftConnectorType !== null) {
@@ -254,8 +254,8 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
       piece.svgString = svgString;
 
-      let pieceWidth = piece.pieceBodySize;
-      let pieceHeight = piece.pieceBodySize;
+      let pieceWidth = pieceBodySize;
+      let pieceHeight = pieceBodySize;
 
       const hasTopPlug = topConnectorType === ConnectorType.Plug;
       const hasRightPlug = rightConnectorType === ConnectorType.Plug;
@@ -281,10 +281,9 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
       piece.width = pieceWidth;
       piece.height = pieceHeight;
 
-      let positionInPuzzleX = currentColumn * piece.pieceBodySize;
-      let positionInPuzzleY = currentRow * piece.pieceBodySize;
+      let positionInPuzzleX = currentColumn * pieceBodySize;
+      let positionInPuzzleY = currentRow * pieceBodySize;
 
-      console.log('connectors', piece.connectors);
       if (currentColumn > 0 && piece.connectors[piece.connectors.length - 1].type === ConnectorType.Plug) {
          positionInPuzzleX -= connectorSize;
       }
@@ -300,23 +299,12 @@ export const generatePieces = (puzzle: Puzzle): PuzzlePiece[] => {
 
       pieces.push(piece);
 
-      console.log('currentColumn', currentColumn);
-      console.log('currentRow', currentRow);
-      console.log('numberOfPiecesHorizontal', numberOfPiecesHorizontal);
-      console.log('numberOfPiecesVertical', numberOfPiecesVertical);
-      console.log('totalNumberOfPieces', totalNumberOfPieces);
-      console.log('n', n);
-
       if (numberOfPiecesHorizontal - 1 === currentColumn) {
          currentColumn = 0;
          currentRow++;
       } else {
          currentColumn++;
       }
-
-      console.log('current piece', piece);
-      console.log('pieces', pieces);
-      console.log('done');
    }
 
    return pieces;
@@ -366,10 +354,9 @@ export function generatePuzzleConfigsWithinConstraints(constraints: {
 
    let puzzle = {} as Puzzle;
 
+   // trout
    do {
       if (availableWidth < availableHeight) {
-         console.log('fn: generatePuzzlesWithinConstraints -> Generating portrait puzzles');
-
          currentPieceSize = availableWidth / n;
          console.log('currentPieceSize', currentPieceSize);
          console.log('minimum piece size', MINIMUM_PIECE_SIZE);
@@ -381,6 +368,9 @@ export function generatePuzzleConfigsWithinConstraints(constraints: {
          const numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(availableHeight, pieceSize);
 
          puzzle.orientation = PuzzleOrientation.Portrait;
+         puzzle.pieceBodySize = pieceSize;
+         puzzle.connectorSize = connectorSize;
+         puzzle.connectorDistanceFromCorner = connectorDistanceFromCorner;
          puzzle.numberOfPiecesHorizontal = n;
          puzzle.numberOfPiecesVertical = numberOfPiecesOnLongSide;
          puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
@@ -389,6 +379,7 @@ export function generatePuzzleConfigsWithinConstraints(constraints: {
          puzzle.percentageOfImageUsedHorizontal = (puzzle.width / availableWidth) * 100;
          puzzle.percentageOfImageUsedVertical = (puzzle.height / availableHeight) * 100;
          puzzle.pieces = generatePieces(puzzle);
+         console.log('portrait puzzle generated', puzzle);
       } else if (availableHeight < availableWidth) {
          console.log('fn: generatePuzzlesWithinConstraints -> Generating landscape puzzles');
 
@@ -404,6 +395,9 @@ export function generatePuzzleConfigsWithinConstraints(constraints: {
          const numberOfPiecesOnLongSide = getNumberOfPiecesForAdjacentSideByPieceSize(availableHeight, pieceSize);
 
          puzzle.orientation = PuzzleOrientation.Landscape;
+         puzzle.pieceBodySize = pieceSize;
+         puzzle.connectorSize = connectorSize;
+         puzzle.connectorDistanceFromCorner = connectorDistanceFromCorner;
          puzzle.numberOfPiecesHorizontal = numberOfPiecesOnLongSide;
          puzzle.numberOfPiecesVertical = n;
          puzzle.totalNumberOfPieces = puzzle.numberOfPiecesHorizontal * puzzle.numberOfPiecesVertical;
@@ -428,6 +422,9 @@ export function generatePuzzleConfigsWithinConstraints(constraints: {
          // Square puzzles
          puzzle = {
             orientation: PuzzleOrientation.Square,
+            pieceBodySize: pieceSize,
+            connectorSize: connectorSize,
+            connectorDistanceFromCorner: connectorDistanceFromCorner,
             numberOfPiecesHorizontal: n,
             numberOfPiecesVertical: n,
             totalNumberOfPieces: n * n,
