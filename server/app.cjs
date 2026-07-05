@@ -193,12 +193,12 @@ app.get("/test", function (req, res) {
 });
 
 app.get("/", checkAuthorised, async function (req, res) {
-  const imagesCollection = db.collection("images");
-  const images = await imagesCollection.find({ userId: req.user._id }).toArray();
-  const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
-  const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
-  console.log("puzzle data", puzzles[0])
-  res.render("auth/home", { user: req.user, puzzles, images, layout: "auth/layout" });
+  // const imagesCollection = db.collection("images");
+  // const images = await imagesCollection.find({ userId: req.user._id }).toArray();
+  // const puzzlesCollection = db.collection(PUZZLES_DEV_COLLECTION);
+  // const puzzles = await puzzlesCollection.find({ userId: req.user._id }).toArray();
+  // console.log("puzzle data", puzzles[0])
+  res.render("auth/home", { user: req.user, puzzles: [], images: [], layout: "auth/layout" });
 });
 
 module.exports = app;

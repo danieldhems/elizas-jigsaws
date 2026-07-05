@@ -252,12 +252,15 @@ export default class PuzzlyCreator {
          const eventTarget = event.target as HTMLInputElement;
          const value = parseInt(eventTarget.value);
 
-         const highlightedPuzzleSize: Puzzle = this.activePuzzleConfigs[value - 1];
+         const highlightedPuzzleSize: Puzzle = this.activePuzzleConfigs[value];
 
          if (this.puzzleConfigs) {
             this.puzzleSizeInputLabel.textContent = highlightedPuzzleSize.totalNumberOfPieces + '';
             // this.PuzzleImpressionOverlay.setActiveImpression(highlightedPuzzleSize);
             this.selectedPuzzleConfig = highlightedPuzzleSize;
+            console.log('selected puzzle', this.selectedPuzzleConfig);
+
+            this.PuzzleImpressionOverlay.setActiveImpression(this.selectedPuzzleConfig);
          }
       });
 
@@ -395,34 +398,18 @@ export default class PuzzlyCreator {
 
       this.imagePreviewEl.classList.remove('d-none');
 
-      this.initPuzzleSizeField();
       this.updatePuzzleSizeField(this.activePuzzleConfigs);
       this.addPuzzleOptionEventListeners();
       this.getCropData();
    }
 
-   initPuzzleSizeField() {
-      this.puzzleSizeField.addEventListener('input', e => {
-         const value = e.currentTarget instanceof HTMLInputElement ? e.currentTarget.value : undefined;
-         // console.log('range input: value', value);
-         // console.log('puzzle configs', this.puzzleConfigs);
-
-         if (value && this.puzzleConfigs.length > 0) {
-            // console.log('active config based on range input', this.puzzleConfigs[parseInt(value) - 1]);
-            this.puzzleSizeInputLabel.textContent = this.puzzleConfigs[parseInt(value) - 1].totalNumberOfPieces + '';
-         }
-      });
-   }
-
    updatePuzzleSizeField(puzzleConfigs: Puzzle[]) {
       this.selectedPuzzleConfig = puzzleConfigs[0];
-
-      console.log('puzzle configs', puzzleConfigs);
 
       if (puzzleConfigs.length > 1) {
          this.puzzleSizeInputField.removeAttribute('disabled');
          this.puzzleSizeInputField.min = 0 + '';
-         this.puzzleSizeInputField.max = puzzleConfigs.length + '';
+         this.puzzleSizeInputField.max = puzzleConfigs.length - 1 + '';
          this.puzzleSizeInputField.value = 0 + '';
       } else {
          this.puzzleSizeInputField.setAttribute('disabled', 'true');

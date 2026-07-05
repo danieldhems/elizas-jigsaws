@@ -38,8 +38,6 @@ export default class PuzzleImpressionOverlay {
       // this.setActiveImpression(this.#selectedPuzzle);
    }
 
-   initiate(args: PuzzleImpressionOverlayConstructorArgs) {}
-
    generatePuzzleImpressions(puzzles: Puzzle[]) {
       const fragment = document.createDocumentFragment();
 
@@ -50,7 +48,13 @@ export default class PuzzleImpressionOverlay {
          const p = puzzles[i];
 
          const container = document.createElement('div');
-         container.classList.add('absolute', 'top-0', 'left-0');
+         container.setAttribute(
+            'id',
+            `puzzle-impression-${p.orientation.toLowerCase()}-${p.numberOfPiecesHorizontal}x${p.numberOfPiecesVertical}`
+         );
+         container.classList.add('puzzle-impression-container');
+         // container.classList.add('absolute', 'top-0', 'left-0');
+         container.setAttribute('style', '{position: absolute; top: 0; left: 0;}');
 
          if (i > 0) container.classList.add('invisible');
 
@@ -64,10 +68,6 @@ export default class PuzzleImpressionOverlay {
          svgElement.setAttribute('viewBox', '0 0 ' + p.width + ' ' + p.height);
          svgElement.setAttribute('width', p.width + '');
          svgElement.setAttribute('height', p.height + '');
-         svgElement.setAttribute(
-            'id',
-            `puzzle-impression-${p.orientation.toLowerCase()}-${p.numberOfPiecesHorizontal}x${p.numberOfPiecesVertical}`
-         );
 
          // Iterate pieces for current puzzle
          for (let n = 0, piecesLength = p.pieces.length; n < piecesLength; n++) {
@@ -140,20 +140,21 @@ export default class PuzzleImpressionOverlay {
    }
 
    setActiveImpression(puzzleConfig: Puzzle) {
-      const { width, height } = puzzleConfig;
+      const { width, height, orientation, numberOfPiecesHorizontal, numberOfPiecesVertical } = puzzleConfig;
 
-      const impressionElements = this.#targetElement.getElementsByTagName('div');
-      const id = 'puzzle-' + puzzleConfig.totalNumberOfPieces;
+      const impressionElements = this.#targetElement.getElementsByClassName('puzzle-impression-container');
+      console.log('impressionElements', impressionElements);
+      const id = `puzzle-impression-${orientation.toLowerCase()}-${numberOfPiecesHorizontal}x${numberOfPiecesVertical}`;
+      console.log('selected id', id);
 
       Array.from(impressionElements).forEach(impressionElement => {
+         console.log('impression element id', impressionElement.id);
          if (impressionElement.id === id) {
             impressionElement.classList.remove('invisible');
 
             if (width !== height) {
                this.#draggableElement.update(this.getLayout(puzzleConfig));
             }
-
-            const impressiongIndex = parseInt(impressionElement.dataset.impressionIndex as string);
          } else {
             impressionElement.classList.add('invisible');
          }
