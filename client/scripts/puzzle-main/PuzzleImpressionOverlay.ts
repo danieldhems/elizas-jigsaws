@@ -53,8 +53,9 @@ export default class PuzzleImpressionOverlay {
             `puzzle-impression-${p.orientation.toLowerCase()}-${p.numberOfPiecesHorizontal}x${p.numberOfPiecesVertical}`
          );
          container.classList.add('puzzle-impression-container');
-         // container.classList.add('absolute', 'top-0', 'left-0');
-         container.setAttribute('style', '{position: absolute; top: 0; left: 0;}');
+         container.style.position = 'absolute';
+         container.style.top = '0';
+         container.style.left = '0';
 
          if (i > 0) container.classList.add('invisible');
 
