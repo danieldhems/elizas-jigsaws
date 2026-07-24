@@ -38,7 +38,7 @@
             isAdmin: checkboxIsAdmin.checked,
         };
 
-        const request = await fetch("/api/create-account", {
+        const request = await fetch("/api/aws/create-account", {
             body: JSON.stringify(data),
             method: "POST",
             headers: {
